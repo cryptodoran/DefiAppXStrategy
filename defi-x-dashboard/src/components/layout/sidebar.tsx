@@ -32,6 +32,12 @@ const navigation = [
     icon: LayoutDashboard,
   },
   {
+    name: 'Viral Discovery',
+    href: '/viral',
+    icon: Flame,
+    badge: 'NEW',
+  },
+  {
     name: 'Analytics',
     href: '/analytics',
     icon: BarChart3,
@@ -125,6 +131,11 @@ export function Sidebar() {
                 >
                   <Icon className="h-5 w-5" />
                   {item.name}
+                  {(item as { badge?: string }).badge && (
+                    <span className="ml-auto px-1.5 py-0.5 text-[10px] font-semibold bg-violet-500 text-white rounded">
+                      {(item as { badge?: string }).badge}
+                    </span>
+                  )}
                 </Link>
 
                 {/* Children */}

@@ -9,44 +9,52 @@ import { PremiumCard } from '@/components/ui/premium-card';
 import { PremiumButton } from '@/components/ui/premium-button';
 import { UrgencyBadge } from '@/components/ui/premium-badge';
 import { useToast } from '@/components/ui/toast';
-import { getRelativeTime, minutesAgo } from '@/lib/utils/time';
-import {
-  REAL_CRYPTO_ACCOUNTS,
-  TRENDING_HASHTAGS,
-  getTwitterHashtagUrl,
-  getTwitterUserTweetsUrl,
-  CRYPTO_NEWS_SOURCES,
-} from '@/services/real-twitter-links';
+import { getRelativeTime } from '@/lib/utils/time';
 import {
   TrendingUp,
   MessageSquare,
-  Users,
   Zap,
   Clock,
   ArrowRight,
   Sparkles,
   FileText,
   ExternalLink,
-  MoreHorizontal,
   RefreshCw,
+  Heart,
+  Repeat,
+  Eye,
 } from 'lucide-react';
 
-// Opportunity types
-type OpportunityType = 'trending' | 'viral-qt' | 'competitor' | 'news';
-type UrgencyLevel = 'alert' | 'hot' | 'rising' | 'normal';
-
-interface Opportunity {
+// Viral tweet from the API
+interface ViralTweet {
   id: string;
-  type: OpportunityType;
-  title: string;
-  description: string;
-  urgency: UrgencyLevel;
-  metric?: string;
-  createdAt: Date;
-  expiresIn?: string;
-  tweetUrl?: string; // Real Twitter URL for verification
-  author?: string;
-  verifyUrl?: string; // Link to verify on X
+  author: {
+    handle: string;
+    name: string;
+    avatar: string;
+    followers: number;
+    verified: boolean;
+  };
+  content: string;
+  media?: {
+    type: 'image' | 'video' | 'gif';
+    url: string;
+    thumbnailUrl?: string;
+  }[];
+  metrics: {
+    likes: number;
+    retweets: number;
+    quotes: number;
+    replies: number;
+    views?: number;
+  };
+  velocity: {
+    likesPerHour: number;
+    retweetsPerHour: number;
+  };
+  postedAt: string;
+  tweetUrl: string;
+  viralScore: number;
 }
 
 // Content draft item types
@@ -57,69 +65,6 @@ interface ContentItem {
   status: DraftStatus;
   preview: string;
   score?: number;
-}
-
-// Generate opportunities with REAL Twitter account links
-function generateOpportunities(): Opportunity[] {
-  // Real trending hashtags with actual Twitter search links
-  const trendingTopics = TRENDING_HASHTAGS.filter(h => h.category === 'crypto' || h.category === 'defi').slice(0, 4);
-  const selectedTrending = trendingTopics[Math.floor(Math.random() * trendingTopics.length)];
-
-  // Real crypto accounts for viral QT opportunities
-  const topAccounts = REAL_CRYPTO_ACCOUNTS.filter(a => a.type === 'founder' || a.type === 'vc');
-  const selectedAccount = topAccounts[Math.floor(Math.random() * topAccounts.length)];
-
-  // Real competitor accounts (protocols)
-  const competitors = REAL_CRYPTO_ACCOUNTS.filter(a => a.type === 'protocol');
-  const selectedCompetitor = competitors[Math.floor(Math.random() * competitors.length)];
-
-  // Real news sources
-  const selectedNews = CRYPTO_NEWS_SOURCES[Math.floor(Math.random() * CRYPTO_NEWS_SOURCES.length)];
-
-  return [
-    {
-      id: '1',
-      type: 'trending',
-      title: `${selectedTrending.tag} is trending`,
-      description: 'High engagement opportunity - click to view live tweets on X',
-      urgency: 'hot',
-      metric: 'View on X',
-      createdAt: minutesAgo(Math.floor(Math.random() * 5) + 1),
-      expiresIn: '~2hrs',
-      verifyUrl: selectedTrending.searchUrl,
-    },
-    {
-      id: '2',
-      type: 'viral-qt',
-      title: `${selectedAccount.name} active`,
-      description: `${selectedAccount.description} - Quote tweet for visibility`,
-      urgency: 'alert',
-      metric: selectedAccount.followers,
-      author: selectedAccount.handle,
-      createdAt: minutesAgo(Math.floor(Math.random() * 3)),
-      tweetUrl: getTwitterUserTweetsUrl(selectedAccount.handle),
-      verifyUrl: selectedAccount.profileUrl,
-    },
-    {
-      id: '3',
-      type: 'competitor',
-      title: `${selectedCompetitor.name} posting`,
-      description: `Track ${selectedCompetitor.handle} content strategy`,
-      urgency: 'rising',
-      createdAt: minutesAgo(Math.floor(Math.random() * 20) + 5),
-      verifyUrl: selectedCompetitor.profileUrl,
-    },
-    {
-      id: '4',
-      type: 'news',
-      title: `${selectedNews.name} breaking`,
-      description: 'Latest crypto news - react quickly for engagement',
-      urgency: 'alert',
-      metric: 'Breaking',
-      createdAt: minutesAgo(Math.floor(Math.random() * 10) + 1),
-      verifyUrl: selectedNews.url,
-    },
-  ];
 }
 
 const contentDrafts: ContentItem[] = [
@@ -144,74 +89,89 @@ const contentDrafts: ContentItem[] = [
 ];
 
 export function ActionCenter() {
-  const [opportunities, setOpportunities] = React.useState<Opportunity[]>([]);
+  const [viralTweets, setViralTweets] = React.useState<ViralTweet[]>([]);
   const [lastRefresh, setLastRefresh] = React.useState<Date>(new Date());
   const [isRefreshing, setIsRefreshing] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
 
-  // Initialize and refresh opportunities
-  const refreshOpportunities = React.useCallback(() => {
+  // Fetch viral tweets from API
+  const fetchViralTweets = React.useCallback(async () => {
     setIsRefreshing(true);
-    // Simulate API delay
-    setTimeout(() => {
-      setOpportunities(generateOpportunities());
+    setError(null);
+
+    try {
+      const response = await fetch('/api/viral/tweets?timeframe=6h&sortBy=velocity&limit=4');
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch viral tweets');
+      }
+
+      const data = await response.json();
+      setViralTweets(data.tweets || []);
       setLastRefresh(new Date());
+    } catch (err) {
+      console.error('Error fetching viral tweets:', err);
+      setError('Failed to load opportunities');
+    } finally {
       setIsRefreshing(false);
-    }, 500);
+    }
   }, []);
 
   // Initial load
   React.useEffect(() => {
-    refreshOpportunities();
-  }, [refreshOpportunities]);
+    fetchViralTweets();
+  }, [fetchViralTweets]);
 
-  // Auto-refresh every 30 seconds
+  // Auto-refresh every 2 minutes
   React.useEffect(() => {
     const interval = setInterval(() => {
-      refreshOpportunities();
-    }, 30000);
+      fetchViralTweets();
+    }, 120000);
     return () => clearInterval(interval);
-  }, [refreshOpportunities]);
+  }, [fetchViralTweets]);
 
-  // Force re-render every 10 seconds to update relative timestamps
+  // Force re-render every 30 seconds to update relative timestamps
   const [, forceUpdate] = React.useState(0);
   React.useEffect(() => {
     const interval = setInterval(() => {
       forceUpdate(n => n + 1);
-    }, 10000);
+    }, 30000);
     return () => clearInterval(interval);
   }, []);
 
   return (
     <div className="space-y-6">
-      <OpportunitiesPanel
-        opportunities={opportunities}
-        onRefresh={refreshOpportunities}
+      <ViralTweetsPanel
+        tweets={viralTweets}
+        onRefresh={fetchViralTweets}
         isRefreshing={isRefreshing}
         lastRefresh={lastRefresh}
+        error={error}
       />
       <ContentDraftsPanel items={contentDrafts} />
     </div>
   );
 }
 
-// Opportunities Panel
-interface OpportunitiesPanelProps {
-  opportunities: Opportunity[];
+// Viral Tweets Panel
+interface ViralTweetsPanelProps {
+  tweets: ViralTweet[];
   onRefresh: () => void;
   isRefreshing: boolean;
   lastRefresh: Date;
+  error: string | null;
 }
 
-function OpportunitiesPanel({ opportunities, onRefresh, isRefreshing, lastRefresh }: OpportunitiesPanelProps) {
+function ViralTweetsPanel({ tweets, onRefresh, isRefreshing, lastRefresh, error }: ViralTweetsPanelProps) {
   return (
     <PremiumCard padding="none">
       <div className="p-4 border-b border-white/5">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Zap className="h-4 w-4 text-yellow-400" />
-            <h3 className="font-semibold text-primary">Opportunities</h3>
+            <h3 className="font-semibold text-primary">Viral Tweets</h3>
             <span className="px-1.5 py-0.5 rounded bg-yellow-500/20 text-yellow-400 text-xs font-medium">
-              {opportunities.length}
+              {tweets.length}
             </span>
           </div>
           <div className="flex items-center gap-2">
@@ -228,32 +188,49 @@ function OpportunitiesPanel({ opportunities, onRefresh, isRefreshing, lastRefres
           </div>
         </div>
         <p className="text-[10px] text-tertiary mt-1">
-          All links verified - click to view on X
+          Real viral tweets from Crypto Twitter - click to view on X
         </p>
       </div>
 
-      <div className="divide-y divide-white/5">
-        <AnimatePresence mode="popLayout">
-          {opportunities.map((opp, index) => (
-            <motion.div
-              key={opp.id + opp.title}
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 10 }}
-              transition={{ delay: index * 0.05 }}
-            >
-              <OpportunityItem opportunity={opp} />
-            </motion.div>
-          ))}
-        </AnimatePresence>
-      </div>
+      {error ? (
+        <div className="p-4 text-center text-tertiary">
+          <p className="text-sm">{error}</p>
+          <button
+            onClick={onRefresh}
+            className="mt-2 text-xs text-violet-400 hover:text-violet-300"
+          >
+            Try again
+          </button>
+        </div>
+      ) : tweets.length === 0 && !isRefreshing ? (
+        <div className="p-4 text-center text-tertiary">
+          <p className="text-sm">No viral tweets found</p>
+          <p className="text-xs mt-1">Configure Twitter API for real data</p>
+        </div>
+      ) : (
+        <div className="divide-y divide-white/5">
+          <AnimatePresence mode="popLayout">
+            {tweets.map((tweet, index) => (
+              <motion.div
+                key={tweet.id}
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 10 }}
+                transition={{ delay: index * 0.05 }}
+              >
+                <ViralTweetItem tweet={tweet} />
+              </motion.div>
+            ))}
+          </AnimatePresence>
+        </div>
+      )}
 
       <div className="p-3 border-t border-white/5">
         <Link
-          href="/research/trends"
+          href="/viral"
           className="w-full flex items-center justify-center gap-2 text-sm text-tertiary hover:text-secondary transition-colors"
         >
-          View all opportunities
+          View all viral tweets
           <ArrowRight className="h-4 w-4" />
         </Link>
       </div>
@@ -261,89 +238,128 @@ function OpportunitiesPanel({ opportunities, onRefresh, isRefreshing, lastRefres
   );
 }
 
-function OpportunityItem({ opportunity }: { opportunity: Opportunity }) {
+function ViralTweetItem({ tweet }: { tweet: ViralTweet }) {
   const router = useRouter();
   const { addToast } = useToast();
-  const typeIcons: Record<OpportunityType, React.ReactNode> = {
-    trending: <TrendingUp className="h-4 w-4" />,
-    'viral-qt': <MessageSquare className="h-4 w-4" />,
-    competitor: <Users className="h-4 w-4" />,
-    news: <Zap className="h-4 w-4" />,
+
+  // Determine urgency based on viral score
+  const getUrgency = (score: number): 'alert' | 'hot' | 'rising' | 'normal' => {
+    if (score >= 90) return 'alert';
+    if (score >= 75) return 'hot';
+    if (score >= 50) return 'rising';
+    return 'normal';
   };
 
-  const typeColors: Record<OpportunityType, string> = {
-    trending: 'text-green-400 bg-green-500/10',
-    'viral-qt': 'text-blue-400 bg-blue-500/10',
-    competitor: 'text-violet-400 bg-violet-500/10',
-    news: 'text-orange-400 bg-orange-500/10',
+  // Format large numbers
+  const formatNumber = (num: number): string => {
+    if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
+    if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
+    return num.toString();
   };
 
   return (
     <div className="p-4 hover:bg-elevated/50 transition-colors group">
       <div className="flex items-start gap-3">
-        <div className={cn('p-2 rounded-lg', typeColors[opportunity.type])}>
-          {typeIcons[opportunity.type]}
+        {/* Author avatar */}
+        <div className="w-10 h-10 rounded-full bg-elevated overflow-hidden flex-shrink-0">
+          {tweet.author.avatar ? (
+            <img
+              src={tweet.author.avatar}
+              alt={tweet.author.name}
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center text-tertiary">
+              {tweet.author.name.charAt(0)}
+            </div>
+          )}
         </div>
 
         <div className="flex-1 min-w-0">
+          {/* Author info */}
           <div className="flex items-center gap-2 mb-1">
-            <h4 className="font-medium text-primary truncate">{opportunity.title}</h4>
-            <UrgencyBadge level={opportunity.urgency} />
-          </div>
-          <p className="text-sm text-tertiary line-clamp-1">{opportunity.description}</p>
-
-          <div className="flex items-center gap-3 mt-2">
-            {opportunity.metric && (
-              <span className="text-xs font-medium text-secondary">{opportunity.metric}</span>
+            <span className="font-medium text-primary truncate">{tweet.author.name}</span>
+            {tweet.author.verified && (
+              <svg className="h-4 w-4 text-blue-400" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M22.5 12.5c0-1.58-.875-2.95-2.148-3.6.154-.435.238-.905.238-1.4 0-2.21-1.71-3.998-3.818-3.998-.47 0-.92.084-1.336.25C14.818 2.415 13.51 1.5 12 1.5s-2.816.917-3.437 2.25c-.415-.165-.866-.25-1.336-.25-2.11 0-3.818 1.79-3.818 4 0 .494.083.964.237 1.4-1.272.65-2.147 2.018-2.147 3.6 0 1.495.782 2.798 1.942 3.486-.02.17-.032.34-.032.514 0 2.21 1.708 4 3.818 4 .47 0 .92-.086 1.335-.25.62 1.334 1.926 2.25 3.437 2.25 1.512 0 2.818-.916 3.437-2.25.415.163.865.248 1.336.248 2.11 0 3.818-1.79 3.818-4 0-.174-.012-.344-.033-.513 1.158-.687 1.943-1.99 1.943-3.484zm-6.616-3.334l-4.334 6.5c-.145.217-.382.334-.625.334-.143 0-.288-.04-.416-.126l-.115-.094-2.415-2.415c-.293-.293-.293-.768 0-1.06s.768-.294 1.06 0l1.77 1.767 3.825-5.74c.23-.345.696-.436 1.04-.207.346.23.44.696.21 1.04z" />
+              </svg>
             )}
-            <span className="text-xs text-tertiary">{getRelativeTime(opportunity.createdAt)}</span>
-            {opportunity.expiresIn && (
-              <span className="text-xs text-yellow-400 flex items-center gap-1">
-                <Clock className="h-3 w-3" />
-                {opportunity.expiresIn}
+            <span className="text-tertiary text-sm">@{tweet.author.handle}</span>
+            <UrgencyBadge level={getUrgency(tweet.viralScore)} />
+          </div>
+
+          {/* Tweet content preview */}
+          <p className="text-sm text-secondary line-clamp-2 mb-2">{tweet.content}</p>
+
+          {/* Metrics */}
+          <div className="flex items-center gap-4 text-xs text-tertiary">
+            <span className="flex items-center gap-1">
+              <Heart className="h-3 w-3 text-red-400" />
+              {formatNumber(tweet.metrics.likes)}
+            </span>
+            <span className="flex items-center gap-1">
+              <Repeat className="h-3 w-3 text-green-400" />
+              {formatNumber(tweet.metrics.retweets)}
+            </span>
+            {tweet.metrics.views && (
+              <span className="flex items-center gap-1">
+                <Eye className="h-3 w-3" />
+                {formatNumber(tweet.metrics.views)}
               </span>
             )}
-            {/* Verify link */}
-            {opportunity.verifyUrl && (
-              <a
-                href={opportunity.verifyUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-xs text-violet-400 hover:text-violet-300 flex items-center gap-1"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <ExternalLink className="h-3 w-3" />
-                Verify
-              </a>
-            )}
+            <span className="flex items-center gap-1">
+              <Clock className="h-3 w-3" />
+              {getRelativeTime(new Date(tweet.postedAt))}
+            </span>
+            {/* Direct link to tweet */}
+            <a
+              href={tweet.tweetUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-violet-400 hover:text-violet-300 flex items-center gap-1 ml-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <ExternalLink className="h-3 w-3" />
+              View
+            </a>
           </div>
         </div>
 
         <PremiumButton
           size="sm"
           variant="secondary"
-          className="opacity-0 group-hover:opacity-100 transition-opacity"
+          className="opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0"
           onClick={() => {
-            // Route based on opportunity type
-            if (opportunity.type === 'trending') {
-              router.push('/create?topic=' + encodeURIComponent(opportunity.title));
-            } else if (opportunity.type === 'viral-qt') {
-              router.push('/create/qt?url=' + encodeURIComponent(opportunity.tweetUrl || ''));
-            } else if (opportunity.type === 'competitor') {
-              router.push('/research/competitors');
-            } else {
-              router.push('/create');
-            }
+            // Go to QT studio with this tweet URL
+            router.push('/create/qt?url=' + encodeURIComponent(tweet.tweetUrl));
             addToast({
               type: 'info',
-              title: 'Acting on opportunity',
-              description: opportunity.title,
+              title: 'Creating QT response',
+              description: `For @${tweet.author.handle}'s viral tweet`,
             });
           }}
         >
-          Act
+          QT
         </PremiumButton>
       </div>
+
+      {/* Media preview if available */}
+      {tweet.media && tweet.media.length > 0 && (
+        <div className="mt-3 ml-13 rounded-lg overflow-hidden">
+          {tweet.media[0].type === 'image' && (
+            <img
+              src={tweet.media[0].thumbnailUrl || tweet.media[0].url}
+              alt="Tweet media"
+              className="w-full max-h-32 object-cover rounded-lg"
+            />
+          )}
+          {tweet.media[0].type === 'video' && (
+            <div className="relative bg-black/50 rounded-lg h-24 flex items-center justify-center">
+              <span className="text-xs text-tertiary">Video content</span>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
@@ -412,7 +428,6 @@ function ContentDraftItem({ item }: { item: ContentItem }) {
   const { label, color } = statusConfig[item.status];
 
   const handleEdit = () => {
-    // Navigate to create page with the content for editing
     if (item.status === 'ai-suggestion') {
       router.push('/suggestions/daily');
     } else {

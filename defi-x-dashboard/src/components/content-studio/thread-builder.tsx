@@ -44,6 +44,8 @@ export function ThreadBuilder({ initialTopic }: ThreadBuilderProps) {
   ]);
   const [prediction, setPrediction] = React.useState<ThreadPerformancePrediction | null>(null);
   const [isPosting, setIsPosting] = React.useState(false);
+  const [isGenerating, setIsGenerating] = React.useState(false);
+  const [targetThreadLength, setTargetThreadLength] = React.useState(5);
   const { addToast } = useToast();
 
   // Pre-fill first tweet with topic if provided
@@ -98,7 +100,7 @@ export function ThreadBuilder({ initialTopic }: ThreadBuilderProps) {
     });
   };
 
-  const handleGenerateThread = () => {
+  const handleGenerateThread = async () => {
     const firstTweet = tweets[0].content.trim();
     if (!firstTweet) {
       addToast({
@@ -108,25 +110,61 @@ export function ThreadBuilder({ initialTopic }: ThreadBuilderProps) {
       });
       return;
     }
+
+    setIsGenerating(true);
     addToast({
       type: 'info',
       title: 'Generating thread',
       description: 'AI is expanding your idea...',
     });
-    // Simulate AI generation
-    setTimeout(() => {
-      setTweets([
-        tweets[0],
-        { id: Date.now().toString(), content: 'Here\'s the key insight most people miss...', characterCount: 42 },
-        { id: (Date.now() + 1).toString(), content: 'The data shows that adoption is accelerating faster than expected.', characterCount: 66 },
-        { id: (Date.now() + 2).toString(), content: 'What this means for you: get positioned now before the masses catch on.', characterCount: 70 },
-      ]);
+
+    try {
+      // Extract topic from first tweet
+      const topic = firstTweet.replace(/^(Thread:|🧵)/i, '').trim();
+
+      const response = await fetch('/api/content/enhance', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'thread',
+          content: firstTweet,
+          options: {
+            topic,
+            targetLength: targetThreadLength,
+          },
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to generate thread');
+      }
+
+      const data = await response.json();
+      const threadTweets = data.result as { position: number; content: string; hook?: string }[];
+
+      // Convert to TweetItem format
+      const newTweets = threadTweets.map((t, i) => ({
+        id: (Date.now() + i).toString(),
+        content: t.content,
+        characterCount: t.content.length,
+      }));
+
+      setTweets(newTweets);
       addToast({
         type: 'success',
         title: 'Thread generated!',
-        description: 'AI expanded your idea into 4 tweets',
+        description: `AI expanded your idea into ${newTweets.length} tweets`,
       });
-    }, 1500);
+    } catch (error) {
+      console.error('Thread generation error:', error);
+      addToast({
+        type: 'error',
+        title: 'Generation failed',
+        description: 'Could not generate thread. Try again.',
+      });
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   const addTweet = (afterId?: string) => {
@@ -250,7 +288,7 @@ export function ThreadBuilder({ initialTopic }: ThreadBuilderProps) {
 
         {/* AI Thread Generation */}
         <PremiumCard variant="elevated">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between flex-wrap gap-4">
             <div className="flex items-center gap-3">
               <div className="p-2 rounded-lg bg-violet-500/10">
                 <Sparkles className="h-5 w-5 text-violet-400" />
@@ -260,14 +298,30 @@ export function ThreadBuilder({ initialTopic }: ThreadBuilderProps) {
                 <p className="text-sm text-tertiary">Let AI expand your idea into a full thread</p>
               </div>
             </div>
-            <PremiumButton
-              size="sm"
-              variant="secondary"
-              leftIcon={<Wand2 className="h-4 w-4" />}
-              onClick={handleGenerateThread}
-            >
-              Generate Thread
-            </PremiumButton>
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-tertiary">Length:</span>
+                <select
+                  value={targetThreadLength}
+                  onChange={(e) => setTargetThreadLength(Number(e.target.value))}
+                  className="bg-elevated text-secondary text-sm px-2 py-1 rounded-lg border border-white/10 focus:outline-none focus:border-violet-500/50"
+                >
+                  <option value={3}>3 tweets</option>
+                  <option value={5}>5 tweets</option>
+                  <option value={7}>7 tweets</option>
+                  <option value={10}>10 tweets</option>
+                </select>
+              </div>
+              <PremiumButton
+                size="sm"
+                variant="secondary"
+                leftIcon={isGenerating ? <span className="animate-spin">⏳</span> : <Wand2 className="h-4 w-4" />}
+                onClick={handleGenerateThread}
+                disabled={isGenerating}
+              >
+                {isGenerating ? 'Generating...' : 'Generate Thread'}
+              </PremiumButton>
+            </div>
           </div>
         </PremiumCard>
       </div>

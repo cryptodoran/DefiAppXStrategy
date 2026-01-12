@@ -73,6 +73,14 @@ export default function BrandVoicePage() {
     passes: boolean;
     issues: string[];
     suggestions: string[];
+    analysis?: {
+      overallScore?: number;
+      voiceAlignment?: number;
+      spiceLevel?: number;
+      hookStrength?: number;
+      clarity?: number;
+      strengths?: string[];
+    };
   }>(null);
 
   const addToList = (list: 'tone' | 'vocabulary' | 'avoidWords', value: string) => {
@@ -105,7 +113,80 @@ export default function BrandVoicePage() {
     });
   };
 
-  const testBrandVoice = () => {
+  const [isTestingVoice, setIsTestingVoice] = useState(false);
+
+  const testBrandVoice = async () => {
+    if (!testContent.trim()) {
+      addToast({
+        type: 'warning',
+        title: 'No content',
+        description: 'Please enter content to test',
+      });
+      return;
+    }
+
+    setIsTestingVoice(true);
+    setTestResult(null);
+
+    try {
+      // Try to use real Claude AI analysis
+      const response = await fetch('/api/content/enhance', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'analyze',
+          content: testContent,
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const analysis = data.result;
+
+        // Convert Claude analysis to our test result format
+        const issues: string[] = [];
+        const suggestions: string[] = [];
+
+        // Check for avoided words locally (quick check)
+        brandVoice.avoidWords.forEach((word) => {
+          if (testContent.toLowerCase().includes(word.toLowerCase())) {
+            issues.push(`Contains avoided word: "${word}"`);
+          }
+        });
+
+        // Add issues from Claude analysis
+        if (analysis.issues) {
+          analysis.issues.forEach((issue: { type: string; description: string }) => {
+            if (issue.type === 'critical' || issue.type === 'warning') {
+              issues.push(issue.description);
+            }
+          });
+        }
+
+        // Add improvements as suggestions
+        if (analysis.improvements) {
+          suggestions.push(...analysis.improvements);
+        }
+
+        setTestResult({
+          passes: issues.length === 0 && (analysis.voiceAlignment || 0) >= 70,
+          issues,
+          suggestions,
+          analysis, // Include full analysis for additional display
+        });
+      } else {
+        // Fallback to local analysis
+        fallbackLocalTest();
+      }
+    } catch (error) {
+      console.error('Voice test error:', error);
+      fallbackLocalTest();
+    } finally {
+      setIsTestingVoice(false);
+    }
+  };
+
+  const fallbackLocalTest = () => {
     const issues: string[] = [];
     const suggestions: string[] = [];
     const lowerContent = testContent.toLowerCase();
@@ -448,9 +529,18 @@ export default function BrandVoicePage() {
                   onChange={(e) => setTestContent(e.target.value)}
                   className="min-h-[200px] bg-base border-white/5"
                 />
-                <Button onClick={testBrandVoice} className="w-full">
-                  <Shield className="mr-2 h-4 w-4" />
-                  Check Brand Compliance
+                <Button onClick={testBrandVoice} className="w-full" disabled={isTestingVoice}>
+                  {isTestingVoice ? (
+                    <>
+                      <span className="mr-2 h-4 w-4 animate-spin">...</span>
+                      Analyzing with AI...
+                    </>
+                  ) : (
+                    <>
+                      <Shield className="mr-2 h-4 w-4" />
+                      Check Brand Compliance (AI)
+                    </>
+                  )}
                 </Button>
               </CardContent>
             </Card>
@@ -479,6 +569,54 @@ export default function BrandVoicePage() {
                         </span>
                       </div>
                     </div>
+
+                    {/* AI Scores */}
+                    {testResult.analysis && (
+                      <div className="grid grid-cols-3 gap-2">
+                        {testResult.analysis.voiceAlignment !== undefined && (
+                          <div className="p-2 rounded bg-base text-center">
+                            <div className={cn(
+                              'text-lg font-mono font-bold',
+                              testResult.analysis.voiceAlignment >= 70 ? 'text-green-400' : 'text-yellow-400'
+                            )}>
+                              {testResult.analysis.voiceAlignment}%
+                            </div>
+                            <div className="text-xs text-tertiary">Voice Match</div>
+                          </div>
+                        )}
+                        {testResult.analysis.spiceLevel !== undefined && (
+                          <div className="p-2 rounded bg-base text-center">
+                            <div className="text-lg font-mono font-bold text-orange-400">
+                              {testResult.analysis.spiceLevel}%
+                            </div>
+                            <div className="text-xs text-tertiary">Spice Level</div>
+                          </div>
+                        )}
+                        {testResult.analysis.hookStrength !== undefined && (
+                          <div className="p-2 rounded bg-base text-center">
+                            <div className="text-lg font-mono font-bold text-blue-400">
+                              {testResult.analysis.hookStrength}%
+                            </div>
+                            <div className="text-xs text-tertiary">Hook</div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Strengths */}
+                    {testResult.analysis?.strengths && testResult.analysis.strengths.length > 0 && (
+                      <div>
+                        <p className="text-sm font-medium text-green-400 mb-2">Strengths:</p>
+                        <ul className="space-y-1">
+                          {testResult.analysis.strengths.map((strength, i) => (
+                            <li key={i} className="text-sm text-tertiary flex items-center gap-2">
+                              <Check className="h-3 w-3 text-green-400" />
+                              {strength}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
 
                     {testResult.issues.length > 0 && (
                       <div>

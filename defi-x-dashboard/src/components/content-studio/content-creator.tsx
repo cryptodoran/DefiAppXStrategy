@@ -6,8 +6,7 @@ import { cn } from '@/lib/utils';
 import { PremiumCard } from '@/components/ui/premium-card';
 import { PremiumButton } from '@/components/ui/premium-button';
 import { PremiumTextarea } from '@/components/ui/premium-input';
-import { PremiumBadge, MarketMoodBadge } from '@/components/ui/premium-badge';
-import { Sparkline } from '@/components/ui/sparkline';
+import { MarketMoodBadge } from '@/components/ui/premium-badge';
 import { useToast } from '@/components/ui/toast';
 import {
   Sparkles,
@@ -16,51 +15,53 @@ import {
   Scissors,
   ArrowUp,
   Eye,
-  Clock,
-  TrendingUp,
   Send,
   AlertTriangle,
   CheckCircle,
   XCircle,
+  Loader2,
+  Image as ImageIcon,
+  Copy,
+  RefreshCw,
 } from 'lucide-react';
 
-interface QualityScore {
-  overall: number;
-  breakdown: {
-    hook: number;
-    value: number;
-    originality: number;
-    voice: number;
-  };
-  issues: QualityIssue[];
-  grade: 'A' | 'B' | 'C' | 'D' | 'F';
+interface ContentAnalysis {
+  overallScore: number;
+  spiceLevel: number;
+  controversyScore: number;
+  engagementPotential: number;
+  voiceAlignment: number;
+  hookStrength: number;
+  clarity: number;
+  issues: {
+    type: 'critical' | 'warning' | 'suggestion';
+    description: string;
+    fix: string;
+  }[];
+  strengths: string[];
+  improvements: string[];
 }
 
-interface QualityIssue {
+interface EnhanceResult {
+  enhanced: string;
+  changes: string[];
+  reasoning: string;
+}
+
+interface MediaSuggestion {
   type: string;
-  severity: 'critical' | 'warning' | 'info';
   description: string;
-  suggestion: string;
+  imagePrompt: string;
+  reasoning: string;
 }
 
-interface MarketContextData {
-  btcPrice: number;
-  btcChange: number;
-  ethPrice: number;
-  ethChange: number;
-  mood: 'euphoria' | 'bullish' | 'neutral' | 'bearish' | 'panic' | 'chaos';
-  topTrend: string;
+interface GeneratedVariation {
+  content: string;
+  voiceAlignment: number;
+  predictedEngagement: { likes: [number, number]; retweets: [number, number] };
+  reasoning: string;
+  hook?: string;
 }
-
-// Mock data
-const mockMarketContext: MarketContextData = {
-  btcPrice: 97842,
-  btcChange: 2.34,
-  ethPrice: 3456,
-  ethChange: -0.87,
-  mood: 'bullish',
-  topTrend: '#ETH100K',
-};
 
 interface ContentCreatorProps {
   initialTopic?: string;
@@ -68,8 +69,14 @@ interface ContentCreatorProps {
 
 export function ContentCreator({ initialTopic }: ContentCreatorProps) {
   const [content, setContent] = React.useState('');
-  const [qualityScore, setQualityScore] = React.useState<QualityScore | null>(null);
+  const [analysis, setAnalysis] = React.useState<ContentAnalysis | null>(null);
   const [isAnalyzing, setIsAnalyzing] = React.useState(false);
+  const [isEnhancing, setIsEnhancing] = React.useState(false);
+  const [enhancingAction, setEnhancingAction] = React.useState<string | null>(null);
+  const [variations, setVariations] = React.useState<GeneratedVariation[]>([]);
+  const [isGeneratingVariations, setIsGeneratingVariations] = React.useState(false);
+  const [mediaSuggestions, setMediaSuggestions] = React.useState<MediaSuggestion[]>([]);
+  const [isGeneratingMedia, setIsGeneratingMedia] = React.useState(false);
   const { addToast } = useToast();
 
   // Pre-fill content with topic if provided
@@ -77,7 +84,7 @@ export function ContentCreator({ initialTopic }: ContentCreatorProps) {
     if (initialTopic && !content) {
       setContent(`Thoughts on ${initialTopic}:\n\n`);
     }
-  }, [initialTopic]);
+  }, [initialTopic, content]);
 
   // Opens Twitter/X with pre-filled content for manual posting
   const handleOpenInTwitter = () => {
@@ -89,7 +96,6 @@ export function ContentCreator({ initialTopic }: ContentCreatorProps) {
       });
       return;
     }
-    // Twitter web intent URL - opens Twitter with pre-filled content
     const twitterIntentUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(content)}`;
     window.open(twitterIntentUrl, '_blank');
     addToast({
@@ -117,7 +123,8 @@ export function ContentCreator({ initialTopic }: ContentCreatorProps) {
     });
   };
 
-  const handleAiAssist = (action: string) => {
+  // Real AI enhancement
+  const handleAiAssist = async (action: 'spicier' | 'context' | 'shorten' | 'hook') => {
     if (!content.trim()) {
       addToast({
         type: 'warning',
@@ -126,33 +133,48 @@ export function ContentCreator({ initialTopic }: ContentCreatorProps) {
       });
       return;
     }
-    addToast({
-      type: 'info',
-      title: `AI: ${action}`,
-      description: 'Generating improved version...',
-    });
-    // Simulate AI enhancement
-    setTimeout(() => {
-      let enhanced = content;
-      if (action === 'Make Spicier') {
-        enhanced = content + '\n\nThis is your chance to get in early. Don\'t miss out!';
-      } else if (action === 'Add Context') {
-        enhanced = `Context: Current market conditions show significant momentum.\n\n${content}`;
-      } else if (action === 'Shorten') {
-        enhanced = content.split('.').slice(0, 2).join('.') + '.';
-      } else if (action === 'Suggest Hook') {
-        enhanced = `Thread: 🧵\n\n${content}`;
+
+    setIsEnhancing(true);
+    setEnhancingAction(action);
+
+    try {
+      const response = await fetch('/api/content/enhance', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action, content }),
+      });
+
+      const data = await response.json();
+
+      if (data.error && !data._demo) {
+        throw new Error(data.error);
       }
-      setContent(enhanced);
+
+      const result: EnhanceResult = data.result;
+      setContent(result.enhanced);
+
       addToast({
         type: 'success',
         title: 'Content enhanced!',
-        description: `Applied "${action}" transformation`,
+        description: result.changes[0] || 'Applied AI enhancement',
       });
-    }, 1000);
+
+      // Clear variations since content changed
+      setVariations([]);
+    } catch (error) {
+      addToast({
+        type: 'error',
+        title: 'Enhancement failed',
+        description: String(error),
+      });
+    } finally {
+      setIsEnhancing(false);
+      setEnhancingAction(null);
+    }
   };
 
-  const handleGenerateVariations = () => {
+  // Generate variations
+  const handleGenerateVariations = async () => {
     if (!content.trim()) {
       addToast({
         type: 'warning',
@@ -161,27 +183,110 @@ export function ContentCreator({ initialTopic }: ContentCreatorProps) {
       });
       return;
     }
-    addToast({
-      type: 'info',
-      title: 'Generating variations',
-      description: 'Creating 3 alternative versions...',
-    });
+
+    setIsGeneratingVariations(true);
+
+    try {
+      const response = await fetch('/api/content/enhance', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'variations', content, options: { count: 3 } }),
+      });
+
+      const data = await response.json();
+
+      if (data.error && !data._demo) {
+        throw new Error(data.error);
+      }
+
+      setVariations(data.result);
+
+      addToast({
+        type: 'success',
+        title: 'Variations generated!',
+        description: '3 alternative versions created',
+      });
+    } catch (error) {
+      addToast({
+        type: 'error',
+        title: 'Generation failed',
+        description: String(error),
+      });
+    } finally {
+      setIsGeneratingVariations(false);
+    }
   };
 
-  // Analyze content quality in real-time
-  React.useEffect(() => {
+  // Generate media suggestions
+  const handleGenerateMedia = async () => {
     if (!content.trim()) {
-      setQualityScore(null);
+      addToast({
+        type: 'warning',
+        title: 'No content',
+        description: 'Write something first to get media suggestions',
+      });
       return;
     }
 
-    setIsAnalyzing(true);
-    const timer = setTimeout(() => {
-      // Simulate quality analysis
-      const mockScore: QualityScore = analyzeContentQuality(content);
-      setQualityScore(mockScore);
-      setIsAnalyzing(false);
-    }, 300);
+    setIsGeneratingMedia(true);
+
+    try {
+      const response = await fetch('/api/content/enhance', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'media', content }),
+      });
+
+      const data = await response.json();
+
+      if (data.error && !data._demo) {
+        throw new Error(data.error);
+      }
+
+      setMediaSuggestions(data.result);
+
+      addToast({
+        type: 'success',
+        title: 'Media suggestions ready!',
+        description: 'AI suggested visuals for your post',
+      });
+    } catch (error) {
+      addToast({
+        type: 'error',
+        title: 'Generation failed',
+        description: String(error),
+      });
+    } finally {
+      setIsGeneratingMedia(false);
+    }
+  };
+
+  // Real AI analysis (debounced)
+  React.useEffect(() => {
+    if (!content.trim() || content.length < 20) {
+      setAnalysis(null);
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      setIsAnalyzing(true);
+      try {
+        const response = await fetch('/api/content/enhance', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'analyze', content }),
+        });
+
+        const data = await response.json();
+        if (data.result) {
+          setAnalysis(data.result);
+        }
+      } catch {
+        // Silent fail for analysis
+      } finally {
+        setIsAnalyzing(false);
+      }
+    }, 1000);
 
     return () => clearTimeout(timer);
   }, [content]);
@@ -192,14 +297,12 @@ export function ContentCreator({ initialTopic }: ContentCreatorProps) {
     return 'text-red-400';
   };
 
-  const getGradeColor = (grade: string) => {
-    switch (grade) {
-      case 'A': return 'bg-green-500/20 text-green-400 border-green-500/30';
-      case 'B': return 'bg-lime-500/20 text-lime-400 border-lime-500/30';
-      case 'C': return 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30';
-      case 'D': return 'bg-orange-500/20 text-orange-400 border-orange-500/30';
-      default: return 'bg-red-500/20 text-red-400 border-red-500/30';
-    }
+  const getGrade = (score: number) => {
+    if (score >= 85) return { grade: 'A', color: 'bg-green-500/20 text-green-400 border-green-500/30' };
+    if (score >= 70) return { grade: 'B', color: 'bg-lime-500/20 text-lime-400 border-lime-500/30' };
+    if (score >= 55) return { grade: 'C', color: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30' };
+    if (score >= 40) return { grade: 'D', color: 'bg-orange-500/20 text-orange-400 border-orange-500/30' };
+    return { grade: 'F', color: 'bg-red-500/20 text-red-400 border-red-500/30' };
   };
 
   return (
@@ -213,7 +316,7 @@ export function ContentCreator({ initialTopic }: ContentCreatorProps) {
               <PremiumButton
                 size="sm"
                 variant="ghost"
-                leftIcon={<Eye className="h-4 w-4" />}
+                leftIcon={<Copy className="h-4 w-4" />}
                 onClick={handleCopyContent}
               >
                 Copy
@@ -239,31 +342,31 @@ export function ContentCreator({ initialTopic }: ContentCreatorProps) {
             className="min-h-[160px]"
           />
 
-          {/* Quality Issues */}
-          {qualityScore && qualityScore.issues.length > 0 && (
+          {/* Analysis Issues */}
+          {analysis && analysis.issues.length > 0 && (
             <div className="mt-4 space-y-2">
-              {qualityScore.issues.map((issue, i) => (
+              {analysis.issues.map((issue, i) => (
                 <motion.div
                   key={i}
                   initial={{ opacity: 0, y: -5 }}
                   animate={{ opacity: 1, y: 0 }}
                   className={cn(
                     'flex items-start gap-2 p-2 rounded-lg text-sm',
-                    issue.severity === 'critical' && 'bg-red-500/10 text-red-400',
-                    issue.severity === 'warning' && 'bg-yellow-500/10 text-yellow-400',
-                    issue.severity === 'info' && 'bg-blue-500/10 text-blue-400'
+                    issue.type === 'critical' && 'bg-red-500/10 text-red-400',
+                    issue.type === 'warning' && 'bg-yellow-500/10 text-yellow-400',
+                    issue.type === 'suggestion' && 'bg-blue-500/10 text-blue-400'
                   )}
                 >
-                  {issue.severity === 'critical' ? (
+                  {issue.type === 'critical' ? (
                     <XCircle className="h-4 w-4 flex-shrink-0 mt-0.5" />
-                  ) : issue.severity === 'warning' ? (
+                  ) : issue.type === 'warning' ? (
                     <AlertTriangle className="h-4 w-4 flex-shrink-0 mt-0.5" />
                   ) : (
                     <CheckCircle className="h-4 w-4 flex-shrink-0 mt-0.5" />
                   )}
                   <div>
                     <p className="font-medium">{issue.description}</p>
-                    <p className="text-xs opacity-80 mt-0.5">{issue.suggestion}</p>
+                    <p className="text-xs opacity-80 mt-0.5">{issue.fix}</p>
                   </div>
                 </motion.div>
               ))}
@@ -290,6 +393,84 @@ export function ContentCreator({ initialTopic }: ContentCreatorProps) {
             </div>
           </div>
         </PremiumCard>
+
+        {/* Generated Variations */}
+        {variations.length > 0 && (
+          <PremiumCard>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-semibold text-primary">AI Variations</h3>
+              <PremiumButton
+                size="sm"
+                variant="ghost"
+                leftIcon={<RefreshCw className="h-4 w-4" />}
+                onClick={handleGenerateVariations}
+                disabled={isGeneratingVariations}
+              >
+                Regenerate
+              </PremiumButton>
+            </div>
+            <div className="space-y-3">
+              {variations.map((variation, i) => (
+                <div
+                  key={i}
+                  className="p-3 rounded-lg bg-elevated border border-white/5 hover:border-violet-500/30 cursor-pointer transition-colors"
+                  onClick={() => {
+                    setContent(variation.content);
+                    addToast({ type: 'info', title: 'Variation applied', description: 'Content updated with selected variation' });
+                  }}
+                >
+                  <p className="text-sm text-secondary">{variation.content}</p>
+                  <div className="flex items-center gap-4 mt-2 text-xs">
+                    <span className={cn('font-medium', getScoreColor(variation.voiceAlignment))}>
+                      {variation.voiceAlignment}% voice match
+                    </span>
+                    <span className="text-tertiary">
+                      Est. {variation.predictedEngagement.likes[0]}-{variation.predictedEngagement.likes[1]} likes
+                    </span>
+                  </div>
+                  {variation.reasoning && (
+                    <p className="text-xs text-tertiary mt-1">{variation.reasoning}</p>
+                  )}
+                </div>
+              ))}
+            </div>
+          </PremiumCard>
+        )}
+
+        {/* Media Suggestions */}
+        {mediaSuggestions.length > 0 && (
+          <PremiumCard>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-semibold text-primary">Media Suggestions</h3>
+              <PremiumButton
+                size="sm"
+                variant="ghost"
+                leftIcon={<RefreshCw className="h-4 w-4" />}
+                onClick={handleGenerateMedia}
+                disabled={isGeneratingMedia}
+              >
+                Regenerate
+              </PremiumButton>
+            </div>
+            <div className="space-y-3">
+              {mediaSuggestions.map((suggestion, i) => (
+                <div key={i} className="p-3 rounded-lg bg-elevated border border-white/5">
+                  <div className="flex items-center gap-2 mb-2">
+                    <ImageIcon className="h-4 w-4 text-violet-400" />
+                    <span className="text-sm font-medium text-primary capitalize">{suggestion.type}</span>
+                  </div>
+                  <p className="text-sm text-secondary">{suggestion.description}</p>
+                  <p className="text-xs text-tertiary mt-2">{suggestion.reasoning}</p>
+                  {suggestion.imagePrompt && (
+                    <div className="mt-2 p-2 rounded bg-base text-xs text-tertiary">
+                      <span className="font-medium">Prompt: </span>{suggestion.imagePrompt}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </PremiumCard>
+        )}
       </div>
 
       {/* Assistance Panel */}
@@ -298,138 +479,122 @@ export function ContentCreator({ initialTopic }: ContentCreatorProps) {
         <PremiumCard>
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-semibold text-primary">Quality Score</h3>
-            {qualityScore && (
-              <span className={cn(
-                'px-2 py-1 rounded-lg border text-lg font-bold font-mono',
-                getGradeColor(qualityScore.grade)
-              )}>
-                {qualityScore.grade}
+            {isAnalyzing && <Loader2 className="h-4 w-4 animate-spin text-tertiary" />}
+            {analysis && (
+              <span className={cn('px-2 py-1 rounded-lg border text-lg font-bold font-mono', getGrade(analysis.overallScore).color)}>
+                {getGrade(analysis.overallScore).grade}
               </span>
             )}
           </div>
 
-          {qualityScore ? (
+          {analysis ? (
             <div className="space-y-4">
               {/* Overall score */}
               <div className="text-center">
                 <motion.div
-                  key={qualityScore.overall}
+                  key={analysis.overallScore}
                   initial={{ scale: 0.8, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
-                  className={cn('text-4xl font-bold font-mono', getScoreColor(qualityScore.overall))}
+                  className={cn('text-4xl font-bold font-mono', getScoreColor(analysis.overallScore))}
                 >
-                  {qualityScore.overall}
+                  {analysis.overallScore}
                 </motion.div>
                 <p className="text-xs text-tertiary mt-1">out of 100</p>
               </div>
 
               {/* Breakdown */}
               <div className="space-y-2">
-                {Object.entries(qualityScore.breakdown).map(([key, value]) => (
-                  <div key={key} className="flex items-center justify-between">
-                    <span className="text-sm text-secondary capitalize">{key}</span>
-                    <div className="flex items-center gap-2">
-                      <div className="w-20 h-1.5 bg-elevated rounded-full overflow-hidden">
-                        <motion.div
-                          className={cn(
-                            'h-full rounded-full',
-                            value >= 75 ? 'bg-green-500' :
-                              value >= 50 ? 'bg-yellow-500' : 'bg-red-500'
-                          )}
-                          initial={{ width: 0 }}
-                          animate={{ width: `${value}%` }}
-                        />
+                {[
+                  { key: 'hookStrength', label: 'Hook' },
+                  { key: 'engagementPotential', label: 'Engagement' },
+                  { key: 'voiceAlignment', label: 'Voice' },
+                  { key: 'spiceLevel', label: 'Spice' },
+                ].map(({ key, label }) => {
+                  const value = analysis[key as keyof ContentAnalysis] as number;
+                  return (
+                    <div key={key} className="flex items-center justify-between">
+                      <span className="text-sm text-secondary">{label}</span>
+                      <div className="flex items-center gap-2">
+                        <div className="w-20 h-1.5 bg-elevated rounded-full overflow-hidden">
+                          <motion.div
+                            className={cn('h-full rounded-full', value >= 75 ? 'bg-green-500' : value >= 50 ? 'bg-yellow-500' : 'bg-red-500')}
+                            initial={{ width: 0 }}
+                            animate={{ width: `${value}%` }}
+                          />
+                        </div>
+                        <span className="text-xs font-mono text-tertiary w-8">{value}</span>
                       </div>
-                      <span className="text-xs font-mono text-tertiary w-8">{value}</span>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
+
+              {/* Strengths */}
+              {analysis.strengths && analysis.strengths.length > 0 && (
+                <div className="pt-3 border-t border-white/5">
+                  <p className="text-xs text-green-400 font-medium mb-1">Strengths:</p>
+                  <ul className="text-xs text-tertiary space-y-1">
+                    {analysis.strengths.map((s, i) => (
+                      <li key={i}>+ {s}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </div>
           ) : (
             <div className="text-center py-8 text-tertiary">
               <Sparkles className="h-8 w-8 mx-auto mb-2 opacity-50" />
-              <p className="text-sm">Start typing to see quality analysis</p>
+              <p className="text-sm">Start typing to see AI analysis</p>
             </div>
           )}
         </PremiumCard>
 
-        {/* Market Context */}
-        <PremiumCard>
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="font-semibold text-primary">Market Pulse</h3>
-            <MarketMoodBadge mood={mockMarketContext.mood} />
-          </div>
-
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-tertiary">BTC</span>
-                <span className="font-mono text-sm font-semibold text-primary">
-                  ${(mockMarketContext.btcPrice / 1000).toFixed(1)}K
-                </span>
-              </div>
-              <span className={cn(
-                'text-xs font-medium',
-                mockMarketContext.btcChange >= 0 ? 'text-market-up' : 'text-market-down'
-              )}>
-                {mockMarketContext.btcChange >= 0 ? '+' : ''}{mockMarketContext.btcChange}%
-              </span>
-            </div>
-
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-tertiary">ETH</span>
-                <span className="font-mono text-sm font-semibold text-primary">
-                  ${(mockMarketContext.ethPrice / 1000).toFixed(1)}K
-                </span>
-              </div>
-              <span className={cn(
-                'text-xs font-medium',
-                mockMarketContext.ethChange >= 0 ? 'text-market-up' : 'text-market-down'
-              )}>
-                {mockMarketContext.ethChange >= 0 ? '+' : ''}{mockMarketContext.ethChange}%
-              </span>
-            </div>
-
-            <div className="flex items-center justify-between pt-2 border-t border-white/5">
-              <span className="text-sm text-tertiary">Top Trend</span>
-              <span className="text-sm font-medium text-violet-400">{mockMarketContext.topTrend}</span>
-            </div>
-          </div>
-        </PremiumCard>
-
-        {/* Quick Actions */}
+        {/* AI Assist */}
         <PremiumCard>
           <h3 className="font-semibold text-primary mb-3">AI Assist</h3>
           <div className="grid grid-cols-2 gap-2">
             <AssistButton
-              icon={<Flame className="h-4 w-4" />}
+              icon={isEnhancing && enhancingAction === 'spicier' ? <Loader2 className="h-4 w-4 animate-spin" /> : <Flame className="h-4 w-4" />}
               label="Make Spicier"
-              onClick={() => handleAiAssist('Make Spicier')}
+              onClick={() => handleAiAssist('spicier')}
+              disabled={isEnhancing}
             />
             <AssistButton
-              icon={<ArrowUp className="h-4 w-4" />}
+              icon={isEnhancing && enhancingAction === 'context' ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowUp className="h-4 w-4" />}
               label="Add Context"
-              onClick={() => handleAiAssist('Add Context')}
+              onClick={() => handleAiAssist('context')}
+              disabled={isEnhancing}
             />
             <AssistButton
-              icon={<Scissors className="h-4 w-4" />}
+              icon={isEnhancing && enhancingAction === 'shorten' ? <Loader2 className="h-4 w-4 animate-spin" /> : <Scissors className="h-4 w-4" />}
               label="Shorten"
-              onClick={() => handleAiAssist('Shorten')}
+              onClick={() => handleAiAssist('shorten')}
+              disabled={isEnhancing}
             />
             <AssistButton
-              icon={<Wand2 className="h-4 w-4" />}
+              icon={isEnhancing && enhancingAction === 'hook' ? <Loader2 className="h-4 w-4 animate-spin" /> : <Wand2 className="h-4 w-4" />}
               label="Suggest Hook"
-              onClick={() => handleAiAssist('Suggest Hook')}
+              onClick={() => handleAiAssist('hook')}
+              disabled={isEnhancing}
             />
           </div>
+
           <button
             onClick={handleGenerateVariations}
-            className="w-full mt-3 p-2.5 rounded-lg bg-violet-500/10 text-violet-400 text-sm font-medium hover:bg-violet-500/20 transition-colors flex items-center justify-center gap-2"
+            disabled={isGeneratingVariations}
+            className="w-full mt-3 p-2.5 rounded-lg bg-violet-500/10 text-violet-400 text-sm font-medium hover:bg-violet-500/20 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
           >
-            <Sparkles className="h-4 w-4" />
+            {isGeneratingVariations ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
             Generate 3 Variations
+          </button>
+
+          <button
+            onClick={handleGenerateMedia}
+            disabled={isGeneratingMedia}
+            className="w-full mt-2 p-2.5 rounded-lg bg-emerald-500/10 text-emerald-400 text-sm font-medium hover:bg-emerald-500/20 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+          >
+            {isGeneratingMedia ? <Loader2 className="h-4 w-4 animate-spin" /> : <ImageIcon className="h-4 w-4" />}
+            Suggest Media
           </button>
         </PremiumCard>
       </div>
@@ -441,98 +606,21 @@ function AssistButton({
   icon,
   label,
   onClick,
+  disabled,
 }: {
   icon: React.ReactNode;
   label: string;
   onClick?: () => void;
+  disabled?: boolean;
 }) {
   return (
     <button
       onClick={onClick}
-      className="flex items-center gap-2 p-2 rounded-lg bg-elevated text-secondary hover:text-primary hover:bg-hover transition-colors text-sm"
+      disabled={disabled}
+      className="flex items-center gap-2 p-2 rounded-lg bg-elevated text-secondary hover:text-primary hover:bg-hover transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed"
     >
       {icon}
       {label}
     </button>
   );
-}
-
-// Mock quality analysis function
-function analyzeContentQuality(content: string): QualityScore {
-  const issues: QualityIssue[] = [];
-  let hookScore = 70;
-  let valueScore = 70;
-  let originalityScore = 70;
-  let voiceScore = 80;
-
-  // Check for generic phrases
-  const genericPhrases = ['game changer', 'revolutionary', 'exciting news', 'stay tuned'];
-  for (const phrase of genericPhrases) {
-    if (content.toLowerCase().includes(phrase)) {
-      issues.push({
-        type: 'generic',
-        severity: 'critical',
-        description: `Generic phrase detected: "${phrase}"`,
-        suggestion: 'Replace with specific, concrete language',
-      });
-      originalityScore -= 20;
-    }
-  }
-
-  // Check emoji count
-  const emojiRegex = /[\u{1F600}-\u{1F64F}]|[\u{1F300}-\u{1F5FF}]|[\u{1F680}-\u{1F6FF}]/gu;
-  const emojiCount = (content.match(emojiRegex) || []).length;
-  if (emojiCount > 2) {
-    issues.push({
-      type: 'emoji-overload',
-      severity: 'warning',
-      description: `Too many emojis (${emojiCount}). Max: 2`,
-      suggestion: 'Quality content speaks for itself',
-    });
-    voiceScore -= 10;
-  }
-
-  // Check for hollow enthusiasm
-  if (/^(Wow|Amazing|Incredible)!?\s/i.test(content)) {
-    issues.push({
-      type: 'hollow-enthusiasm',
-      severity: 'warning',
-      description: 'Content starts with hollow enthusiasm',
-      suggestion: 'Lead with value or insight instead',
-    });
-    hookScore -= 15;
-  }
-
-  // Boost for good patterns
-  if (/\d+%|\$[\d,]+/.test(content)) {
-    valueScore += 10;
-  }
-
-  if (content.length > 100 && content.length < 250) {
-    hookScore += 5;
-  }
-
-  const clamp = (n: number) => Math.max(0, Math.min(100, n));
-  hookScore = clamp(hookScore);
-  valueScore = clamp(valueScore);
-  originalityScore = clamp(originalityScore);
-  voiceScore = clamp(voiceScore);
-
-  const overall = Math.round(
-    hookScore * 0.25 + valueScore * 0.3 + originalityScore * 0.25 + voiceScore * 0.2
-  );
-
-  let grade: 'A' | 'B' | 'C' | 'D' | 'F';
-  if (overall >= 85) grade = 'A';
-  else if (overall >= 70) grade = 'B';
-  else if (overall >= 55) grade = 'C';
-  else if (overall >= 40) grade = 'D';
-  else grade = 'F';
-
-  return {
-    overall,
-    breakdown: { hook: hookScore, value: valueScore, originality: originalityScore, voice: voiceScore },
-    issues,
-    grade,
-  };
 }
