@@ -1,11 +1,14 @@
 'use client';
 
 import * as React from 'react';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { PremiumCard } from '@/components/ui/premium-card';
 import { PremiumButton } from '@/components/ui/premium-button';
 import { UrgencyBadge } from '@/components/ui/premium-badge';
+import { useToast } from '@/components/ui/toast';
 import {
   TrendingUp,
   MessageSquare,
@@ -156,16 +159,21 @@ function OpportunitiesPanel({ opportunities }: OpportunitiesPanelProps) {
       </div>
 
       <div className="p-3 border-t border-white/5">
-        <button className="w-full flex items-center justify-center gap-2 text-sm text-tertiary hover:text-secondary transition-colors">
+        <Link
+          href="/research/trends"
+          className="w-full flex items-center justify-center gap-2 text-sm text-tertiary hover:text-secondary transition-colors"
+        >
           View all opportunities
           <ArrowRight className="h-4 w-4" />
-        </button>
+        </Link>
       </div>
     </PremiumCard>
   );
 }
 
 function OpportunityItem({ opportunity }: { opportunity: Opportunity }) {
+  const router = useRouter();
+  const { addToast } = useToast();
   const typeIcons: Record<OpportunityType, React.ReactNode> = {
     trending: <TrendingUp className="h-4 w-4" />,
     'viral-qt': <MessageSquare className="h-4 w-4" />,
@@ -212,6 +220,23 @@ function OpportunityItem({ opportunity }: { opportunity: Opportunity }) {
           size="sm"
           variant="secondary"
           className="opacity-0 group-hover:opacity-100 transition-opacity"
+          onClick={() => {
+            // Route based on opportunity type
+            if (opportunity.type === 'trending') {
+              router.push('/create?topic=' + encodeURIComponent(opportunity.title));
+            } else if (opportunity.type === 'viral-qt') {
+              router.push('/create/qt');
+            } else if (opportunity.type === 'competitor') {
+              router.push('/research/competitors');
+            } else {
+              router.push('/create');
+            }
+            addToast({
+              type: 'info',
+              title: 'Acting on opportunity',
+              description: opportunity.title,
+            });
+          }}
         >
           Act
         </PremiumButton>
@@ -226,6 +251,8 @@ interface ContentQueuePanelProps {
 }
 
 function ContentQueuePanel({ items }: ContentQueuePanelProps) {
+  const router = useRouter();
+
   return (
     <PremiumCard padding="none">
       <div className="p-4 border-b border-white/5">
@@ -234,7 +261,12 @@ function ContentQueuePanel({ items }: ContentQueuePanelProps) {
             <FileText className="h-4 w-4 text-violet-400" />
             <h3 className="font-semibold text-primary">Content Queue</h3>
           </div>
-          <PremiumButton size="sm" variant="primary" leftIcon={<Sparkles className="h-3.5 w-3.5" />}>
+          <PremiumButton
+            size="sm"
+            variant="primary"
+            leftIcon={<Sparkles className="h-3.5 w-3.5" />}
+            onClick={() => router.push('/create')}
+          >
             New Post
           </PremiumButton>
         </div>
@@ -254,10 +286,13 @@ function ContentQueuePanel({ items }: ContentQueuePanelProps) {
       </div>
 
       <div className="p-3 border-t border-white/5 flex items-center justify-between">
-        <button className="text-sm text-tertiary hover:text-secondary transition-colors flex items-center gap-2">
+        <Link
+          href="/suggestions/calendar"
+          className="text-sm text-tertiary hover:text-secondary transition-colors flex items-center gap-2"
+        >
           View all content
           <ArrowRight className="h-4 w-4" />
-        </button>
+        </Link>
         <span className="text-xs text-tertiary">3 scheduled today</span>
       </div>
     </PremiumCard>
@@ -265,6 +300,7 @@ function ContentQueuePanel({ items }: ContentQueuePanelProps) {
 }
 
 function ContentQueueItem({ item }: { item: ContentItem }) {
+  const router = useRouter();
   const statusConfig: Record<ContentStatus, { label: string; color: string }> = {
     scheduled: { label: 'Scheduled', color: 'text-blue-400 bg-blue-500/10' },
     draft: { label: 'Draft', color: 'text-yellow-400 bg-yellow-500/10' },
@@ -273,8 +309,20 @@ function ContentQueueItem({ item }: { item: ContentItem }) {
 
   const { label, color } = statusConfig[item.status];
 
+  const handleEdit = () => {
+    // Navigate to create page with the content for editing
+    if (item.status === 'ai-suggestion') {
+      router.push('/suggestions/daily');
+    } else {
+      router.push('/create');
+    }
+  };
+
   return (
-    <div className="p-4 hover:bg-elevated/50 transition-colors group">
+    <div
+      className="p-4 hover:bg-elevated/50 transition-colors group cursor-pointer"
+      onClick={handleEdit}
+    >
       <div className="flex items-start justify-between gap-4">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-2">
@@ -302,7 +350,13 @@ function ContentQueueItem({ item }: { item: ContentItem }) {
               {item.score}/100
             </div>
           )}
-          <button className="text-tertiary hover:text-secondary opacity-0 group-hover:opacity-100 transition-opacity">
+          <button
+            className="text-tertiary hover:text-secondary opacity-0 group-hover:opacity-100 transition-opacity"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleEdit();
+            }}
+          >
             <ExternalLink className="h-4 w-4" />
           </button>
         </div>

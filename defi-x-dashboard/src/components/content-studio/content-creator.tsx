@@ -8,6 +8,7 @@ import { PremiumButton } from '@/components/ui/premium-button';
 import { PremiumTextarea } from '@/components/ui/premium-input';
 import { PremiumBadge, MarketMoodBadge } from '@/components/ui/premium-badge';
 import { Sparkline } from '@/components/ui/sparkline';
+import { useToast } from '@/components/ui/toast';
 import {
   Sparkles,
   Wand2,
@@ -67,6 +68,96 @@ export function ContentCreator() {
   const [content, setContent] = React.useState('');
   const [qualityScore, setQualityScore] = React.useState<QualityScore | null>(null);
   const [isAnalyzing, setIsAnalyzing] = React.useState(false);
+  const [isPosting, setIsPosting] = React.useState(false);
+  const { addToast } = useToast();
+
+  const handlePostNow = async () => {
+    if (!content.trim()) {
+      addToast({
+        type: 'warning',
+        title: 'Empty post',
+        description: 'Please write something before posting',
+      });
+      return;
+    }
+    setIsPosting(true);
+    // Simulate posting delay
+    await new Promise((resolve) => setTimeout(resolve, 1500));
+    setIsPosting(false);
+    addToast({
+      type: 'success',
+      title: 'Post scheduled!',
+      description: 'Your post has been queued for publishing',
+    });
+    setContent('');
+  };
+
+  const handleSchedule = () => {
+    if (!content.trim()) {
+      addToast({
+        type: 'warning',
+        title: 'Empty post',
+        description: 'Please write something before scheduling',
+      });
+      return;
+    }
+    addToast({
+      type: 'info',
+      title: 'Opening scheduler',
+      description: 'Select a time to schedule your post',
+    });
+  };
+
+  const handleAiAssist = (action: string) => {
+    if (!content.trim()) {
+      addToast({
+        type: 'warning',
+        title: 'No content',
+        description: 'Write something first for AI to enhance',
+      });
+      return;
+    }
+    addToast({
+      type: 'info',
+      title: `AI: ${action}`,
+      description: 'Generating improved version...',
+    });
+    // Simulate AI enhancement
+    setTimeout(() => {
+      let enhanced = content;
+      if (action === 'Make Spicier') {
+        enhanced = content + '\n\nThis is your chance to get in early. Don\'t miss out!';
+      } else if (action === 'Add Context') {
+        enhanced = `Context: Current market conditions show significant momentum.\n\n${content}`;
+      } else if (action === 'Shorten') {
+        enhanced = content.split('.').slice(0, 2).join('.') + '.';
+      } else if (action === 'Suggest Hook') {
+        enhanced = `Thread: 🧵\n\n${content}`;
+      }
+      setContent(enhanced);
+      addToast({
+        type: 'success',
+        title: 'Content enhanced!',
+        description: `Applied "${action}" transformation`,
+      });
+    }, 1000);
+  };
+
+  const handleGenerateVariations = () => {
+    if (!content.trim()) {
+      addToast({
+        type: 'warning',
+        title: 'No content',
+        description: 'Write something first to generate variations',
+      });
+      return;
+    }
+    addToast({
+      type: 'info',
+      title: 'Generating variations',
+      description: 'Creating 3 alternative versions...',
+    });
+  };
 
   // Analyze content quality in real-time
   React.useEffect(() => {
@@ -110,11 +201,22 @@ export function ContentCreator() {
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-primary">Create Post</h2>
             <div className="flex items-center gap-2">
-              <PremiumButton size="sm" variant="ghost" leftIcon={<Calendar className="h-4 w-4" />}>
+              <PremiumButton
+                size="sm"
+                variant="ghost"
+                leftIcon={<Calendar className="h-4 w-4" />}
+                onClick={handleSchedule}
+              >
                 Schedule
               </PremiumButton>
-              <PremiumButton size="sm" variant="primary" leftIcon={<Send className="h-4 w-4" />}>
-                Post Now
+              <PremiumButton
+                size="sm"
+                variant="primary"
+                leftIcon={<Send className="h-4 w-4" />}
+                onClick={handlePostNow}
+                disabled={isPosting}
+              >
+                {isPosting ? 'Posting...' : 'Post Now'}
               </PremiumButton>
             </div>
           </div>
@@ -293,12 +395,31 @@ export function ContentCreator() {
         <PremiumCard>
           <h3 className="font-semibold text-primary mb-3">AI Assist</h3>
           <div className="grid grid-cols-2 gap-2">
-            <AssistButton icon={<Flame className="h-4 w-4" />} label="Make Spicier" />
-            <AssistButton icon={<ArrowUp className="h-4 w-4" />} label="Add Context" />
-            <AssistButton icon={<Scissors className="h-4 w-4" />} label="Shorten" />
-            <AssistButton icon={<Wand2 className="h-4 w-4" />} label="Suggest Hook" />
+            <AssistButton
+              icon={<Flame className="h-4 w-4" />}
+              label="Make Spicier"
+              onClick={() => handleAiAssist('Make Spicier')}
+            />
+            <AssistButton
+              icon={<ArrowUp className="h-4 w-4" />}
+              label="Add Context"
+              onClick={() => handleAiAssist('Add Context')}
+            />
+            <AssistButton
+              icon={<Scissors className="h-4 w-4" />}
+              label="Shorten"
+              onClick={() => handleAiAssist('Shorten')}
+            />
+            <AssistButton
+              icon={<Wand2 className="h-4 w-4" />}
+              label="Suggest Hook"
+              onClick={() => handleAiAssist('Suggest Hook')}
+            />
           </div>
-          <button className="w-full mt-3 p-2.5 rounded-lg bg-violet-500/10 text-violet-400 text-sm font-medium hover:bg-violet-500/20 transition-colors flex items-center justify-center gap-2">
+          <button
+            onClick={handleGenerateVariations}
+            className="w-full mt-3 p-2.5 rounded-lg bg-violet-500/10 text-violet-400 text-sm font-medium hover:bg-violet-500/20 transition-colors flex items-center justify-center gap-2"
+          >
             <Sparkles className="h-4 w-4" />
             Generate 3 Variations
           </button>
@@ -308,9 +429,20 @@ export function ContentCreator() {
   );
 }
 
-function AssistButton({ icon, label }: { icon: React.ReactNode; label: string }) {
+function AssistButton({
+  icon,
+  label,
+  onClick,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  onClick?: () => void;
+}) {
   return (
-    <button className="flex items-center gap-2 p-2 rounded-lg bg-elevated text-secondary hover:text-primary hover:bg-hover transition-colors text-sm">
+    <button
+      onClick={onClick}
+      className="flex items-center gap-2 p-2 rounded-lg bg-elevated text-secondary hover:text-primary hover:bg-hover transition-colors text-sm"
+    >
       {icon}
       {label}
     </button>

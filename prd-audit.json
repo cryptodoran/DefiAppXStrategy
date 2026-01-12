@@ -1,0 +1,110 @@
+{
+  "projectName": "DeFi App X Dashboard - Comprehensive Functionality Audit",
+  "version": "1.0",
+  "description": "Full audit and fix of all non-functional UI elements, broken navigation, and missing integrations",
+  "auditAreas": [
+    {
+      "id": "AUDIT-001",
+      "area": "Navigation & Routing",
+      "priority": 1,
+      "tasks": [
+        "Verify all sidebar navigation links work and route correctly",
+        "Ensure AppLayout navigation updates activeNav state AND routes to pages",
+        "Fix any missing page routes",
+        "Verify command palette navigation actions work"
+      ]
+    },
+    {
+      "id": "AUDIT-002",
+      "area": "Dashboard Buttons & Actions",
+      "priority": 1,
+      "tasks": [
+        "Audit all PremiumButton click handlers",
+        "Fix Action Center 'Act' buttons on opportunities",
+        "Fix Content Queue 'New Post' button",
+        "Fix 'View all opportunities' and 'View all content' links",
+        "Connect time range toggle (24h/7d/30d) to actual data filtering"
+      ]
+    },
+    {
+      "id": "AUDIT-003",
+      "area": "Content Studio Functionality",
+      "priority": 1,
+      "tasks": [
+        "Fix 'Post Now' and 'Schedule' buttons in ContentCreator",
+        "Fix AI Assist buttons (Make Spicier, Add Context, Shorten, Suggest Hook)",
+        "Fix 'Generate 3 Variations' button",
+        "Fix Thread Builder 'Post Thread' and 'Generate Thread' buttons",
+        "Fix QT Studio 'Post Quote Tweet' and 'Generate Variations' buttons",
+        "Wire up 'Use AI Suggestion' button in QT Studio"
+      ]
+    },
+    {
+      "id": "AUDIT-004",
+      "area": "Command Palette Actions",
+      "priority": 1,
+      "tasks": [
+        "Wire command palette actions to actual navigation/functions",
+        "Implement 'New Post' command (Cmd+N)",
+        "Implement 'New Thread' command (Cmd+T)",
+        "Implement 'Get AI Suggestions' command (Cmd+G)",
+        "Make navigation commands actually navigate"
+      ]
+    },
+    {
+      "id": "AUDIT-005",
+      "area": "Research Center Functionality",
+      "priority": 2,
+      "tasks": [
+        "Fix 'Add Competitor' button in War Room",
+        "Make competitor cards clickable and show details",
+        "Fix external links to Twitter profiles",
+        "Wire up algorithm factor detail expansion"
+      ]
+    },
+    {
+      "id": "AUDIT-006",
+      "area": "Status Bar Interactivity",
+      "priority": 2,
+      "tasks": [
+        "Make crypto prices clickable (link to details or charts)",
+        "Make Fear & Greed clickable for more info",
+        "Make trending topic clickable"
+      ]
+    },
+    {
+      "id": "AUDIT-007",
+      "area": "Market Context Panel",
+      "priority": 2,
+      "tasks": [
+        "Fix 'View all' button for cryptos",
+        "Fix 'More' button for news",
+        "Make news items clickable",
+        "Make crypto rows clickable for details"
+      ]
+    },
+    {
+      "id": "AUDIT-008",
+      "area": "State Management & Data Flow",
+      "priority": 1,
+      "tasks": [
+        "Implement proper routing with Next.js App Router",
+        "Create global state for navigation (Zustand or Context)",
+        "Wire up real data fetching where mock data exists",
+        "Implement toast notifications for user feedback"
+      ]
+    }
+  ],
+  "executionPlan": [
+    "Step 1: Create proper routing infrastructure with Next.js navigation",
+    "Step 2: Implement global navigation state",
+    "Step 3: Fix all sidebar and command palette navigation",
+    "Step 4: Add toast notification system for user feedback",
+    "Step 5: Wire up all dashboard action buttons",
+    "Step 6: Wire up all content studio buttons",
+    "Step 7: Wire up research center interactivity",
+    "Step 8: Add loading states and user feedback",
+    "Step 9: Test all functionality end-to-end",
+    "Step 10: Deploy and verify"
+  ]
+}

@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import {
@@ -27,7 +28,8 @@ interface CommandItem {
   icon: React.ReactNode;
   shortcut?: string;
   section: 'quick-actions' | 'navigation' | 'recent' | 'search';
-  action: () => void;
+  href?: string;
+  action?: () => void;
 }
 
 interface CommandPaletteProps {
@@ -44,7 +46,7 @@ const defaultCommands: CommandItem[] = [
     icon: <PenSquare className="h-4 w-4" />,
     shortcut: '⌘N',
     section: 'quick-actions',
-    action: () => console.log('New post'),
+    href: '/create',
   },
   {
     id: 'new-thread',
@@ -53,7 +55,7 @@ const defaultCommands: CommandItem[] = [
     icon: <MessageSquare className="h-4 w-4" />,
     shortcut: '⌘T',
     section: 'quick-actions',
-    action: () => console.log('New thread'),
+    href: '/create/thread',
   },
   {
     id: 'get-suggestions',
@@ -62,7 +64,7 @@ const defaultCommands: CommandItem[] = [
     icon: <Sparkles className="h-4 w-4" />,
     shortcut: '⌘G',
     section: 'quick-actions',
-    action: () => console.log('Get suggestions'),
+    href: '/suggestions/daily',
   },
   {
     id: 'find-opportunities',
@@ -70,7 +72,7 @@ const defaultCommands: CommandItem[] = [
     description: 'Scan for viral QT and trending topics',
     icon: <Target className="h-4 w-4" />,
     section: 'quick-actions',
-    action: () => console.log('Find opportunities'),
+    href: '/research/trends',
   },
   // Navigation
   {
@@ -79,7 +81,7 @@ const defaultCommands: CommandItem[] = [
     description: 'Go to main dashboard',
     icon: <BarChart3 className="h-4 w-4" />,
     section: 'navigation',
-    action: () => console.log('Go to dashboard'),
+    href: '/',
   },
   {
     id: 'nav-content',
@@ -87,7 +89,7 @@ const defaultCommands: CommandItem[] = [
     description: 'Create and manage content',
     icon: <FileText className="h-4 w-4" />,
     section: 'navigation',
-    action: () => console.log('Go to content'),
+    href: '/create',
   },
   {
     id: 'nav-analytics',
@@ -95,7 +97,7 @@ const defaultCommands: CommandItem[] = [
     description: 'View performance metrics',
     icon: <TrendingUp className="h-4 w-4" />,
     section: 'navigation',
-    action: () => console.log('Go to analytics'),
+    href: '/analytics/followers',
   },
   {
     id: 'nav-competitors',
@@ -103,7 +105,7 @@ const defaultCommands: CommandItem[] = [
     description: 'Monitor competitor activity',
     icon: <Users className="h-4 w-4" />,
     section: 'navigation',
-    action: () => console.log('Go to competitors'),
+    href: '/research/competitors',
   },
   {
     id: 'nav-settings',
@@ -112,7 +114,7 @@ const defaultCommands: CommandItem[] = [
     icon: <Settings className="h-4 w-4" />,
     shortcut: '⌘,',
     section: 'navigation',
-    action: () => console.log('Go to settings'),
+    href: '/settings',
   },
   // Recent
   {
@@ -121,7 +123,7 @@ const defaultCommands: CommandItem[] = [
     description: 'Edited 2 hours ago',
     icon: <Clock className="h-4 w-4" />,
     section: 'recent',
-    action: () => console.log('Open recent 1'),
+    href: '/create/thread',
   },
   {
     id: 'recent-2',
@@ -129,11 +131,12 @@ const defaultCommands: CommandItem[] = [
     description: 'Edited yesterday',
     icon: <Clock className="h-4 w-4" />,
     section: 'recent',
-    action: () => console.log('Open recent 2'),
+    href: '/create/qt',
   },
 ];
 
 export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
+  const router = useRouter();
   const [search, setSearch] = React.useState('');
   const [selectedIndex, setSelectedIndex] = React.useState(0);
   const inputRef = React.useRef<HTMLInputElement>(null);
@@ -200,7 +203,12 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
         case 'Enter':
           e.preventDefault();
           if (flatCommands[selectedIndex]) {
-            flatCommands[selectedIndex].action();
+            const cmd = flatCommands[selectedIndex];
+            if (cmd.href) {
+              router.push(cmd.href);
+            } else if (cmd.action) {
+              cmd.action();
+            }
             onClose();
           }
           break;
@@ -293,7 +301,11 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
                                 isSelected ? 'bg-surface text-primary' : 'text-secondary hover:bg-surface/50'
                               )}
                               onClick={() => {
-                                cmd.action();
+                                if (cmd.href) {
+                                  router.push(cmd.href);
+                                } else if (cmd.action) {
+                                  cmd.action();
+                                }
                                 onClose();
                               }}
                               onMouseEnter={() => setSelectedIndex(thisIndex)}

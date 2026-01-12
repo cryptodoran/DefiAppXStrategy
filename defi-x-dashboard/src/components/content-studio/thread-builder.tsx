@@ -5,6 +5,7 @@ import { motion, Reorder, useDragControls } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { PremiumCard } from '@/components/ui/premium-card';
 import { PremiumButton } from '@/components/ui/premium-button';
+import { useToast } from '@/components/ui/toast';
 import {
   GripVertical,
   Plus,
@@ -38,6 +39,84 @@ export function ThreadBuilder() {
     { id: '1', content: '', characterCount: 0 },
   ]);
   const [prediction, setPrediction] = React.useState<ThreadPerformancePrediction | null>(null);
+  const [isPosting, setIsPosting] = React.useState(false);
+  const { addToast } = useToast();
+
+  const handlePostThread = async () => {
+    const filledTweets = tweets.filter((t) => t.content.trim().length > 0);
+    if (filledTweets.length < 2) {
+      addToast({
+        type: 'warning',
+        title: 'Thread too short',
+        description: 'Add at least 2 tweets to post a thread',
+      });
+      return;
+    }
+    setIsPosting(true);
+    await new Promise((resolve) => setTimeout(resolve, 1500));
+    setIsPosting(false);
+    addToast({
+      type: 'success',
+      title: 'Thread posted!',
+      description: `Your ${filledTweets.length}-tweet thread has been scheduled`,
+    });
+  };
+
+  const handleScheduleThread = () => {
+    const filledTweets = tweets.filter((t) => t.content.trim().length > 0);
+    if (filledTweets.length < 2) {
+      addToast({
+        type: 'warning',
+        title: 'Thread too short',
+        description: 'Add at least 2 tweets to schedule',
+      });
+      return;
+    }
+    addToast({
+      type: 'info',
+      title: 'Opening scheduler',
+      description: 'Select a time to post your thread',
+    });
+  };
+
+  const handlePreview = () => {
+    addToast({
+      type: 'info',
+      title: 'Preview mode',
+      description: 'Opening thread preview...',
+    });
+  };
+
+  const handleGenerateThread = () => {
+    const firstTweet = tweets[0].content.trim();
+    if (!firstTweet) {
+      addToast({
+        type: 'warning',
+        title: 'No topic',
+        description: 'Write your first tweet to expand into a thread',
+      });
+      return;
+    }
+    addToast({
+      type: 'info',
+      title: 'Generating thread',
+      description: 'AI is expanding your idea...',
+    });
+    // Simulate AI generation
+    setTimeout(() => {
+      setTweets([
+        tweets[0],
+        { id: Date.now().toString(), content: 'Here\'s the key insight most people miss...', characterCount: 42 },
+        { id: (Date.now() + 1).toString(), content: 'The data shows that adoption is accelerating faster than expected.', characterCount: 66 },
+        { id: (Date.now() + 2).toString(), content: 'What this means for you: get positioned now before the masses catch on.', characterCount: 70 },
+      ]);
+      addToast({
+        type: 'success',
+        title: 'Thread generated!',
+        description: 'AI expanded your idea into 4 tweets',
+      });
+    }, 1500);
+  };
 
   const addTweet = (afterId?: string) => {
     const newTweet: TweetItem = {
@@ -96,14 +175,30 @@ export function ThreadBuilder() {
               </span>
             </div>
             <div className="flex items-center gap-2">
-              <PremiumButton size="sm" variant="ghost" leftIcon={<Eye className="h-4 w-4" />}>
+              <PremiumButton
+                size="sm"
+                variant="ghost"
+                leftIcon={<Eye className="h-4 w-4" />}
+                onClick={handlePreview}
+              >
                 Preview
               </PremiumButton>
-              <PremiumButton size="sm" variant="ghost" leftIcon={<Calendar className="h-4 w-4" />}>
+              <PremiumButton
+                size="sm"
+                variant="ghost"
+                leftIcon={<Calendar className="h-4 w-4" />}
+                onClick={handleScheduleThread}
+              >
                 Schedule
               </PremiumButton>
-              <PremiumButton size="sm" variant="primary" leftIcon={<Send className="h-4 w-4" />}>
-                Post Thread
+              <PremiumButton
+                size="sm"
+                variant="primary"
+                leftIcon={<Send className="h-4 w-4" />}
+                onClick={handlePostThread}
+                disabled={isPosting}
+              >
+                {isPosting ? 'Posting...' : 'Post Thread'}
               </PremiumButton>
             </div>
           </div>
@@ -154,7 +249,12 @@ export function ThreadBuilder() {
                 <p className="text-sm text-tertiary">Let AI expand your idea into a full thread</p>
               </div>
             </div>
-            <PremiumButton size="sm" variant="secondary" leftIcon={<Wand2 className="h-4 w-4" />}>
+            <PremiumButton
+              size="sm"
+              variant="secondary"
+              leftIcon={<Wand2 className="h-4 w-4" />}
+              onClick={handleGenerateThread}
+            >
               Generate Thread
             </PremiumButton>
           </div>

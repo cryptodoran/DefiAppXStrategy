@@ -1,10 +1,12 @@
 'use client';
 
 import * as React from 'react';
+import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { Sparkline } from '@/components/ui/sparkline';
 import { MarketMoodBadge, TrendBadge } from '@/components/ui/premium-badge';
+import { useToast } from '@/components/ui/toast';
 import {
   TrendingUp,
   TrendingDown,
@@ -169,7 +171,7 @@ export function MarketContextPanel() {
         <section className="p-4 border-b border-white/5">
           <div className="flex items-center justify-between mb-3">
             <span className="text-sm text-tertiary">Top Cryptos</span>
-            <button className="text-xs text-violet-400 hover:text-violet-300">View all</button>
+            <Link href="/analytics/followers" className="text-xs text-violet-400 hover:text-violet-300">View all</Link>
           </div>
           <div className="space-y-3">
             {mockCryptos.map((crypto) => (
@@ -201,7 +203,7 @@ export function MarketContextPanel() {
               <Newspaper className="h-4 w-4 text-tertiary" />
               <span className="text-sm text-tertiary">Latest News</span>
             </div>
-            <button className="text-xs text-violet-400 hover:text-violet-300">More</button>
+            <Link href="/research" className="text-xs text-violet-400 hover:text-violet-300">More</Link>
           </div>
           <div className="space-y-2">
             {mockNews.map((news) => (
@@ -288,8 +290,21 @@ function TradFiCard({ index }: { index: TradFiIndex }) {
 }
 
 function NewsRow({ news }: { news: NewsItem }) {
+  const { addToast } = useToast();
+
+  const handleClick = () => {
+    addToast({
+      type: 'info',
+      title: 'Opening article',
+      description: news.title.slice(0, 50) + '...',
+    });
+  };
+
   return (
-    <button className="w-full flex items-start gap-2 p-2 rounded-lg hover:bg-elevated transition-colors text-left group">
+    <button
+      onClick={handleClick}
+      className="w-full flex items-start gap-2 p-2 rounded-lg hover:bg-elevated transition-colors text-left group"
+    >
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 mb-0.5">
           {news.isBreaking && (

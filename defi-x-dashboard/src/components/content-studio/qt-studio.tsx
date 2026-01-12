@@ -7,6 +7,7 @@ import { PremiumCard } from '@/components/ui/premium-card';
 import { PremiumButton } from '@/components/ui/premium-button';
 import { PremiumTextarea } from '@/components/ui/premium-input';
 import { PremiumBadge } from '@/components/ui/premium-badge';
+import { useToast } from '@/components/ui/toast';
 import {
   MessageSquare,
   Heart,
@@ -62,6 +63,45 @@ export function QTStudio() {
   const [selectedAngle, setSelectedAngle] = React.useState<QTAngle | null>(null);
   const [qtContent, setQtContent] = React.useState('');
   const [originalPost] = React.useState<OriginalPost>(mockOriginalPost);
+  const [isPosting, setIsPosting] = React.useState(false);
+  const { addToast } = useToast();
+
+  const handlePostQT = async () => {
+    if (qtContent.length < 10) {
+      addToast({
+        type: 'warning',
+        title: 'Content too short',
+        description: 'Write at least 10 characters',
+      });
+      return;
+    }
+    setIsPosting(true);
+    await new Promise((resolve) => setTimeout(resolve, 1500));
+    setIsPosting(false);
+    addToast({
+      type: 'success',
+      title: 'Quote tweet posted!',
+      description: 'Your QT has been published',
+    });
+    setQtContent('');
+    setSelectedAngle(null);
+  };
+
+  const handleGenerateVariations = () => {
+    if (!qtContent.trim()) {
+      addToast({
+        type: 'warning',
+        title: 'No content',
+        description: 'Write something first to generate variations',
+      });
+      return;
+    }
+    addToast({
+      type: 'info',
+      title: 'Generating variations',
+      description: 'Creating alternative versions...',
+    });
+  };
 
   const qtAngles: QTAngle[] = [
     {
@@ -227,7 +267,14 @@ export function QTStudio() {
             <h3 className="font-semibold text-primary">Your Quote Tweet</h3>
             {selectedAngle && (
               <button
-                onClick={() => setQtContent(selectedAngle.suggestedContent)}
+                onClick={() => {
+                  setQtContent(selectedAngle.suggestedContent);
+                  addToast({
+                    type: 'success',
+                    title: 'AI suggestion applied',
+                    description: `Using ${selectedAngle.label} template`,
+                  });
+                }}
                 className="flex items-center gap-1 text-xs text-violet-400 hover:text-violet-300"
               >
                 <Sparkles className="h-3 w-3" />
@@ -270,16 +317,20 @@ export function QTStudio() {
 
           {/* Actions */}
           <div className="flex items-center justify-between mt-4">
-            <button className="text-sm text-tertiary hover:text-secondary transition-colors flex items-center gap-1">
+            <button
+              onClick={handleGenerateVariations}
+              className="text-sm text-tertiary hover:text-secondary transition-colors flex items-center gap-1"
+            >
               <Sparkles className="h-4 w-4" />
               Generate Variations
             </button>
             <PremiumButton
               variant="primary"
               leftIcon={<Send className="h-4 w-4" />}
-              disabled={qtContent.length < 10}
+              disabled={qtContent.length < 10 || isPosting}
+              onClick={handlePostQT}
             >
-              Post Quote Tweet
+              {isPosting ? 'Posting...' : 'Post Quote Tweet'}
             </PremiumButton>
           </div>
         </PremiumCard>

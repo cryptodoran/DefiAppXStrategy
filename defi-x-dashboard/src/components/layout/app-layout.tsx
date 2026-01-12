@@ -1,6 +1,8 @@
 'use client';
 
 import * as React from 'react';
+import { useRouter, usePathname } from 'next/navigation';
+import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { StatusBar } from './status-bar';
@@ -18,7 +20,6 @@ import {
   Target,
   BookOpen,
   Zap,
-  Bell,
 } from 'lucide-react';
 
 interface AppLayoutProps {
@@ -37,11 +38,11 @@ interface NavItem {
 const navItems: NavItem[] = [
   { id: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard className="h-5 w-5" />, href: '/' },
   { id: 'create', label: 'Create', icon: <PenSquare className="h-5 w-5" />, href: '/create' },
-  { id: 'suggestions', label: 'AI Suggestions', icon: <Sparkles className="h-5 w-5" />, href: '/suggestions', badge: '3' },
-  { id: 'opportunities', label: 'Opportunities', icon: <Target className="h-5 w-5" />, href: '/opportunities', badge: 'HOT' },
-  { id: 'analytics', label: 'Analytics', icon: <TrendingUp className="h-5 w-5" />, href: '/analytics' },
-  { id: 'competitors', label: 'War Room', icon: <Users className="h-5 w-5" />, href: '/competitors' },
-  { id: 'calendar', label: 'Schedule', icon: <Calendar className="h-5 w-5" />, href: '/schedule' },
+  { id: 'suggestions', label: 'AI Suggestions', icon: <Sparkles className="h-5 w-5" />, href: '/suggestions/daily', badge: '3' },
+  { id: 'opportunities', label: 'Opportunities', icon: <Target className="h-5 w-5" />, href: '/research/trends', badge: 'HOT' },
+  { id: 'analytics', label: 'Analytics', icon: <TrendingUp className="h-5 w-5" />, href: '/analytics/followers' },
+  { id: 'competitors', label: 'War Room', icon: <Users className="h-5 w-5" />, href: '/research/competitors' },
+  { id: 'calendar', label: 'Schedule', icon: <Calendar className="h-5 w-5" />, href: '/suggestions/calendar' },
   { id: 'research', label: 'Research', icon: <BookOpen className="h-5 w-5" />, href: '/research' },
 ];
 
@@ -51,8 +52,23 @@ const bottomNavItems: NavItem[] = [
 
 export function AppLayout({ children, rightPanel }: AppLayoutProps) {
   const [sidebarCollapsed, setSidebarCollapsed] = React.useState(false);
-  const [activeNav, setActiveNav] = React.useState('dashboard');
+  const pathname = usePathname();
   const commandPalette = useCommandPalette();
+
+  // Determine active nav based on current path
+  const getActiveNav = () => {
+    if (pathname === '/') return 'dashboard';
+    if (pathname.startsWith('/create')) return 'create';
+    if (pathname.startsWith('/suggestions')) return 'suggestions';
+    if (pathname.startsWith('/analytics')) return 'analytics';
+    if (pathname.startsWith('/research/competitors')) return 'competitors';
+    if (pathname.startsWith('/research/trends')) return 'opportunities';
+    if (pathname.startsWith('/research')) return 'research';
+    if (pathname.startsWith('/settings')) return 'settings';
+    return 'dashboard';
+  };
+
+  const activeNav = getActiveNav();
 
   // Persist collapsed state
   React.useEffect(() => {
@@ -97,7 +113,7 @@ export function AppLayout({ children, rightPanel }: AppLayoutProps) {
           animate={{ width: sidebarCollapsed ? 64 : 240 }}
         >
           {/* Logo */}
-          <div className="h-14 flex items-center justify-between px-4 border-b border-white/5">
+          <Link href="/" className="h-14 flex items-center justify-between px-4 border-b border-white/5 hover:bg-elevated/50 transition-colors">
             <AnimatePresence mode="wait">
               {!sidebarCollapsed && (
                 <motion.div
@@ -119,17 +135,16 @@ export function AppLayout({ children, rightPanel }: AppLayoutProps) {
                 <Zap className="h-4 w-4 text-white" />
               </div>
             )}
-          </div>
+          </Link>
 
           {/* Navigation */}
           <nav className="flex-1 py-4 px-2 space-y-1 overflow-y-auto">
             {navItems.map((item) => (
-              <NavButton
+              <NavLink
                 key={item.id}
                 item={item}
                 isActive={activeNav === item.id}
                 collapsed={sidebarCollapsed}
-                onClick={() => setActiveNav(item.id)}
               />
             ))}
           </nav>
@@ -137,12 +152,11 @@ export function AppLayout({ children, rightPanel }: AppLayoutProps) {
           {/* Bottom Navigation */}
           <div className="py-4 px-2 border-t border-white/5">
             {bottomNavItems.map((item) => (
-              <NavButton
+              <NavLink
                 key={item.id}
                 item={item}
                 isActive={activeNav === item.id}
                 collapsed={sidebarCollapsed}
-                onClick={() => setActiveNav(item.id)}
               />
             ))}
 
@@ -184,18 +198,17 @@ export function AppLayout({ children, rightPanel }: AppLayoutProps) {
   );
 }
 
-// Nav button component
-interface NavButtonProps {
+// Nav link component using Next.js Link
+interface NavLinkProps {
   item: NavItem;
   isActive: boolean;
   collapsed: boolean;
-  onClick: () => void;
 }
 
-function NavButton({ item, isActive, collapsed, onClick }: NavButtonProps) {
+function NavLink({ item, isActive, collapsed }: NavLinkProps) {
   return (
-    <motion.button
-      onClick={onClick}
+    <Link
+      href={item.href}
       className={cn(
         'w-full flex items-center gap-3 px-3 py-2.5 rounded-lg relative',
         'transition-colors duration-150',
@@ -203,8 +216,6 @@ function NavButton({ item, isActive, collapsed, onClick }: NavButtonProps) {
           ? 'bg-elevated text-primary'
           : 'text-secondary hover:text-primary hover:bg-elevated/50'
       )}
-      whileHover={{ x: collapsed ? 0 : 2 }}
-      whileTap={{ scale: 0.98 }}
     >
       <span className={cn(
         'flex-shrink-0',
@@ -248,7 +259,7 @@ function NavButton({ item, isActive, collapsed, onClick }: NavButtonProps) {
           transition={{ type: 'spring', stiffness: 300, damping: 30 }}
         />
       )}
-    </motion.button>
+    </Link>
   );
 }
 
