@@ -49,14 +49,13 @@ interface Opportunity {
   verifyUrl?: string; // Link to verify on X
 }
 
-// Content queue item types
-type ContentStatus = 'scheduled' | 'draft' | 'ai-suggestion';
+// Content draft item types
+type DraftStatus = 'draft' | 'ai-suggestion';
 
 interface ContentItem {
   id: string;
-  status: ContentStatus;
+  status: DraftStatus;
   preview: string;
-  scheduledFor?: string;
   score?: number;
 }
 
@@ -123,12 +122,11 @@ function generateOpportunities(): Opportunity[] {
   ];
 }
 
-const contentQueue: ContentItem[] = [
+const contentDrafts: ContentItem[] = [
   {
     id: '1',
-    status: 'scheduled',
+    status: 'draft',
     preview: 'Thread: The complete guide to maximizing yields on DeFi protocols in 2026...',
-    scheduledFor: 'Today 2:30 PM',
     score: 85,
   },
   {
@@ -191,7 +189,7 @@ export function ActionCenter() {
         isRefreshing={isRefreshing}
         lastRefresh={lastRefresh}
       />
-      <ContentQueuePanel items={contentQueue} />
+      <ContentDraftsPanel items={contentDrafts} />
     </div>
   );
 }
@@ -350,12 +348,12 @@ function OpportunityItem({ opportunity }: { opportunity: Opportunity }) {
   );
 }
 
-// Content Queue Panel
-interface ContentQueuePanelProps {
+// Content Drafts Panel
+interface ContentDraftsPanelProps {
   items: ContentItem[];
 }
 
-function ContentQueuePanel({ items }: ContentQueuePanelProps) {
+function ContentDraftsPanel({ items }: ContentDraftsPanelProps) {
   const router = useRouter();
 
   return (
@@ -364,7 +362,7 @@ function ContentQueuePanel({ items }: ContentQueuePanelProps) {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <FileText className="h-4 w-4 text-violet-400" />
-            <h3 className="font-semibold text-primary">Content Queue</h3>
+            <h3 className="font-semibold text-primary">Draft Ideas</h3>
           </div>
           <PremiumButton
             size="sm"
@@ -372,7 +370,7 @@ function ContentQueuePanel({ items }: ContentQueuePanelProps) {
             leftIcon={<Sparkles className="h-3.5 w-3.5" />}
             onClick={() => router.push('/create')}
           >
-            New Post
+            New Draft
           </PremiumButton>
         </div>
       </div>
@@ -385,31 +383,30 @@ function ContentQueuePanel({ items }: ContentQueuePanelProps) {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.05 }}
           >
-            <ContentQueueItem item={item} />
+            <ContentDraftItem item={item} />
           </motion.div>
         ))}
       </div>
 
       <div className="p-3 border-t border-white/5 flex items-center justify-between">
         <Link
-          href="/suggestions/calendar"
+          href="/suggestions/daily"
           className="text-sm text-tertiary hover:text-secondary transition-colors flex items-center gap-2"
         >
-          View all content
+          View AI suggestions
           <ArrowRight className="h-4 w-4" />
         </Link>
-        <span className="text-xs text-tertiary">3 scheduled today</span>
+        <span className="text-xs text-tertiary">{items.length} drafts</span>
       </div>
     </PremiumCard>
   );
 }
 
-function ContentQueueItem({ item }: { item: ContentItem }) {
+function ContentDraftItem({ item }: { item: ContentItem }) {
   const router = useRouter();
-  const statusConfig: Record<ContentStatus, { label: string; color: string }> = {
-    scheduled: { label: 'Scheduled', color: 'text-blue-400 bg-blue-500/10' },
+  const statusConfig: Record<DraftStatus, { label: string; color: string }> = {
     draft: { label: 'Draft', color: 'text-yellow-400 bg-yellow-500/10' },
-    'ai-suggestion': { label: 'AI Suggestion', color: 'text-violet-400 bg-violet-500/10' },
+    'ai-suggestion': { label: 'AI Idea', color: 'text-violet-400 bg-violet-500/10' },
   };
 
   const { label, color } = statusConfig[item.status];
@@ -434,12 +431,6 @@ function ContentQueueItem({ item }: { item: ContentItem }) {
             <span className={cn('px-2 py-0.5 rounded text-xs font-medium', color)}>
               {label}
             </span>
-            {item.scheduledFor && (
-              <span className="text-xs text-tertiary flex items-center gap-1">
-                <Clock className="h-3 w-3" />
-                {item.scheduledFor}
-              </span>
-            )}
           </div>
           <p className="text-sm text-secondary line-clamp-2">{item.preview}</p>
         </div>

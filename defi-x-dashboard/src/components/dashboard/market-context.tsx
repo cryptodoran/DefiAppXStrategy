@@ -21,9 +21,17 @@ import {
 import {
   TRENDING_HASHTAGS,
   getUpcomingEconomicEvents,
-  CRYPTO_NEWS_SOURCES,
   type EconomicEvent,
 } from '@/services/real-twitter-links';
+
+// News headline type from API
+interface NewsHeadline {
+  title: string;
+  link: string;
+  source: string;
+  pubDate: string;
+  _fallback?: boolean;
+}
 import {
   TrendingUp,
   TrendingDown,
@@ -41,11 +49,23 @@ export function MarketContextPanel() {
   const [cryptos, setCryptos] = React.useState<CryptoPrice[]>([]);
   const [fearGreed, setFearGreed] = React.useState<FearGreedData | null>(null);
   const [tvl, setTvl] = React.useState<TVLData | null>(null);
+  const [newsHeadlines, setNewsHeadlines] = React.useState<NewsHeadline[]>([]);
   const [currentMood, setCurrentMood] = React.useState<MarketMood>('neutral');
   const [lastUpdate, setLastUpdate] = React.useState<Date>(new Date());
   const [isRefreshing, setIsRefreshing] = React.useState(false);
   const [hasError, setHasError] = React.useState(false);
   const [economicEvents] = React.useState<EconomicEvent[]>(getUpcomingEconomicEvents());
+
+  // Fetch news headlines
+  const fetchNewsHeadlines = async (): Promise<NewsHeadline[]> => {
+    try {
+      const response = await fetch('/api/news/headlines');
+      if (!response.ok) return [];
+      return response.json();
+    } catch {
+      return [];
+    }
+  };
 
   // Fetch real data
   const refreshData = React.useCallback(async () => {
@@ -53,15 +73,17 @@ export function MarketContextPanel() {
     setHasError(false);
 
     try {
-      const [pricesData, fgData, tvlData] = await Promise.all([
+      const [pricesData, fgData, tvlData, newsData] = await Promise.all([
         fetchRealCryptoPrices(),
         fetchRealFearGreed(),
         fetchRealTVL(),
+        fetchNewsHeadlines(),
       ]);
 
       setCryptos(pricesData);
       setFearGreed(fgData);
       setTvl(tvlData);
+      setNewsHeadlines(newsData);
       setCurrentMood(calculateMarketMood(fgData.value));
       setLastUpdate(new Date());
     } catch (error) {
@@ -268,35 +290,39 @@ export function MarketContextPanel() {
           </div>
         </section>
 
-        {/* News Sources */}
+        {/* Latest News Headlines */}
         <section className="p-4 border-b border-white/5">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <Newspaper className="h-4 w-4 text-tertiary" />
-              <span className="text-sm text-tertiary">News Sources</span>
+              <span className="text-sm text-tertiary">Latest News</span>
             </div>
+            <span className="text-[10px] text-tertiary">Live headlines</span>
           </div>
           <div className="space-y-2">
-            {CRYPTO_NEWS_SOURCES.slice(0, 4).map((source) => (
-              <div key={source.name} className="flex items-center justify-between">
+            {newsHeadlines.length > 0 ? (
+              newsHeadlines.slice(0, 5).map((headline, index) => (
                 <a
-                  href={source.url}
+                  key={index}
+                  href={headline.link}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-sm text-secondary hover:text-primary transition-colors"
+                  className="block p-2 rounded-lg hover:bg-elevated transition-colors group"
                 >
-                  {source.name}
+                  <p className="text-sm text-secondary group-hover:text-primary line-clamp-2 transition-colors">
+                    {headline.title}
+                  </p>
+                  <div className="flex items-center justify-between mt-1">
+                    <span className="text-[10px] text-tertiary">{headline.source}</span>
+                    <ExternalLink className="h-3 w-3 text-tertiary opacity-0 group-hover:opacity-100 transition-opacity" />
+                  </div>
                 </a>
-                <a
-                  href={source.twitterUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-xs text-violet-400 hover:text-violet-300"
-                >
-                  {source.twitterHandle}
-                </a>
+              ))
+            ) : (
+              <div className="text-center py-4 text-tertiary text-sm">
+                Loading headlines...
               </div>
-            ))}
+            )}
           </div>
         </section>
 

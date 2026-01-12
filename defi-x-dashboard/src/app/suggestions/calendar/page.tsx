@@ -21,28 +21,29 @@ import { AppLayout } from '@/components/layout/app-layout';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/components/ui/toast';
 
-// US-013: Content Calendar Manager
+// US-013: Content Ideas Planner
+// Note: This is for planning content ideas and drafts - NOT auto-posting
 
-interface ScheduledPost {
+interface ContentIdea {
   id: string;
   content: string;
   type: 'single' | 'thread' | 'qt' | 'article';
-  scheduledTime: Date;
-  status: 'scheduled' | 'draft' | 'published';
+  plannedDate: Date;
+  status: 'idea' | 'draft' | 'ready';
   qualityScore: number;
   isOptimalTime: boolean;
 }
 
-const generateMockPosts = (): ScheduledPost[] => {
-  const posts: ScheduledPost[] = [];
-  const types: ScheduledPost['type'][] = ['single', 'thread', 'qt', 'article'];
+const generateContentIdeas = (): ContentIdea[] => {
+  const ideas: ContentIdea[] = [];
+  const types: ContentIdea['type'][] = ['single', 'thread', 'qt', 'article'];
   const contents = [
-    'DeFi isn\'t dead thread coming...',
+    'DeFi isn\'t dead thread idea...',
     'Hot take on the latest SEC news',
-    'Product update announcement',
+    'Product update draft',
     'Educational thread on L2s',
-    'Quote tweet on market analysis',
-    'Weekly DeFi roundup',
+    'Quote tweet angle on market analysis',
+    'Weekly DeFi roundup concept',
   ];
 
   for (let i = 0; i < 15; i++) {
@@ -50,21 +51,21 @@ const generateMockPosts = (): ScheduledPost[] => {
     date.setDate(date.getDate() + Math.floor(Math.random() * 14) - 3);
     date.setHours(Math.floor(Math.random() * 12) + 8);
 
-    posts.push({
-      id: `post-${i}`,
+    ideas.push({
+      id: `idea-${i}`,
       content: contents[Math.floor(Math.random() * contents.length)],
       type: types[Math.floor(Math.random() * types.length)],
-      scheduledTime: date,
-      status: date < new Date() ? 'published' : 'scheduled',
+      plannedDate: date,
+      status: date < new Date() ? 'ready' : 'idea',
       qualityScore: Math.floor(Math.random() * 30) + 70,
       isOptimalTime: Math.random() > 0.3,
     });
   }
 
-  return posts;
+  return ideas;
 };
 
-const mockPosts = generateMockPosts();
+const contentIdeas = generateContentIdeas();
 
 const optimalTimeSlots = [
   { time: '10:00 AM', score: 85 },
@@ -80,16 +81,16 @@ export default function ContentCalendarPage() {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [view, setView] = useState<'month' | 'week'>('week');
 
-  const handleSchedulePost = () => {
+  const handleCreateIdea = () => {
     router.push('/create');
     addToast({
       type: 'info',
-      title: 'Creating new post',
-      description: 'Opening editor to create a new scheduled post',
+      title: 'Creating new draft',
+      description: 'Opening editor to create a new content idea',
     });
   };
 
-  const getTypeIcon = (type: ScheduledPost['type']) => {
+  const getTypeIcon = (type: ContentIdea['type']) => {
     switch (type) {
       case 'single':
         return <FileText className="h-3 w-3" />;
@@ -102,7 +103,7 @@ export default function ContentCalendarPage() {
     }
   };
 
-  const getTypeColor = (type: ScheduledPost['type']) => {
+  const getTypeColor = (type: ContentIdea['type']) => {
     switch (type) {
       case 'single':
         return 'bg-blue-500';
@@ -131,10 +132,10 @@ export default function ContentCalendarPage() {
 
   const weekDates = getWeekDates();
 
-  const getPostsForDate = (date: Date) => {
-    return mockPosts.filter(
-      (post) =>
-        post.scheduledTime.toDateString() === date.toDateString()
+  const getIdeasForDate = (date: Date) => {
+    return contentIdeas.filter(
+      (idea) =>
+        idea.plannedDate.toDateString() === date.toDateString()
     );
   };
 
@@ -145,18 +146,18 @@ export default function ContentCalendarPage() {
   };
 
   const contentTypeDistribution = {
-    single: mockPosts.filter((p) => p.type === 'single').length,
-    thread: mockPosts.filter((p) => p.type === 'thread').length,
-    qt: mockPosts.filter((p) => p.type === 'qt').length,
-    article: mockPosts.filter((p) => p.type === 'article').length,
+    single: contentIdeas.filter((p) => p.type === 'single').length,
+    thread: contentIdeas.filter((p) => p.type === 'thread').length,
+    qt: contentIdeas.filter((p) => p.type === 'qt').length,
+    article: contentIdeas.filter((p) => p.type === 'article').length,
   };
 
-  const conflictPosts = mockPosts.filter((post, index) => {
-    return mockPosts.some(
+  const conflictIdeas = contentIdeas.filter((post, index) => {
+    return contentIdeas.some(
       (other, otherIndex) =>
         index !== otherIndex &&
-        Math.abs(post.scheduledTime.getTime() - other.scheduledTime.getTime()) < 2 * 60 * 60 * 1000 &&
-        post.scheduledTime.toDateString() === other.scheduledTime.toDateString()
+        Math.abs(post.plannedDate.getTime() - other.plannedDate.getTime()) < 2 * 60 * 60 * 1000 &&
+        post.plannedDate.toDateString() === other.plannedDate.toDateString()
     );
   });
 
@@ -166,12 +167,12 @@ export default function ContentCalendarPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white">Content Calendar</h1>
-          <p className="text-tertiary">Plan and schedule your content strategy</p>
+          <h1 className="text-2xl font-bold text-white">Content Planner</h1>
+          <p className="text-tertiary">Plan your content ideas (you post manually via Twitter)</p>
         </div>
-        <Button className="bg-gradient-to-r from-violet-500 to-indigo-600" onClick={handleSchedulePost}>
+        <Button className="bg-gradient-to-r from-violet-500 to-indigo-600" onClick={handleCreateIdea}>
           <Plus className="mr-2 h-4 w-4" />
-          Schedule Post
+          New Idea
         </Button>
       </div>
 
@@ -179,9 +180,9 @@ export default function ContentCalendarPage() {
       <div className="grid gap-4 md:grid-cols-5">
         <Card className="bg-surface border-white/5">
           <CardContent className="pt-4">
-            <p className="text-sm text-tertiary">Scheduled</p>
+            <p className="text-sm text-tertiary">Ideas</p>
             <p className="text-2xl font-bold text-white">
-              {mockPosts.filter((p) => p.status === 'scheduled').length}
+              {contentIdeas.filter((p) => p.status === 'idea').length}
             </p>
           </CardContent>
         </Card>
@@ -189,10 +190,10 @@ export default function ContentCalendarPage() {
           <CardContent className="pt-4">
             <p className="text-sm text-tertiary">This Week</p>
             <p className="text-2xl font-bold text-blue-400">
-              {mockPosts.filter((p) => {
+              {contentIdeas.filter((p) => {
                 const start = weekDates[0];
                 const end = weekDates[6];
-                return p.scheduledTime >= start && p.scheduledTime <= end;
+                return p.plannedDate >= start && p.plannedDate <= end;
               }).length}
             </p>
           </CardContent>
@@ -201,7 +202,7 @@ export default function ContentCalendarPage() {
           <CardContent className="pt-4">
             <p className="text-sm text-tertiary">Optimal Times</p>
             <p className="text-2xl font-bold text-green-400">
-              {mockPosts.filter((p) => p.isOptimalTime).length}
+              {contentIdeas.filter((p) => p.isOptimalTime).length}
             </p>
           </CardContent>
         </Card>
@@ -209,15 +210,15 @@ export default function ContentCalendarPage() {
           <CardContent className="pt-4">
             <p className="text-sm text-tertiary">Avg Quality</p>
             <p className="text-2xl font-bold text-purple-400">
-              {Math.round(mockPosts.reduce((acc, p) => acc + p.qualityScore, 0) / mockPosts.length)}
+              {Math.round(contentIdeas.reduce((acc, p) => acc + p.qualityScore, 0) / contentIdeas.length)}
             </p>
           </CardContent>
         </Card>
         <Card className="bg-surface border-white/5">
           <CardContent className="pt-4">
             <p className="text-sm text-tertiary">Conflicts</p>
-            <p className={cn('text-2xl font-bold', conflictPosts.length > 0 ? 'text-red-400' : 'text-green-400')}>
-              {conflictPosts.length}
+            <p className={cn('text-2xl font-bold', conflictIdeas.length > 0 ? 'text-red-400' : 'text-green-400')}>
+              {conflictIdeas.length}
             </p>
           </CardContent>
         </Card>
@@ -258,7 +259,7 @@ export default function ContentCalendarPage() {
 
                 {/* Day Cells */}
                 {weekDates.map((date) => {
-                  const posts = getPostsForDate(date);
+                  const posts = getIdeasForDate(date);
                   const isToday = date.toDateString() === new Date().toDateString();
 
                   return (
@@ -290,7 +291,7 @@ export default function ContentCalendarPage() {
                           >
                             {getTypeIcon(post.type)}
                             <span className="truncate text-white">
-                              {post.scheduledTime.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
+                              {post.plannedDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
                             </span>
                           </div>
                         ))}
@@ -371,19 +372,19 @@ export default function ContentCalendarPage() {
             </CardContent>
           </Card>
 
-          {/* Conflicts */}
-          {conflictPosts.length > 0 && (
-            <Card className="bg-red-500/10 border-red-500/20">
+          {/* Time Conflicts */}
+          {conflictIdeas.length > 0 && (
+            <Card className="bg-yellow-500/10 border-yellow-500/20">
               <CardHeader>
-                <CardTitle className="text-sm text-red-400 flex items-center gap-2">
+                <CardTitle className="text-sm text-yellow-400 flex items-center gap-2">
                   <AlertTriangle className="h-4 w-4" />
-                  Scheduling Conflicts
+                  Timing Overlap
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-sm text-tertiary">
-                  {conflictPosts.length} posts are scheduled too close together.
-                  Consider spacing them out for better reach.
+                  {conflictIdeas.length} ideas are planned too close together.
+                  Consider spacing them out for better reach when you post.
                 </p>
               </CardContent>
             </Card>

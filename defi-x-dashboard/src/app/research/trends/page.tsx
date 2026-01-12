@@ -21,7 +21,9 @@ import {
   Flame,
   CheckCircle,
   AlertCircle,
+  ExternalLink,
 } from 'lucide-react';
+import { TRENDING_HASHTAGS, getTwitterSearchUrl } from '@/services/real-twitter-links';
 import { AppLayout } from '@/components/layout/app-layout';
 import { useToast } from '@/components/ui/toast';
 
@@ -56,14 +58,7 @@ async function fetchTrends(): Promise<PlatformTrend[]> {
   }));
 }
 
-const trendingHashtags = [
-  { tag: '#DeFi', posts: 45000, change: 12 },
-  { tag: '#Ethereum', posts: 89000, change: 8 },
-  { tag: '#Crypto', posts: 234000, change: -3 },
-  { tag: '#Web3', posts: 34000, change: 15 },
-  { tag: '#Bitcoin', posts: 156000, change: 5 },
-  { tag: '#NFT', posts: 23000, change: -12 },
-];
+// Use real hashtags from the service - these link to actual Twitter searches
 
 const categoryConfig: Record<string, { color: string }> = {
   crypto: { color: 'bg-orange-500/20 text-orange-400' },
@@ -304,13 +299,30 @@ export default function PlatformTrendsPage() {
 
                 <div className="flex flex-wrap gap-1">
                   {trend.relatedHashtags.map((tag, i) => (
-                    <Badge key={i} variant="outline" className="text-xs">
-                      {tag}
-                    </Badge>
+                    <a
+                      key={i}
+                      href={getTwitterSearchUrl(tag)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-block"
+                    >
+                      <Badge variant="outline" className="text-xs hover:bg-violet-500/20 hover:text-violet-400 hover:border-violet-500/30 transition-colors cursor-pointer">
+                        {tag}
+                      </Badge>
+                    </a>
                   ))}
                 </div>
 
-                <div className="flex justify-end mt-4 pt-4 border-t border-white/5">
+                <div className="flex justify-between mt-4 pt-4 border-t border-white/5">
+                  <a
+                    href={getTwitterSearchUrl(trend.topic)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs text-violet-400 hover:text-violet-300 flex items-center gap-1"
+                  >
+                    <ExternalLink className="h-3 w-3" />
+                    View on X
+                  </a>
                   <Button
                     size="sm"
                     className="bg-gradient-to-r from-violet-500 to-indigo-600"
@@ -330,34 +342,32 @@ export default function PlatformTrendsPage() {
 
         {/* Sidebar */}
         <div className="space-y-6">
-          {/* Trending Hashtags */}
+          {/* Trending Hashtags - Click to view on X */}
           <Card className="bg-surface border-white/5">
             <CardHeader>
-              <CardTitle className="text-sm text-white flex items-center gap-2">
-                <Hash className="h-4 w-4" />
-                Trending Hashtags
+              <CardTitle className="text-sm text-white flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Hash className="h-4 w-4" />
+                  Trending Hashtags
+                </div>
+                <span className="text-[10px] text-tertiary font-normal">Click to view on X</span>
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3">
-              {trendingHashtags.map((hashtag, index) => (
-                <div key={index} className="flex items-center justify-between">
+            <CardContent className="space-y-2">
+              {TRENDING_HASHTAGS.slice(0, 8).map((hashtag, index) => (
+                <a
+                  key={index}
+                  href={hashtag.searchUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-between p-2 rounded-lg hover:bg-elevated transition-colors group"
+                >
                   <div className="flex items-center gap-2">
                     <span className="text-tertiary text-sm w-4">{index + 1}</span>
-                    <span className="text-sm text-white">{hashtag.tag}</span>
+                    <span className="text-sm text-white group-hover:text-violet-400 transition-colors">{hashtag.tag}</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs text-tertiary">{formatNumber(hashtag.posts)}</span>
-                    <span
-                      className={cn(
-                        'text-xs',
-                        hashtag.change > 0 ? 'text-green-400' : 'text-red-400'
-                      )}
-                    >
-                      {hashtag.change > 0 ? '+' : ''}
-                      {hashtag.change}%
-                    </span>
-                  </div>
-                </div>
+                  <ExternalLink className="h-3 w-3 text-tertiary opacity-0 group-hover:opacity-100 transition-opacity" />
+                </a>
               ))}
             </CardContent>
           </Card>

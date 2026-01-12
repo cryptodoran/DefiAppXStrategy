@@ -19,8 +19,6 @@ import {
   Clock,
   TrendingUp,
   Send,
-  Calendar,
-  MoreHorizontal,
   AlertTriangle,
   CheckCircle,
   XCircle,
@@ -72,7 +70,6 @@ export function ContentCreator({ initialTopic }: ContentCreatorProps) {
   const [content, setContent] = React.useState('');
   const [qualityScore, setQualityScore] = React.useState<QualityScore | null>(null);
   const [isAnalyzing, setIsAnalyzing] = React.useState(false);
-  const [isPosting, setIsPosting] = React.useState(false);
   const { addToast } = useToast();
 
   // Pre-fill content with topic if provided
@@ -82,40 +79,41 @@ export function ContentCreator({ initialTopic }: ContentCreatorProps) {
     }
   }, [initialTopic]);
 
-  const handlePostNow = async () => {
+  // Opens Twitter/X with pre-filled content for manual posting
+  const handleOpenInTwitter = () => {
     if (!content.trim()) {
       addToast({
         type: 'warning',
         title: 'Empty post',
-        description: 'Please write something before posting',
+        description: 'Please write something first',
       });
       return;
     }
-    setIsPosting(true);
-    // Simulate posting delay
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-    setIsPosting(false);
+    // Twitter web intent URL - opens Twitter with pre-filled content
+    const twitterIntentUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(content)}`;
+    window.open(twitterIntentUrl, '_blank');
     addToast({
       type: 'success',
-      title: 'Post scheduled!',
-      description: 'Your post has been queued for publishing',
+      title: 'Opened in Twitter',
+      description: 'Complete your post on Twitter/X',
     });
-    setContent('');
   };
 
-  const handleSchedule = () => {
+  // Copy content to clipboard
+  const handleCopyContent = () => {
     if (!content.trim()) {
       addToast({
         type: 'warning',
         title: 'Empty post',
-        description: 'Please write something before scheduling',
+        description: 'Please write something first',
       });
       return;
     }
+    navigator.clipboard.writeText(content);
     addToast({
-      type: 'info',
-      title: 'Opening scheduler',
-      description: 'Select a time to schedule your post',
+      type: 'success',
+      title: 'Copied!',
+      description: 'Content copied to clipboard',
     });
   };
 
@@ -215,19 +213,18 @@ export function ContentCreator({ initialTopic }: ContentCreatorProps) {
               <PremiumButton
                 size="sm"
                 variant="ghost"
-                leftIcon={<Calendar className="h-4 w-4" />}
-                onClick={handleSchedule}
+                leftIcon={<Eye className="h-4 w-4" />}
+                onClick={handleCopyContent}
               >
-                Schedule
+                Copy
               </PremiumButton>
               <PremiumButton
                 size="sm"
                 variant="primary"
                 leftIcon={<Send className="h-4 w-4" />}
-                onClick={handlePostNow}
-                disabled={isPosting}
+                onClick={handleOpenInTwitter}
               >
-                {isPosting ? 'Posting...' : 'Post Now'}
+                Open in Twitter
               </PremiumButton>
             </div>
           </div>
