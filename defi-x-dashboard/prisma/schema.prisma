@@ -1,0 +1,303 @@
+// Prisma schema for DeFi App X Strategy Dashboard
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Core Post model with metrics and scores
+model Post {
+  id            String   @id @default(cuid())
+  xPostId       String?  @unique @map("x_post_id")
+  content       String
+  type          PostType @default(SINGLE)
+  status        PostStatus @default(DRAFT)
+  scheduledAt   DateTime? @map("scheduled_at")
+  publishedAt   DateTime? @map("published_at")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  // Metrics
+  impressions   Int @default(0)
+  engagements   Int @default(0)
+  likes         Int @default(0)
+  retweets      Int @default(0)
+  replies       Int @default(0)
+  quotes        Int @default(0)
+  linkClicks    Int @default(0) @map("link_clicks")
+  profileVisits Int @default(0) @map("profile_visits")
+
+  // Scores
+  qualityScore    Float? @map("quality_score")
+  viralScore      Float? @map("viral_score")
+  spiceLevel      Int?   @map("spice_level")
+  brandAlignment  Float? @map("brand_alignment")
+  slopScore       Float? @map("slop_score")
+
+  // Tags
+  contentType   String?  @map("content_type")
+  topics        String[] @default([])
+  campaignId    String?  @map("campaign_id")
+
+  // Relations
+  threadPosts   ThreadPost[]
+  suggestions   ContentSuggestion[]
+
+  @@map("posts")
+}
+
+enum PostType {
+  SINGLE
+  THREAD
+  QT
+  ARTICLE
+  MEME
+  ANNOUNCEMENT
+}
+
+enum PostStatus {
+  DRAFT
+  SCHEDULED
+  PUBLISHED
+  FAILED
+}
+
+// Thread posts for multi-tweet threads
+model ThreadPost {
+  id        String   @id @default(cuid())
+  postId    String   @map("post_id")
+  content   String
+  position  Int
+  createdAt DateTime @default(now()) @map("created_at")
+
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@map("thread_posts")
+}
+
+// Competitor tracking
+model Competitor {
+  id             String   @id @default(cuid())
+  xHandle        String   @unique @map("x_handle")
+  name           String
+  type           CompetitorType @default(BRAND)
+
+  // Metrics
+  followerCount  Int @default(0) @map("follower_count")
+  followingCount Int @default(0) @map("following_count")
+  avgEngagement  Float @default(0) @map("avg_engagement")
+  growthRate     Float @default(0) @map("growth_rate")
+  postingFrequency Float @default(0) @map("posting_frequency")
+
+  // Tracking
+  priorityLevel  Int @default(1) @map("priority_level")
+  lastAnalyzed   DateTime? @map("last_analyzed")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  // Top posts data
+  topPosts       Json? @map("top_posts")
+  contentMix     Json? @map("content_mix")
+
+  @@map("competitors")
+}
+
+enum CompetitorType {
+  BRAND
+  INFLUENCER
+  KOL
+}
+
+// Algorithm insights tracking
+model AlgorithmInsight {
+  id                    String   @id @default(cuid())
+  factorName            String   @map("factor_name")
+  currentUnderstanding  String   @map("current_understanding")
+  confidenceLevel       Float    @map("confidence_level")
+  source                String?
+  discoveredAt          DateTime @default(now()) @map("discovered_at")
+  verifiedBy            String?  @map("verified_by")
+  impactRating          Float?   @map("impact_rating")
+  category              AlgorithmCategory @default(OTHER)
+  isActive              Boolean  @default(true) @map("is_active")
+  updatedAt             DateTime @updatedAt @map("updated_at")
+
+  @@map("algorithm_insights")
+}
+
+enum AlgorithmCategory {
+  EXPOSURE_ALLOCATION
+  CONTENT_QUALITY
+  ENGAGEMENT_WEIGHTING
+  REPLY_DYNAMICS
+  QT_VS_RT
+  THREAD_BOOST
+  PENALTY_TRIGGERS
+  OTHER
+}
+
+// Content suggestions
+model ContentSuggestion {
+  id                   String   @id @default(cuid())
+  content              String
+  suggestionType       SuggestionType @map("suggestion_type")
+  sourceTrend          String?  @map("source_trend")
+  predictedPerformance Float?   @map("predicted_performance")
+  optimalTime          DateTime? @map("optimal_time")
+  status               SuggestionStatus @default(PENDING)
+  spiceLevel           Int?     @map("spice_level")
+  createdAt            DateTime @default(now()) @map("created_at")
+
+  // Relation to post if used
+  postId               String?  @map("post_id")
+  post                 Post?    @relation(fields: [postId], references: [id])
+
+  @@map("content_suggestions")
+}
+
+enum SuggestionType {
+  TRENDING
+  PRODUCT_UPDATE
+  HISTORICAL_PATTERN
+  COMPETITOR_GAP
+  CALENDAR_EVENT
+  AI_GENERATED
+}
+
+enum SuggestionStatus {
+  PENDING
+  APPROVED
+  DISMISSED
+  USED
+  SAVED
+}
+
+// Research reports
+model ResearchReport {
+  id          String   @id @default(cuid())
+  reportType  ReportType @map("report_type")
+  title       String
+  content     String
+  generatedAt DateTime @default(now()) @map("generated_at")
+  insights    Json?
+  actionItems Json?    @map("action_items")
+  relatedPosts String[] @default([]) @map("related_posts")
+
+  @@map("research_reports")
+}
+
+enum ReportType {
+  ALGORITHM_UPDATE
+  COMPETITOR_ANALYSIS
+  TREND_REPORT
+  PERFORMANCE_REVIEW
+  STRATEGY_RECOMMENDATION
+  NARRATIVE_ANALYSIS
+}
+
+// Influencer database
+model Influencer {
+  id               String   @id @default(cuid())
+  xHandle          String   @unique @map("x_handle")
+  name             String
+
+  // Metrics
+  followerCount    Int @default(0) @map("follower_count")
+  qualityScore     Float? @map("quality_score")
+  engagementRate   Float? @map("engagement_rate")
+
+  // Profile
+  contentFocus     String[] @default([]) @map("content_focus")
+  tier             InfluencerTier @default(NANO)
+  pastCollabs      Json? @map("past_collaborations")
+  defiAppSentiment Float? @map("defi_app_sentiment")
+  contactInfo      String? @map("contact_info")
+
+  // Engagement history
+  engagementHistory Json? @map("engagement_history")
+
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  @@map("influencers")
+}
+
+enum InfluencerTier {
+  NANO      // < 10K followers
+  MICRO     // 10K - 100K
+  MACRO     // 100K - 1M
+  MEGA      // > 1M
+}
+
+// Brand voice settings
+model BrandVoice {
+  id            String   @id @default(cuid())
+  name          String   @default("default")
+  tone          String[] @default([])
+  vocabulary    String[] @default([])
+  blacklist     String[] @default([])
+  whitelist     String[] @default([])
+  graylist      String[] @default([])
+  isActive      Boolean  @default(true) @map("is_active")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  @@map("brand_voice")
+}
+
+// Viral content patterns
+model ViralPattern {
+  id             String   @id @default(cuid())
+  patternName    String   @map("pattern_name")
+  hookPattern    String?  @map("hook_pattern")
+  emotionalTrigger String? @map("emotional_trigger")
+  format         String?
+  avgImpressions Int @default(0) @map("avg_impressions")
+  examples       Json?
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  @@map("viral_patterns")
+}
+
+// CT Narratives tracking
+model Narrative {
+  id           String   @id @default(cuid())
+  name         String
+  description  String?
+  lifecycle    NarrativeLifecycle @default(EMERGING)
+  keyAccounts  String[] @default([]) @map("key_accounts")
+  defiAppFit   String?  @map("defi_app_fit")
+  suggestedContent Json? @map("suggested_content")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  @@map("narratives")
+}
+
+enum NarrativeLifecycle {
+  EMERGING
+  GROWING
+  DOMINANT
+  FADING
+  DEAD
+}
+
+// Account metrics snapshot
+model AccountMetrics {
+  id               String   @id @default(cuid())
+  date             DateTime @default(now())
+  followerCount    Int @map("follower_count")
+  followingCount   Int @map("following_count")
+  totalImpressions Int @map("total_impressions")
+  engagementRate   Float @map("engagement_rate")
+  exposureBudget   Float? @map("exposure_budget")
+  algorithmHealth  Float? @map("algorithm_health")
+  viralPostCount   Int @default(0) @map("viral_post_count")
+
+  @@map("account_metrics")
+}

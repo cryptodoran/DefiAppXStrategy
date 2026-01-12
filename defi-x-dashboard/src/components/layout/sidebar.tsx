@@ -1,0 +1,179 @@
+'use client';
+
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { cn } from '@/lib/utils';
+import {
+  LayoutDashboard,
+  BarChart3,
+  PenTool,
+  Lightbulb,
+  Search,
+  Settings,
+  TrendingUp,
+  Users,
+  FileText,
+  Zap,
+  Target,
+  MessageSquare,
+  Calendar,
+  Flame,
+  Activity,
+  Package,
+  Globe,
+  Sparkles,
+  Mic,
+} from 'lucide-react';
+
+const navigation = [
+  {
+    name: 'Dashboard',
+    href: '/',
+    icon: LayoutDashboard,
+  },
+  {
+    name: 'Analytics',
+    href: '/analytics',
+    icon: BarChart3,
+    children: [
+      { name: 'Post Performance', href: '/analytics/posts', icon: FileText },
+      { name: 'Engagement Feed', href: '/analytics/engagement', icon: Activity },
+      { name: 'Follower Analytics', href: '/analytics/followers', icon: Users },
+      { name: 'Exposure Tracker', href: '/analytics/exposure', icon: Zap },
+    ],
+  },
+  {
+    name: 'Create',
+    href: '/create',
+    icon: PenTool,
+    children: [
+      { name: 'Viral Post', href: '/create/viral', icon: Flame },
+      { name: 'Thread Builder', href: '/create/thread', icon: MessageSquare },
+      { name: 'Article Writer', href: '/create/article', icon: FileText },
+      { name: 'QT Optimizer', href: '/create/qt', icon: Target },
+      { name: 'Take Generator', href: '/create/takes', icon: Mic },
+      { name: 'Spicy Framework', href: '/create/spicy', icon: Flame },
+    ],
+  },
+  {
+    name: 'Suggestions',
+    href: '/suggestions',
+    icon: Lightbulb,
+    children: [
+      { name: 'Daily Recommendations', href: '/suggestions/daily', icon: Lightbulb },
+      { name: 'Trending Topics', href: '/suggestions/trending', icon: TrendingUp },
+      { name: 'Content Calendar', href: '/suggestions/calendar', icon: Calendar },
+    ],
+  },
+  {
+    name: 'Research',
+    href: '/research',
+    icon: Search,
+    children: [
+      { name: 'Algorithm Intel', href: '/research/algorithm', icon: Zap },
+      { name: 'Platform Trends', href: '/research/trends', icon: TrendingUp },
+      { name: 'Product Intel', href: '/research/product', icon: Package },
+      { name: 'Brand Positioning', href: '/research/brand', icon: Globe },
+      { name: 'Viral Research', href: '/research/viral', icon: Sparkles },
+      { name: 'Competitors', href: '/research/competitors', icon: Users },
+      { name: 'Influencers', href: '/research/influencers', icon: Users },
+      { name: 'CT Narratives', href: '/research/narratives', icon: MessageSquare },
+      { name: 'Path to #1', href: '/research/path-to-1', icon: Target },
+    ],
+  },
+  {
+    name: 'Settings',
+    href: '/settings',
+    icon: Settings,
+    children: [
+      { name: 'General', href: '/settings', icon: Settings },
+      { name: 'Brand Voice', href: '/settings/brand-voice', icon: Mic },
+    ],
+  },
+];
+
+export function Sidebar() {
+  const pathname = usePathname();
+
+  return (
+    <div className="flex h-full w-64 flex-col bg-zinc-950 border-r border-zinc-800">
+      {/* Logo */}
+      <div className="flex h-16 items-center gap-2 px-6 border-b border-zinc-800">
+        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-purple-600">
+          <span className="text-sm font-bold text-white">D</span>
+        </div>
+        <span className="text-lg font-semibold text-white">DeFi App</span>
+      </div>
+
+      {/* Navigation */}
+      <nav className="flex-1 overflow-y-auto px-3 py-4">
+        <ul className="space-y-1">
+          {navigation.map((item) => {
+            const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
+            const Icon = item.icon;
+
+            return (
+              <li key={item.name}>
+                <Link
+                  href={item.href}
+                  className={cn(
+                    'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
+                    isActive
+                      ? 'bg-zinc-800 text-white'
+                      : 'text-zinc-400 hover:bg-zinc-900 hover:text-white'
+                  )}
+                >
+                  <Icon className="h-5 w-5" />
+                  {item.name}
+                </Link>
+
+                {/* Children */}
+                {item.children && isActive && (
+                  <ul className="mt-1 ml-4 space-y-1 border-l border-zinc-800 pl-4">
+                    {item.children.map((child) => {
+                      const isChildActive = pathname === child.href;
+                      const ChildIcon = child.icon;
+
+                      return (
+                        <li key={child.name}>
+                          <Link
+                            href={child.href}
+                            className={cn(
+                              'flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors',
+                              isChildActive
+                                ? 'bg-zinc-800 text-white'
+                                : 'text-zinc-500 hover:bg-zinc-900 hover:text-zinc-300'
+                            )}
+                          >
+                            <ChildIcon className="h-4 w-4" />
+                            {child.name}
+                          </Link>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
+              </li>
+            );
+          })}
+        </ul>
+      </nav>
+
+      {/* Bottom section */}
+      <div className="border-t border-zinc-800 p-4">
+        <div className="rounded-lg bg-zinc-900 p-3">
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-zinc-400">Exposure Budget</span>
+            <span className="font-medium text-green-400">73%</span>
+          </div>
+          <div className="mt-2 h-1.5 rounded-full bg-zinc-800">
+            <div
+              className="h-full rounded-full bg-gradient-to-r from-green-500 to-emerald-400"
+              style={{ width: '73%' }}
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

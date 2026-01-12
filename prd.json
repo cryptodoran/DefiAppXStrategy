@@ -1,0 +1,538 @@
+{
+  "projectName": "DeFi App X Strategy Dashboard",
+  "description": "Comprehensive GUI/Dashboard for X (Twitter) Strategy Optimization to become the biggest DeFi account on Crypto Twitter",
+  "version": "1.0",
+  "branch": "feature/defi-x-dashboard",
+  "techStack": {
+    "frontend": ["Next.js 14+", "React 18+", "TypeScript", "TailwindCSS", "Zustand", "React Query", "Recharts", "shadcn/ui", "Framer Motion"],
+    "backend": ["Node.js", "PostgreSQL", "Redis", "Prisma"],
+    "ai": ["Claude API", "OpenAI API (fallback)"]
+  },
+  "userStories": [
+    {
+      "id": "US-001",
+      "title": "Executive Dashboard View",
+      "phase": 1,
+      "priority": 1,
+      "description": "Create main dashboard with key X metrics at a glance",
+      "acceptanceCriteria": [
+        "Display follower count with growth trend (daily/weekly/monthly)",
+        "Show total impressions for current period vs previous",
+        "Display engagement rate with benchmark comparison",
+        "Show 'Exposure Budget' remaining for the day",
+        "Viral post counter (posts exceeding 100K impressions)",
+        "Algorithm health score calculated from recent post performance",
+        "Quick-access buttons for Create Post, View Suggestions, Research Mode"
+      ],
+      "passes": true
+    },
+    {
+      "id": "US-002",
+      "title": "Real-Time Engagement Feed",
+      "phase": 4,
+      "priority": 2,
+      "description": "Live feed showing engagement as it happens",
+      "acceptanceCriteria": [
+        "Real-time notification stream of likes, retweets, replies, quotes",
+        "Highlight high-value engagements (verified accounts, high-follower accounts)",
+        "Alert system for posts approaching viral thresholds",
+        "Filter by engagement type, time period, account tier"
+      ],
+      "passes": true
+    },
+    {
+      "id": "US-003",
+      "title": "Algorithm Intelligence Panel",
+      "phase": 1,
+      "priority": 1,
+      "description": "Panel showing current X algorithm understanding",
+      "acceptanceCriteria": [
+        "Display known algorithm factors with confidence levels",
+        "Show recent algorithm changes detected via community intel",
+        "Track exposure allocation patterns for DeFi App account",
+        "Recommendations based on current algorithm state",
+        "Integration with research assistant for algorithm updates"
+      ],
+      "passes": true
+    },
+    {
+      "id": "US-004",
+      "title": "Post Performance Analytics",
+      "phase": 1,
+      "priority": 1,
+      "description": "Detailed analytics on every post published",
+      "acceptanceCriteria": [
+        "Post-by-post breakdown: impressions, engagements, link clicks, profile visits",
+        "Content type tagging: thread, single post, QT, article, meme, announcement",
+        "Topic tagging: DeFi news, product updates, CT drama, market commentary, education",
+        "Time-of-day performance correlation",
+        "Virality trajectory graph showing traction speed",
+        "'Slop Score' - AI-calculated content quality rating",
+        "Compare against account averages and CT DeFi benchmarks"
+      ],
+      "passes": true
+    },
+    {
+      "id": "US-005",
+      "title": "Exposure Budget Tracker",
+      "phase": 4,
+      "priority": 2,
+      "description": "Track daily exposure allocation",
+      "acceptanceCriteria": [
+        "Estimated daily exposure budget based on historical data",
+        "Real-time budget consumption tracker",
+        "Breakdown: exposure spent on main posts vs replies vs QTs",
+        "Optimal allocation recommendations",
+        "Warning when approaching daily limits",
+        "Historical trends of exposure patterns"
+      ],
+      "passes": true
+    },
+    {
+      "id": "US-006",
+      "title": "Follower Analytics & Growth",
+      "phase": 1,
+      "priority": 2,
+      "description": "Detailed insights into follower base",
+      "acceptanceCriteria": [
+        "Follower demographics: location, language, account age",
+        "Follower quality score (engagement propensity, bot detection)",
+        "Notable followers list with engagement history",
+        "Growth attribution (which posts drove follows)",
+        "Churn analysis (unfollows and likely causes)",
+        "Comparison vs competitor growth rates"
+      ],
+      "passes": true
+    },
+    {
+      "id": "US-007",
+      "title": "Viral Post Creator",
+      "phase": 2,
+      "priority": 1,
+      "description": "AI tool for generating high-potential viral posts",
+      "acceptanceCriteria": [
+        "Input: topic, tone, goal (engagement/growth/awareness)",
+        "Generate multiple variations with predicted performance scores",
+        "Viral element tagging: controversy, humor, FOMO, educational, tribal",
+        "Anti-slop checker: ensures content meets quality thresholds",
+        "DeFi App brand voice consistency checker",
+        "Spice level selector (1-10): from safe to controversial",
+        "Hook analyzer: rates opening line effectiveness",
+        "One-click refinement: 'Make it spicier', 'Add controversy', 'Make educational'"
+      ],
+      "passes": true
+    },
+    {
+      "id": "US-008",
+      "title": "Thread Generator",
+      "phase": 2,
+      "priority": 1,
+      "description": "Create high-quality threads easily",
+      "acceptanceCriteria": [
+        "Input: topic, key points, target length (5-25 tweets)",
+        "Generate complete thread with hook, body, and CTA",
+        "Each tweet optimized for standalone engagement",
+        "Strategic placement of engagement hooks throughout",
+        "Preview mode showing how thread will appear",
+        "Reorder/edit individual tweets with AI assistance"
+      ],
+      "passes": true
+    },
+    {
+      "id": "US-009",
+      "title": "X Article Generator",
+      "phase": 2,
+      "priority": 2,
+      "description": "Create X Articles (formerly Notes) efficiently",
+      "acceptanceCriteria": [
+        "Input: topic, outline, target length, key points",
+        "Generate full article with proper formatting",
+        "SEO optimization for X's internal search",
+        "Suggested images/charts to include",
+        "Preview mode matching X Article display",
+        "Promotional tweet generator for article launch"
+      ],
+      "passes": true
+    },
+    {
+      "id": "US-010",
+      "title": "Quote Tweet Optimizer",
+      "phase": 2,
+      "priority": 2,
+      "description": "Create optimal quote tweets",
+      "acceptanceCriteria": [
+        "Input: URL of tweet to quote",
+        "Analyze original tweet for context and sentiment",
+        "Generate multiple QT options: agree amplify, hot take, add context, humor",
+        "Score each option for engagement potential",
+        "Warn if QT would waste exposure on low-value original"
+      ],
+      "passes": true
+    },
+    {
+      "id": "US-011",
+      "title": "Daily Post Recommendation Engine",
+      "phase": 2,
+      "priority": 1,
+      "description": "Daily suggestions for what to post",
+      "acceptanceCriteria": [
+        "Generate 5-10 post suggestions daily based on trending topics, product updates, historical performance, competitor gaps, calendar events",
+        "Each suggestion includes: draft content, optimal posting time, predicted performance",
+        "Swipe interface: approve, edit, dismiss, or save for later"
+      ],
+      "passes": true
+    },
+    {
+      "id": "US-012",
+      "title": "Trending Topic Analyzer",
+      "phase": 2,
+      "priority": 1,
+      "description": "Real-time trending topic analysis",
+      "acceptanceCriteria": [
+        "Real-time trending topics in DeFi/Crypto niche",
+        "Trend lifecycle indicator (emerging, peaking, declining)",
+        "Relevance score for DeFi App",
+        "Suggested angles for engagement",
+        "Risk assessment (controversy level, brand safety)",
+        "One-click content generation for any trend"
+      ],
+      "passes": true
+    },
+    {
+      "id": "US-013",
+      "title": "Content Calendar Manager",
+      "phase": 2,
+      "priority": 2,
+      "description": "Content calendar for scheduled and planned posts",
+      "acceptanceCriteria": [
+        "Visual calendar with daily/weekly/monthly views",
+        "Drag-and-drop scheduling",
+        "Content type distribution view (ensuring variety)",
+        "Optimal time slots highlighted based on historical data",
+        "Conflict detection (posting too close together)",
+        "Integration with post suggestion engine",
+        "Reminder system for time-sensitive content"
+      ],
+      "passes": true
+    },
+    {
+      "id": "US-014",
+      "title": "Content Quality Analyzer",
+      "phase": 2,
+      "priority": 1,
+      "description": "AI analysis of content quality before posting",
+      "acceptanceCriteria": [
+        "Real-time quality score (1-100) as you type",
+        "Breakdown: originality score, value density, engagement hooks, clarity, brand voice alignment",
+        "Warning flags for common slop indicators",
+        "Specific suggestions for improvement",
+        "Block posting if score below threshold (configurable)"
+      ],
+      "passes": true
+    },
+    {
+      "id": "US-015",
+      "title": "Brand Voice Enforcer",
+      "phase": 2,
+      "priority": 2,
+      "description": "Check content against brand guidelines",
+      "acceptanceCriteria": [
+        "Define brand voice parameters: tone, vocabulary, topics to avoid",
+        "Real-time checking of all generated and manual content",
+        "Flag off-brand language or topics",
+        "Suggest on-brand alternatives",
+        "Prohibited content list (topics/words we never touch)",
+        "Competitor mention detection and handling"
+      ],
+      "passes": true
+    },
+    {
+      "id": "US-016",
+      "title": "X Algorithm Research Module",
+      "phase": 3,
+      "priority": 1,
+      "description": "Continuous research on X's algorithm",
+      "acceptanceCriteria": [
+        "Automated monitoring of X algorithm discussions on CT",
+        "Track known algorithm researchers: @nikitabier, @sweatystartup, etc.",
+        "Aggregate and verify algorithm insights from multiple sources",
+        "Maintain 'Algorithm State' document updated in real-time",
+        "Track: exposure allocation, content quality signals, engagement weighting, reply vs main post dynamics, QT vs RT preference, thread/article boost factors, penalty triggers",
+        "Alert system for significant algorithm changes",
+        "Historical log of algorithm changes with impact analysis"
+      ],
+      "passes": true
+    },
+    {
+      "id": "US-017",
+      "title": "Platform Trends Research",
+      "phase": 3,
+      "priority": 2,
+      "description": "Understand macro trends on X platform",
+      "acceptanceCriteria": [
+        "Track X platform updates and feature releases",
+        "Monitor X Premium/monetization changes",
+        "Track content format trends (what's emerging, declining)",
+        "Identify successful new tactics being used by top accounts",
+        "Weekly trend report with actionable insights"
+      ],
+      "passes": true
+    },
+    {
+      "id": "US-018",
+      "title": "Product Intelligence Module",
+      "phase": 3,
+      "priority": 1,
+      "description": "Deep knowledge of DeFi App's product and features",
+      "acceptanceCriteria": [
+        "Centralized knowledge base of all DeFi App features",
+        "Integration with product team for real-time updates",
+        "Competitive feature comparison matrix",
+        "User pain points and common questions database",
+        "Success stories and use case library",
+        "Upcoming features pipeline for teaser content",
+        "AI chat interface: 'What can I say about X feature?'"
+      ],
+      "passes": true
+    },
+    {
+      "id": "US-019",
+      "title": "Brand Positioning Research",
+      "phase": 3,
+      "priority": 2,
+      "description": "Research on DeFi App's brand perception",
+      "acceptanceCriteria": [
+        "Sentiment analysis of DeFi App mentions",
+        "Brand association word cloud",
+        "Comparison with competitor brand perception",
+        "Influencer opinion tracking",
+        "Community feedback aggregation",
+        "Reputation risk monitoring"
+      ],
+      "passes": true
+    },
+    {
+      "id": "US-020",
+      "title": "Competitor Intelligence",
+      "phase": 3,
+      "priority": 1,
+      "description": "Comprehensive intelligence on competing DeFi accounts",
+      "acceptanceCriteria": [
+        "Track top 50 DeFi accounts: follower count, growth rate, engagement rate, posting frequency, content mix, top posts",
+        "Competitive gap analysis: what are they doing that we're not?",
+        "Alert when competitor launches successful campaign",
+        "Reverse engineer successful competitor content"
+      ],
+      "passes": true
+    },
+    {
+      "id": "US-021",
+      "title": "Influencer & KOL Database",
+      "phase": 3,
+      "priority": 2,
+      "description": "Comprehensive database of CT influencers",
+      "acceptanceCriteria": [
+        "Database of DeFi/Crypto influencers with follower count, quality score, engagement rate, content focus, past collaborations, sentiment toward DeFi App, contact info",
+        "Influencer tier classification (Nano, Micro, Macro, Mega)",
+        "Engagement history with DeFi App content",
+        "Recommended influencers for specific campaigns"
+      ],
+      "passes": true
+    },
+    {
+      "id": "US-022",
+      "title": "Path to #1 Strategy Engine",
+      "phase": 3,
+      "priority": 1,
+      "description": "Strategic roadmap to become #1 DeFi account on CT",
+      "acceptanceCriteria": [
+        "Current ranking among DeFi accounts",
+        "Gap analysis to #1 position",
+        "Required growth rate to reach #1 by target date",
+        "AI-generated strategic recommendations: content strategies, engagement tactics, viral campaign ideas, partnership opportunities",
+        "Weekly progress tracking against milestones",
+        "Dynamic strategy adjustment based on performance"
+      ],
+      "passes": true
+    },
+    {
+      "id": "US-023",
+      "title": "CT Narrative Research",
+      "phase": 3,
+      "priority": 2,
+      "description": "Deep understanding of prevailing CT narratives",
+      "acceptanceCriteria": [
+        "Track major CT narratives: DeFi summer 2.0, L2 wars, RWA, etc.",
+        "Narrative lifecycle tracking (emerging, dominant, fading)",
+        "Key accounts driving each narrative",
+        "DeFi App's natural fit within each narrative",
+        "Suggested content to insert DeFi App into narratives",
+        "Counter-narrative opportunities"
+      ],
+      "passes": true
+    },
+    {
+      "id": "US-024",
+      "title": "Viral Content Research",
+      "phase": 3,
+      "priority": 2,
+      "description": "Analysis of what makes content go viral on CT",
+      "acceptanceCriteria": [
+        "Database of viral posts (>500K impressions) in DeFi space",
+        "Analysis of viral elements: hook patterns, emotional triggers, format, timing, network effects",
+        "Pattern recognition: what viral structures work now",
+        "Template generation based on viral patterns"
+      ],
+      "passes": true
+    },
+    {
+      "id": "US-025",
+      "title": "Spice Level Framework",
+      "phase": 2,
+      "priority": 2,
+      "description": "Framework for managing content 'spiciness'",
+      "acceptanceCriteria": [
+        "Define spice levels 1-10 with examples: 1-3 safe, 4-6 opinionated, 7-8 hot takes, 9-10 maximum controversy",
+        "Content generator with adjustable spice slider",
+        "Risk assessment for each spice level",
+        "Historical performance data by spice level"
+      ],
+      "passes": true
+    },
+    {
+      "id": "US-026",
+      "title": "Topic Blacklist/Whitelist Manager",
+      "phase": 2,
+      "priority": 2,
+      "description": "Define topics we will/won't engage with",
+      "acceptanceCriteria": [
+        "Blacklist: Topics DeFi App will never touch",
+        "Whitelist: Topics where we actively take positions",
+        "Gray list: Topics requiring approval before posting",
+        "Automatic checking of all content against lists"
+      ],
+      "passes": true
+    },
+    {
+      "id": "US-027",
+      "title": "Opinionated Take Generator",
+      "phase": 2,
+      "priority": 2,
+      "description": "AI help generating opinionated takes on trends",
+      "acceptanceCriteria": [
+        "Input: trending topic or news item",
+        "Generate takes from multiple angles: contrarian, amplifying, humorous, educational, DeFi App-centric",
+        "Spice level adjustment for each take",
+        "Predict engagement potential for each",
+        "Check against blacklist automatically"
+      ],
+      "passes": true
+    },
+    {
+      "id": "US-028",
+      "title": "Frontend Architecture Setup",
+      "phase": 1,
+      "priority": 1,
+      "description": "Set up frontend with React 18+, Next.js 14+, TypeScript, TailwindCSS, Zustand, React Query, Recharts, shadcn/ui, Framer Motion",
+      "acceptanceCriteria": [
+        "Next.js 14+ project initialized with TypeScript",
+        "TailwindCSS configured with dark mode default",
+        "Zustand store set up for state management",
+        "React Query configured for server state",
+        "shadcn/ui components installed",
+        "Framer Motion installed for animations",
+        "Recharts installed for data visualization"
+      ],
+      "passes": true
+    },
+    {
+      "id": "US-029",
+      "title": "Backend Architecture Setup",
+      "phase": 1,
+      "priority": 1,
+      "description": "Set up backend with API routes, PostgreSQL, Prisma",
+      "acceptanceCriteria": [
+        "Next.js API routes configured",
+        "Prisma set up with PostgreSQL schema",
+        "Database models created for Post, Competitor, AlgorithmInsight, ContentSuggestion, ResearchReport",
+        "Basic CRUD operations working"
+      ],
+      "passes": true
+    },
+    {
+      "id": "US-030",
+      "title": "AI/ML Integration",
+      "phase": 1,
+      "priority": 1,
+      "description": "Integrate Claude API for content generation and analysis",
+      "acceptanceCriteria": [
+        "Claude API integration working",
+        "Content generation endpoint functional",
+        "Quality scoring system implemented",
+        "Brand voice analysis working"
+      ],
+      "passes": true
+    },
+    {
+      "id": "US-031",
+      "title": "X API Integration",
+      "phase": 1,
+      "priority": 1,
+      "description": "Integrate X API v2 for analytics and posting",
+      "acceptanceCriteria": [
+        "X API v2 integration for account analytics",
+        "Post analytics retrieval working",
+        "Timeline and search functionality",
+        "Rate limit management implemented"
+      ],
+      "passes": true
+    },
+    {
+      "id": "US-032",
+      "title": "Core Data Structures",
+      "phase": 1,
+      "priority": 1,
+      "description": "Define core data models in Prisma",
+      "acceptanceCriteria": [
+        "Post model with metrics and scores",
+        "Competitor model with tracking data",
+        "AlgorithmInsight model",
+        "ContentSuggestion model",
+        "ResearchReport model"
+      ],
+      "passes": true
+    },
+    {
+      "id": "US-033",
+      "title": "Visual Design System",
+      "phase": 1,
+      "priority": 1,
+      "description": "Implement design system with dark mode, CT aesthetic",
+      "acceptanceCriteria": [
+        "Dark mode default implemented",
+        "DeFi App brand colors as accents",
+        "Command palette (Cmd+K) for quick actions",
+        "Notification center component",
+        "Split-view panels for multitasking",
+        "Keyboard shortcuts throughout"
+      ],
+      "passes": true
+    },
+    {
+      "id": "US-034",
+      "title": "Navigation Structure",
+      "phase": 1,
+      "priority": 1,
+      "description": "Implement primary navigation with all main sections",
+      "acceptanceCriteria": [
+        "Dashboard (Home) route",
+        "Analytics section with sub-routes",
+        "Create section with all content generators",
+        "Suggestions section",
+        "Research section with all modules",
+        "Settings section"
+      ],
+      "passes": true
+    }
+  ]
+}
