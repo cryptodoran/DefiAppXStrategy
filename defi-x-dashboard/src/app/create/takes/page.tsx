@@ -28,6 +28,7 @@ import {
   Sparkles,
   TrendingUp,
 } from 'lucide-react';
+import { AppLayout } from '@/components/layout/app-layout';
 
 // US-027: Opinionated Take Generator
 
@@ -138,6 +139,7 @@ export default function TakeGeneratorPage() {
   };
 
   return (
+    <AppLayout>
     <div className="space-y-6">
       {/* Header */}
       <div>
@@ -363,5 +365,6 @@ export default function TakeGeneratorPage() {
         </div>
       </div>
     </div>
+    </AppLayout>
   );
 }

@@ -14,6 +14,7 @@ import {
   Zap,
   MessageSquare,
 } from 'lucide-react';
+import { AppLayout } from '@/components/layout/app-layout';
 
 // US-023: CT Narrative Research
 
@@ -145,6 +146,7 @@ export default function NarrativesPage() {
   });
 
   return (
+    <AppLayout>
     <div className="space-y-6">
       {/* Header */}
       <div>
@@ -272,5 +274,6 @@ export default function NarrativesPage() {
         })}
       </div>
     </div>
+    </AppLayout>
   );
 }

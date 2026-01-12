@@ -17,6 +17,7 @@ import {
   Copy,
   Sparkles,
 } from 'lucide-react';
+import { AppLayout } from '@/components/layout/app-layout';
 
 // US-024: Viral Content Research
 
@@ -184,6 +185,7 @@ export default function ViralResearchPage() {
   };
 
   return (
+    <AppLayout>
     <div className="space-y-6">
       {/* Header */}
       <div>
@@ -399,5 +401,6 @@ export default function ViralResearchPage() {
         </div>
       </div>
     </div>
+    </AppLayout>
   );
 }

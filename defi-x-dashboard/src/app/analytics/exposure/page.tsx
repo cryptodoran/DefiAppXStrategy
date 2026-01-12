@@ -20,6 +20,7 @@ import {
   ChartTooltipContent,
 } from '@/components/ui/chart';
 import { AreaChart, Area, XAxis, YAxis, ResponsiveContainer, BarChart, Bar } from 'recharts';
+import { AppLayout } from '@/components/layout/app-layout';
 
 // US-005: Exposure Budget Tracker
 
@@ -92,6 +93,7 @@ export default function ExposureBudgetPage() {
   };
 
   return (
+    <AppLayout>
     <div className="space-y-6">
       {/* Header */}
       <div>
@@ -266,5 +268,6 @@ export default function ExposureBudgetPage() {
         </CardContent>
       </Card>
     </div>
+    </AppLayout>
   );
 }

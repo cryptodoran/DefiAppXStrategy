@@ -30,6 +30,8 @@ import {
   AlertCircle,
   ExternalLink,
 } from 'lucide-react';
+import { AppLayout } from '@/components/layout/app-layout';
+import { useToast } from '@/components/ui/toast';
 
 // Settings Page
 
@@ -51,8 +53,10 @@ export default function SettingsPage() {
   const [autoSchedule, setAutoSchedule] = useState(false);
   const [spiceWarnings, setSpiceWarnings] = useState(true);
   const [darkMode, setDarkMode] = useState(true);
+  const { addToast } = useToast();
 
   return (
+    <AppLayout>
     <div className="space-y-6">
       {/* Header */}
       <div>
@@ -117,7 +121,7 @@ export default function SettingsPage() {
                   </Select>
                 </div>
               </div>
-              <Button className="mt-4">
+              <Button className="mt-4" onClick={() => addToast({ type: 'success', title: 'Settings saved', description: 'Your profile changes have been saved successfully.' })}>
                 <Save className="mr-2 h-4 w-4" />
                 Save Changes
               </Button>
@@ -144,7 +148,7 @@ export default function SettingsPage() {
                   <p className="text-white">API Access</p>
                   <p className="text-sm text-tertiary">Manage API keys and tokens</p>
                 </div>
-                <Button variant="outline" size="sm">
+                <Button variant="outline" size="sm" onClick={() => addToast({ type: 'success', title: 'API Keys', description: 'Opening API key management...' })}>
                   <Key className="mr-2 h-4 w-4" />
                   Manage Keys
                 </Button>
@@ -154,7 +158,7 @@ export default function SettingsPage() {
                   <p className="text-white">Login Sessions</p>
                   <p className="text-sm text-tertiary">2 active sessions</p>
                 </div>
-                <Button variant="outline" size="sm">
+                <Button variant="outline" size="sm" onClick={() => addToast({ type: 'success', title: 'Sessions', description: 'Viewing all active login sessions...' })}>
                   View All
                 </Button>
               </div>
@@ -218,11 +222,11 @@ export default function SettingsPage() {
                       {integration.status}
                     </Badge>
                     {integration.connected ? (
-                      <Button variant="outline" size="sm">
+                      <Button variant="outline" size="sm" onClick={() => addToast({ type: 'success', title: 'Syncing', description: `Refreshing ${integration.name}...` })}>
                         <RefreshCw className="h-4 w-4" />
                       </Button>
                     ) : (
-                      <Button size="sm">Connect</Button>
+                      <Button size="sm" onClick={() => addToast({ type: 'success', title: 'Connect', description: `Connecting to ${integration.name}...` })}>Connect</Button>
                     )}
                   </div>
                 </div>
@@ -243,7 +247,7 @@ export default function SettingsPage() {
                     defaultValue="sk_live_xxxxxxxxxx"
                     className="bg-base border-white/5"
                   />
-                  <Button variant="outline">
+                  <Button variant="outline" onClick={() => window.open('https://developer.x.com', '_blank')}>
                     <ExternalLink className="h-4 w-4" />
                   </Button>
                 </div>
@@ -256,12 +260,12 @@ export default function SettingsPage() {
                     defaultValue="sk_ant_xxxxxxxxxx"
                     className="bg-base border-white/5"
                   />
-                  <Button variant="outline">
+                  <Button variant="outline" onClick={() => window.open('https://console.anthropic.com', '_blank')}>
                     <ExternalLink className="h-4 w-4" />
                   </Button>
                 </div>
               </div>
-              <Button>
+              <Button onClick={() => addToast({ type: 'success', title: 'API Keys saved', description: 'Your API keys have been updated successfully.' })}>
                 <Save className="mr-2 h-4 w-4" />
                 Save API Keys
               </Button>
@@ -454,7 +458,7 @@ export default function SettingsPage() {
                   <p className="text-white">Reset All Settings</p>
                   <p className="text-sm text-tertiary">Restore default configuration</p>
                 </div>
-                <Button variant="outline" className="border-red-500/50 text-red-400 hover:bg-red-500/10">
+                <Button variant="outline" className="border-red-500/50 text-red-400 hover:bg-red-500/10" onClick={() => addToast({ type: 'success', title: 'Settings Reset', description: 'All settings have been restored to defaults.' })}>
                   Reset
                 </Button>
               </div>
@@ -463,7 +467,7 @@ export default function SettingsPage() {
                   <p className="text-white">Delete Account</p>
                   <p className="text-sm text-tertiary">Permanently delete your account and data</p>
                 </div>
-                <Button variant="outline" className="border-red-500/50 text-red-400 hover:bg-red-500/10">
+                <Button variant="outline" className="border-red-500/50 text-red-400 hover:bg-red-500/10" onClick={() => addToast({ type: 'success', title: 'Delete Account', description: 'Please contact support to delete your account.' })}>
                   Delete
                 </Button>
               </div>
@@ -472,5 +476,6 @@ export default function SettingsPage() {
         </TabsContent>
       </Tabs>
     </div>
+    </AppLayout>
   );
 }

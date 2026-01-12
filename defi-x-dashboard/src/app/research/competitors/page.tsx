@@ -19,6 +19,7 @@ import {
   BarChart3,
   RefreshCw,
 } from 'lucide-react';
+import { AppLayout } from '@/components/layout/app-layout';
 
 // US-020: Competitor Intelligence
 
@@ -126,6 +127,7 @@ export default function CompetitorIntelPage() {
   );
 
   return (
+    <AppLayout>
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
@@ -333,5 +335,6 @@ export default function CompetitorIntelPage() {
         </TabsContent>
       </Tabs>
     </div>
+    </AppLayout>
   );
 }

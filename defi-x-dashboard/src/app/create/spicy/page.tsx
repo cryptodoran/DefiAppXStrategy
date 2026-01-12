@@ -21,6 +21,7 @@ import {
   MessageSquare,
   Sparkles,
 } from 'lucide-react';
+import { AppLayout } from '@/components/layout/app-layout';
 
 // US-025: Spice Level Framework
 
@@ -143,6 +144,7 @@ export default function SpicyFrameworkPage() {
   const currentLevel = getCurrentLevel();
 
   return (
+    <AppLayout>
     <div className="space-y-6">
       {/* Header */}
       <div>
@@ -460,5 +462,6 @@ export default function SpicyFrameworkPage() {
         </TabsContent>
       </Tabs>
     </div>
+    </AppLayout>
   );
 }

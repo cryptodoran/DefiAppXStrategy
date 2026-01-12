@@ -16,6 +16,7 @@ import {
   AlertCircle,
   CheckCircle,
 } from 'lucide-react';
+import { AppLayout } from '@/components/layout/app-layout';
 
 // US-019: Brand Positioning Research
 
@@ -110,6 +111,7 @@ const competitorPositioning = [
 
 export default function BrandPositioningPage() {
   return (
+    <AppLayout>
     <div className="space-y-6">
       {/* Header */}
       <div>
@@ -388,5 +390,6 @@ export default function BrandPositioningPage() {
         </CardContent>
       </Card>
     </div>
+    </AppLayout>
   );
 }

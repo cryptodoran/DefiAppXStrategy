@@ -18,6 +18,8 @@ import {
   HelpCircle,
   Save,
 } from 'lucide-react';
+import { AppLayout } from '@/components/layout/app-layout';
+import { useToast } from '@/components/ui/toast';
 
 // US-015: Brand Voice Enforcer
 // US-026: Topic Blacklist/Whitelist Manager
@@ -59,6 +61,7 @@ const initialLists = {
 export default function BrandVoicePage() {
   const [brandVoice, setBrandVoice] = useState(initialBrandVoice);
   const [lists, setLists] = useState(initialLists);
+  const { addToast } = useToast();
   const [newTone, setNewTone] = useState('');
   const [newWord, setNewWord] = useState('');
   const [newAvoid, setNewAvoid] = useState('');
@@ -137,6 +140,7 @@ export default function BrandVoicePage() {
   };
 
   return (
+    <AppLayout>
     <div className="space-y-6">
       {/* Header */}
       <div>
@@ -517,11 +521,12 @@ export default function BrandVoicePage() {
 
       {/* Save Button */}
       <div className="flex justify-end">
-        <Button className="bg-gradient-to-r from-violet-500 to-indigo-600">
+        <Button className="bg-gradient-to-r from-violet-500 to-indigo-600" onClick={() => addToast({ type: 'success', title: 'Settings saved', description: 'All brand voice and topic settings have been saved.' })}>
           <Save className="mr-2 h-4 w-4" />
           Save All Settings
         </Button>
       </div>
     </div>
+    </AppLayout>
   );
 }

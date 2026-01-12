@@ -17,6 +17,7 @@ import {
   Star,
   AlertTriangle,
 } from 'lucide-react';
+import { AppLayout } from '@/components/layout/app-layout';
 
 // US-013: Content Calendar Manager
 
@@ -147,6 +148,7 @@ export default function ContentCalendarPage() {
   });
 
   return (
+    <AppLayout>
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
@@ -376,5 +378,6 @@ export default function ContentCalendarPage() {
         </div>
       </div>
     </div>
+    </AppLayout>
   );
 }

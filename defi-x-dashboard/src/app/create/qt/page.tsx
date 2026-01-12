@@ -21,6 +21,7 @@ import {
   Check,
   ExternalLink,
 } from 'lucide-react';
+import { AppLayout } from '@/components/layout/app-layout';
 
 // US-010: Quote Tweet Optimizer
 
@@ -129,6 +130,7 @@ export default function QTOptimizerPage() {
   };
 
   return (
+    <AppLayout>
     <div className="space-y-6">
       {/* Header */}
       <div>
@@ -317,5 +319,6 @@ export default function QTOptimizerPage() {
         </div>
       </div>
     </div>
+    </AppLayout>
   );
 }

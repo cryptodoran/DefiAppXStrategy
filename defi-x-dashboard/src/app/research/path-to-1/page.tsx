@@ -15,6 +15,7 @@ import {
   ArrowRight,
   Trophy,
 } from 'lucide-react';
+import { AppLayout } from '@/components/layout/app-layout';
 
 // Mock data
 const currentRanking = {
@@ -167,6 +168,7 @@ export default function PathTo1Page() {
   };
 
   return (
+    <AppLayout>
     <div className="space-y-6">
       {/* Header */}
       <div>
@@ -343,5 +345,6 @@ export default function PathTo1Page() {
         </CardContent>
       </Card>
     </div>
+    </AppLayout>
   );
 }

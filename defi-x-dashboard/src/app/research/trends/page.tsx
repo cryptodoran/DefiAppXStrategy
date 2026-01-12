@@ -18,6 +18,7 @@ import {
   Globe,
   Flame,
 } from 'lucide-react';
+import { AppLayout } from '@/components/layout/app-layout';
 
 // US-017: Platform Trends Research
 
@@ -149,6 +150,7 @@ export default function PlatformTrendsPage() {
   const highRelevanceTrends = platformTrends.filter((t) => t.relevanceScore >= 80);
 
   return (
+    <AppLayout>
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
@@ -395,5 +397,6 @@ export default function PlatformTrendsPage() {
         </div>
       </div>
     </div>
+    </AppLayout>
   );
 }

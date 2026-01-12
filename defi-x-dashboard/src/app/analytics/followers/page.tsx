@@ -22,6 +22,7 @@ import {
   ChartTooltipContent,
 } from '@/components/ui/chart';
 import { AreaChart, Area, XAxis, YAxis, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { AppLayout } from '@/components/layout/app-layout';
 
 // US-006: Follower Analytics & Growth
 
@@ -105,6 +106,7 @@ export default function FollowerAnalyticsPage() {
   };
 
   return (
+    <AppLayout>
     <div className="space-y-6">
       {/* Header */}
       <div>
@@ -439,5 +441,6 @@ export default function FollowerAnalyticsPage() {
         </TabsContent>
       </Tabs>
     </div>
+    </AppLayout>
   );
 }

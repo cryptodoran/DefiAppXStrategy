@@ -25,6 +25,7 @@ import {
   Zap,
   RotateCcw,
 } from 'lucide-react';
+import { AppLayout } from '@/components/layout/app-layout';
 
 interface ThreadPost {
   id: string;
@@ -128,6 +129,7 @@ export default function ThreadBuilderPage() {
   };
 
   return (
+    <AppLayout>
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
@@ -397,5 +399,6 @@ export default function ThreadBuilderPage() {
         </div>
       </div>
     </div>
+    </AppLayout>
   );
 }

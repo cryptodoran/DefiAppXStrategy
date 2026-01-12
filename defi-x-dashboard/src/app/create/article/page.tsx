@@ -26,6 +26,8 @@ import {
   Copy,
   Check,
 } from 'lucide-react';
+import { AppLayout } from '@/components/layout/app-layout';
+import { useToast } from '@/components/ui/toast';
 
 // US-009: X Article Generator
 
@@ -58,6 +60,7 @@ export default function ArticleGeneratorPage() {
   const [previewMode, setPreviewMode] = useState(false);
   const [copied, setCopied] = useState(false);
   const [promotionalTweet, setPromotionalTweet] = useState('');
+  const { addToast } = useToast();
 
   const handleGenerate = async () => {
     setIsGenerating(true);
@@ -91,6 +94,7 @@ export default function ArticleGeneratorPage() {
   };
 
   return (
+    <AppLayout>
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
@@ -313,7 +317,10 @@ export default function ArticleGeneratorPage() {
                     <span className="text-sm text-tertiary">
                       {promotionalTweet.length} / 280 characters
                     </span>
-                    <Button size="sm">
+                    <Button size="sm" onClick={async () => {
+                      await navigator.clipboard.writeText(promotionalTweet);
+                      addToast({ type: 'success', title: 'Copied!', description: 'Promotional tweet copied to clipboard.' });
+                    }}>
                       <Copy className="mr-2 h-4 w-4" />
                       Copy Tweet
                     </Button>
@@ -325,5 +332,6 @@ export default function ArticleGeneratorPage() {
         </div>
       </div>
     </div>
+    </AppLayout>
   );
 }

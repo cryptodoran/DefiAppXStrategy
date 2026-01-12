@@ -17,6 +17,7 @@ import {
   ExternalLink,
   RefreshCw,
 } from 'lucide-react';
+import { AppLayout } from '@/components/layout/app-layout';
 
 // Mock algorithm data
 const algorithmFactors = [
@@ -154,6 +155,7 @@ export default function AlgorithmIntelPage() {
     : algorithmFactors.filter((f) => f.category === activeCategory);
 
   return (
+    <AppLayout>
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
@@ -344,5 +346,6 @@ export default function AlgorithmIntelPage() {
         </TabsContent>
       </Tabs>
     </div>
+    </AppLayout>
   );
 }

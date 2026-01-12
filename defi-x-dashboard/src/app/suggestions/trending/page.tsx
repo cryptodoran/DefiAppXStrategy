@@ -16,6 +16,7 @@ import {
   Zap,
   RefreshCw,
 } from 'lucide-react';
+import { AppLayout } from '@/components/layout/app-layout';
 
 // US-012: Trending Topic Analyzer
 
@@ -180,6 +181,7 @@ export default function TrendingTopicsPage() {
   const sortedTopics = [...topics].sort((a, b) => b.relevanceScore - a.relevanceScore);
 
   return (
+    <AppLayout>
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
@@ -314,5 +316,6 @@ export default function TrendingTopicsPage() {
         ))}
       </div>
     </div>
+    </AppLayout>
   );
 }

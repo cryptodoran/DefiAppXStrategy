@@ -17,6 +17,7 @@ import { SpiceSlider } from '@/components/content/spice-slider';
 import { QualityAnalyzer } from '@/components/content/quality-analyzer';
 import { GeneratedVariations } from '@/components/content/generated-variations';
 import { Sparkles, Send, RotateCcw } from 'lucide-react';
+import { AppLayout } from '@/components/layout/app-layout';
 
 // Mock generated variations
 const mockVariations = [
@@ -84,6 +85,7 @@ export default function ViralPostCreatorPage() {
   };
 
   return (
+    <AppLayout>
     <div className="space-y-6">
       {/* Header */}
       <div>
@@ -243,5 +245,6 @@ export default function ViralPostCreatorPage() {
         </div>
       </div>
     </div>
+    </AppLayout>
   );
 }

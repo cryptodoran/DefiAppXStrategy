@@ -17,6 +17,8 @@ import {
   Edit,
   Flame,
 } from 'lucide-react';
+import { AppLayout } from '@/components/layout/app-layout';
+import { useToast } from '@/components/ui/toast';
 
 // Mock suggestions
 const suggestions = [
@@ -74,6 +76,7 @@ const suggestions = [
 
 export default function DailySuggestionsPage() {
   const [items, setItems] = useState(suggestions);
+  const { addToast } = useToast();
 
   const updateStatus = (id: string, status: string) => {
     setItems(items.map((item) => (item.id === id ? { ...item, status } : item)));
@@ -122,6 +125,7 @@ export default function DailySuggestionsPage() {
   const savedSuggestions = items.filter((item) => item.status === 'saved');
 
   return (
+    <AppLayout>
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
@@ -131,7 +135,7 @@ export default function DailySuggestionsPage() {
             AI-powered content suggestions based on trends and patterns
           </p>
         </div>
-        <Button variant="outline">
+        <Button variant="outline" onClick={() => addToast({ type: 'info', title: 'Generating', description: 'Generating new AI suggestions...' })}>
           <Sparkles className="mr-2 h-4 w-4" />
           Generate More
         </Button>
@@ -235,6 +239,7 @@ export default function DailySuggestionsPage() {
                       variant="ghost"
                       size="sm"
                       className="text-tertiary hover:text-secondary"
+                      onClick={() => addToast({ type: 'info', title: 'Edit', description: 'Opening suggestion editor...' })}
                     >
                       <Edit className="h-4 w-4" />
                     </Button>
@@ -266,5 +271,6 @@ export default function DailySuggestionsPage() {
         </Card>
       )}
     </div>
+    </AppLayout>
   );
 }

@@ -25,6 +25,7 @@ import {
   Pause,
   Play,
 } from 'lucide-react';
+import { AppLayout } from '@/components/layout/app-layout';
 
 // US-002: Real-Time Engagement Feed
 
@@ -130,6 +131,7 @@ export default function RealTimeEngagementPage() {
   };
 
   return (
+    <AppLayout>
     <div className="space-y-6">
       {/* Viral Alert */}
       {viralAlert && (
@@ -286,5 +288,6 @@ export default function RealTimeEngagementPage() {
         </CardContent>
       </Card>
     </div>
+    </AppLayout>
   );
 }

@@ -18,6 +18,7 @@ import {
   Lightbulb,
   BarChart3,
 } from 'lucide-react';
+import { AppLayout } from '@/components/layout/app-layout';
 
 // US-018: Product Intelligence Module
 
@@ -137,6 +138,7 @@ export default function ProductIntelligencePage() {
   };
 
   return (
+    <AppLayout>
     <div className="space-y-6">
       {/* Header */}
       <div>
@@ -399,5 +401,6 @@ export default function ProductIntelligencePage() {
         </TabsContent>
       </Tabs>
     </div>
+    </AppLayout>
   );
 }

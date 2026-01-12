@@ -23,6 +23,7 @@ import {
   CheckCircle,
   Filter,
 } from 'lucide-react';
+import { AppLayout } from '@/components/layout/app-layout';
 
 // US-021: Influencer & KOL Database
 
@@ -176,6 +177,7 @@ export default function InfluencerDatabasePage() {
   };
 
   return (
+    <AppLayout>
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
@@ -321,5 +323,6 @@ export default function InfluencerDatabasePage() {
         ))}
       </div>
     </div>
+    </AppLayout>
   );
 }
