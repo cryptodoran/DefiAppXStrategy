@@ -1,0 +1,597 @@
+{
+  "projectName": "DeFi App X Strategy Platform v2",
+  "description": "Premium UI/UX Overhaul & Contextual Intelligence Engine - $500/month Enterprise-Grade Platform",
+  "version": "2.0",
+  "targetPrice": "$500/month",
+  "techStack": {
+    "frontend": ["Next.js 14+", "React 18+", "TypeScript", "TailwindCSS", "Framer Motion", "Zustand", "React Query", "Radix UI", "Recharts"],
+    "backend": ["Node.js", "PostgreSQL", "Redis", "BullMQ", "WebSockets"],
+    "ai": ["Claude API (primary)", "OpenAI (fallback/embeddings)"],
+    "apis": ["X API v2", "CoinGecko Pro", "DeFiLlama", "Alpha Vantage", "Alternative.me"]
+  },
+  "designSystem": {
+    "colors": {
+      "bgBase": "hsl(222, 47%, 5%)",
+      "bgSurface": "hsl(222, 47%, 8%)",
+      "bgElevated": "hsl(222, 47%, 11%)",
+      "bgHover": "hsl(222, 47%, 14%)",
+      "textPrimary": "hsl(210, 40%, 98%)",
+      "textSecondary": "hsl(215, 20%, 75%)",
+      "textTertiary": "hsl(215, 15%, 55%)",
+      "accentBase": "hsl(265, 89%, 62%)",
+      "success": "hsl(142, 71%, 45%)",
+      "error": "hsl(0, 84%, 60%)",
+      "marketUp": "hsl(142, 76%, 48%)",
+      "marketDown": "hsl(0, 84%, 60%)"
+    },
+    "typography": {
+      "primary": "Inter Variable",
+      "monospace": "JetBrains Mono"
+    }
+  },
+  "userStories": [
+    {
+      "id": "V2-001",
+      "title": "Premium Design System Implementation",
+      "phase": 1,
+      "priority": 1,
+      "description": "Implement Linear/Vercel-quality design system with design tokens",
+      "acceptanceCriteria": [
+        "Design token system with all colors (bg-base, bg-surface, bg-elevated, bg-hover)",
+        "Text colors (primary, secondary, tertiary) implemented",
+        "Accent and market colors (up/down) defined",
+        "Inter Variable and JetBrains Mono fonts configured",
+        "4px-based spacing system (space-2 through space-8)",
+        "CSS variables for all tokens"
+      ],
+      "passes": false
+    },
+    {
+      "id": "V2-002",
+      "title": "Core Component Library with Premium Animations",
+      "phase": 1,
+      "priority": 1,
+      "description": "Build component library with Framer Motion animations",
+      "acceptanceCriteria": [
+        "Button component with hover scale, glow, press feedback",
+        "Card component with hover lift effect",
+        "Badge component with pulse animation for live data",
+        "Input/Textarea with focus ring animations",
+        "All transitions use spring physics (150-200ms)",
+        "GPU-accelerated animations (transform/opacity only)"
+      ],
+      "passes": false
+    },
+    {
+      "id": "V2-003",
+      "title": "Command Palette (Cmd+K)",
+      "phase": 1,
+      "priority": 1,
+      "description": "Build Linear-style command palette for power users",
+      "acceptanceCriteria": [
+        "Cmd+K (Mac) / Ctrl+K (Windows) trigger",
+        "Sections: Quick Actions, Navigation, Recent, Search",
+        "Fuzzy search across all sections",
+        "Keyboard navigation (arrow keys, enter, escape)",
+        "Scale + opacity animation on open (150ms spring)",
+        "Recent items tracked and displayed"
+      ],
+      "passes": false
+    },
+    {
+      "id": "V2-004",
+      "title": "Premium 3-Column Layout",
+      "phase": 1,
+      "priority": 1,
+      "description": "Implement 3-column layout with collapsible sidebar",
+      "acceptanceCriteria": [
+        "Left sidebar: 240px fixed, collapsible to 64px icons-only",
+        "Main content: fluid with max-width 1400px centered",
+        "Right sidebar: 360px contextual panel",
+        "Smooth collapse animation with icon transition",
+        "Keyboard shortcut to toggle sidebar",
+        "Persist collapsed state in localStorage"
+      ],
+      "passes": false
+    },
+    {
+      "id": "V2-005",
+      "title": "Dashboard Status Bar",
+      "phase": 1,
+      "priority": 1,
+      "description": "Top status bar with real-time market pulse",
+      "acceptanceCriteria": [
+        "BTC price with 24h change and sparkline",
+        "ETH price with 24h change and sparkline",
+        "Fear & Greed Index with trend arrow",
+        "Top CT trending topic indicator",
+        "Exposure budget visual bar",
+        "All data updates in real-time (30s-5min intervals)"
+      ],
+      "passes": false
+    },
+    {
+      "id": "V2-006",
+      "title": "Priority Metrics Dashboard Zone",
+      "phase": 1,
+      "priority": 1,
+      "description": "Key metrics with premium card design and animations",
+      "acceptanceCriteria": [
+        "Follower count with 24h/7d/30d growth toggle",
+        "Impressions (24h) with comparison to average",
+        "Engagement rate with trend indicator",
+        "Virality score (proprietary metric)",
+        "Number animations on data updates",
+        "Green/red pulse on positive/negative changes"
+      ],
+      "passes": false
+    },
+    {
+      "id": "V2-007",
+      "title": "Action Center Panel",
+      "phase": 1,
+      "priority": 2,
+      "description": "Opportunities and content queue panels",
+      "acceptanceCriteria": [
+        "Opportunities panel: trending topics, viral QT targets, competitor activity",
+        "Content queue panel: scheduled posts, drafts, AI suggestions",
+        "Urgency badges (ALERT, HOT, RISING)",
+        "One-click actions for each opportunity",
+        "Smooth list animations on updates"
+      ],
+      "passes": false
+    },
+    {
+      "id": "V2-008",
+      "title": "Market Context Panel",
+      "phase": 2,
+      "priority": 1,
+      "description": "Real-time crypto and TradFi market data",
+      "acceptanceCriteria": [
+        "Top 10 crypto by market cap with 24h change",
+        "Top gainers/losers section",
+        "DeFi TVL aggregate and breakdown",
+        "S&P 500, NASDAQ, DXY, VIX indices",
+        "Upcoming economic events calendar",
+        "Market hours awareness indicator"
+      ],
+      "passes": false
+    },
+    {
+      "id": "V2-009",
+      "title": "CoinGecko API Integration",
+      "phase": 2,
+      "priority": 1,
+      "description": "Integrate CoinGecko for crypto price data",
+      "acceptanceCriteria": [
+        "BTC/ETH prices update every 30 seconds",
+        "Top 20 coins update every 2 minutes",
+        "24h change, volume, market cap data",
+        "Price sparklines (7-day mini charts)",
+        "Caching layer to respect rate limits",
+        "Fallback handling for API errors"
+      ],
+      "passes": false
+    },
+    {
+      "id": "V2-010",
+      "title": "DeFiLlama API Integration",
+      "phase": 2,
+      "priority": 1,
+      "description": "Integrate DeFiLlama for DeFi TVL data",
+      "acceptanceCriteria": [
+        "Total DeFi TVL with 24h change",
+        "TVL by chain breakdown",
+        "TVL by protocol (top 20)",
+        "TVL change detection for alerts",
+        "Update every 15 minutes",
+        "Historical TVL trends"
+      ],
+      "passes": false
+    },
+    {
+      "id": "V2-011",
+      "title": "Fear & Greed Index Integration",
+      "phase": 2,
+      "priority": 2,
+      "description": "Integrate Alternative.me Fear & Greed Index",
+      "acceptanceCriteria": [
+        "Current index value (0-100)",
+        "Classification: Extreme Fear, Fear, Neutral, Greed, Extreme Greed",
+        "Trend arrow (up/down from yesterday)",
+        "Historical chart (30 days)",
+        "Update every 15 minutes"
+      ],
+      "passes": false
+    },
+    {
+      "id": "V2-012",
+      "title": "Market Mood Detection Engine",
+      "phase": 2,
+      "priority": 1,
+      "description": "Algorithmic detection of market regime",
+      "acceptanceCriteria": [
+        "EUPHORIA detection: BTC >10% week, F&G >75",
+        "BULLISH detection: steady uptrend",
+        "NEUTRAL detection: sideways market",
+        "BEARISH detection: downtrend",
+        "PANIC detection: crash, F&G <25",
+        "CHAOS detection: major event happening",
+        "Content tone recommendations per regime"
+      ],
+      "passes": false
+    },
+    {
+      "id": "V2-013",
+      "title": "X/Twitter Trending Topic Tracker",
+      "phase": 2,
+      "priority": 1,
+      "description": "Real-time CT trending topic analysis",
+      "acceptanceCriteria": [
+        "Track trending topics filtered for crypto/DeFi",
+        "Trend lifecycle: BREAKING (<1h), HOT (1-4h), RISING, FADING, DEAD",
+        "Relevance score for DeFi App (0-100)",
+        "Virality potential score",
+        "One-click content generation for any trend",
+        "Alert for high-opportunity trends"
+      ],
+      "passes": false
+    },
+    {
+      "id": "V2-014",
+      "title": "Viral Post Detection System",
+      "phase": 2,
+      "priority": 1,
+      "description": "Track and analyze viral posts in real-time",
+      "acceptanceCriteria": [
+        "Detect posts exceeding velocity threshold (engagement/minute)",
+        "Categorize: meme, news, thread, hot take, announcement",
+        "QT opportunity scoring",
+        "Hook pattern identification",
+        "Reverse engineering analysis for each viral post",
+        "Template generation from viral patterns"
+      ],
+      "passes": false
+    },
+    {
+      "id": "V2-015",
+      "title": "Competitor Real-Time Monitoring",
+      "phase": 2,
+      "priority": 2,
+      "description": "Track competitor accounts in real-time",
+      "acceptanceCriteria": [
+        "Monitor 50+ competitor accounts",
+        "Real-time alerts when competitors post",
+        "Performance tracking (what's working for them)",
+        "Gap analysis: topics they're NOT covering",
+        "Content analysis and categorization",
+        "Weekly competitor report generation"
+      ],
+      "passes": false
+    },
+    {
+      "id": "V2-016",
+      "title": "TradFi Data Integration",
+      "phase": 2,
+      "priority": 2,
+      "description": "Integrate traditional finance data",
+      "acceptanceCriteria": [
+        "S&P 500 and NASDAQ real-time during market hours",
+        "VIX (volatility index) tracking",
+        "DXY (dollar index) tracking",
+        "Gold price tracking",
+        "Market hours awareness (pre-market, regular, after-hours)",
+        "Economic calendar: FOMC, CPI, jobs report"
+      ],
+      "passes": false
+    },
+    {
+      "id": "V2-017",
+      "title": "News & Events Aggregation",
+      "phase": 2,
+      "priority": 2,
+      "description": "Aggregate crypto and macro news",
+      "acceptanceCriteria": [
+        "RSS feeds from CoinDesk, The Block, Decrypt, Bankless",
+        "Protocol announcement tracking",
+        "Hack/exploit alert system",
+        "Regulatory news detection",
+        "News relevance scoring",
+        "Breaking news alerts"
+      ],
+      "passes": false
+    },
+    {
+      "id": "V2-018",
+      "title": "Context Assembly Pipeline",
+      "phase": 3,
+      "priority": 1,
+      "description": "Build rich context for AI prompts",
+      "acceptanceCriteria": [
+        "Market context block: BTC/ETH prices, mood, F&G, events",
+        "Twitter context block: trends, viral posts, CT sentiment",
+        "Competitor context block: recent posts, gaps",
+        "DeFi App context block: recent posts, performance, exposure budget",
+        "All context assembled in <500ms",
+        "Context freshness validation"
+      ],
+      "passes": false
+    },
+    {
+      "id": "V2-019",
+      "title": "Premium Suggestion Engine",
+      "phase": 3,
+      "priority": 1,
+      "description": "Context-aware AI suggestion generation",
+      "acceptanceCriteria": [
+        "Reactive suggestions triggered by real-time events",
+        "Proactive suggestions based on content strategy",
+        "QT suggestions with angle options",
+        "Each suggestion includes: why, timing window, predicted performance",
+        "Suggestions reflect current market conditions",
+        "Suggestions reference current CT trends"
+      ],
+      "passes": false
+    },
+    {
+      "id": "V2-020",
+      "title": "Anti-Slop Detection System",
+      "phase": 3,
+      "priority": 1,
+      "description": "Quality validation to prevent generic AI output",
+      "acceptanceCriteria": [
+        "No emoji overload check (max 2 per post)",
+        "Generic AI phrase detection and blocking",
+        "Hollow enthusiasm detection",
+        "Specific/concrete information requirement",
+        "Clear value proposition check",
+        "Context reference validation",
+        "Zero tolerance for D-grade suggestions"
+      ],
+      "passes": false
+    },
+    {
+      "id": "V2-021",
+      "title": "Brand Voice Enforcement",
+      "phase": 3,
+      "priority": 2,
+      "description": "Ensure all content matches brand voice",
+      "acceptanceCriteria": [
+        "Brand voice parameters configuration",
+        "Real-time voice consistency checking",
+        "Off-brand language flagging",
+        "On-brand alternative suggestions",
+        "Competitor mention detection",
+        "Topic blacklist enforcement"
+      ],
+      "passes": false
+    },
+    {
+      "id": "V2-022",
+      "title": "Premium Content Creation Studio",
+      "phase": 4,
+      "priority": 1,
+      "description": "Premium content creation interface",
+      "acceptanceCriteria": [
+        "Context panel showing market state and trends",
+        "Real-time quality score (0-100) as you type",
+        "Sub-scores: Hook, Value, Originality, Voice",
+        "Color-coded score: Red <50, Yellow 50-75, Green >75",
+        "Preview exactly as it will appear on X",
+        "Cmd+N keyboard shortcut to create"
+      ],
+      "passes": false
+    },
+    {
+      "id": "V2-023",
+      "title": "Real-Time Assistance Panel",
+      "phase": 4,
+      "priority": 1,
+      "description": "AI assistance while creating content",
+      "acceptanceCriteria": [
+        "Market pulse with mini sparklines always visible",
+        "Top trending topic display",
+        "'Make it spicier' button",
+        "'Add context' button",
+        "'Shorten' button",
+        "'Suggest hook' button",
+        "'Generate 3 variations' button"
+      ],
+      "passes": false
+    },
+    {
+      "id": "V2-024",
+      "title": "Premium Thread Builder",
+      "phase": 4,
+      "priority": 1,
+      "description": "Advanced thread creation with drag-and-drop",
+      "acceptanceCriteria": [
+        "Vertical stack of draggable tweet cards",
+        "Character count per tweet with overflow warnings",
+        "'Expand to thread' button for single tweets",
+        "'Add tweet' button with AI suggestions",
+        "Reorder via drag-and-drop",
+        "Thread performance prediction"
+      ],
+      "passes": false
+    },
+    {
+      "id": "V2-025",
+      "title": "QT Studio",
+      "phase": 4,
+      "priority": 2,
+      "description": "Optimized quote tweet creation",
+      "acceptanceCriteria": [
+        "Original tweet preview with engagement stats",
+        "Multiple QT angle suggestions: Agree, Add context, Contrarian, Humor",
+        "QT value assessment (avoid low-value QTs)",
+        "One-click posting",
+        "Engagement prediction per angle"
+      ],
+      "passes": false
+    },
+    {
+      "id": "V2-026",
+      "title": "Smart Scheduling System",
+      "phase": 4,
+      "priority": 2,
+      "description": "AI-powered post scheduling",
+      "acceptanceCriteria": [
+        "Optimal time suggestions based on historical data",
+        "Market hours awareness",
+        "Conflict detection (posts too close together)",
+        "Content type distribution across schedule",
+        "Exposure budget integration",
+        "Calendar view with week/month toggle"
+      ],
+      "passes": false
+    },
+    {
+      "id": "V2-027",
+      "title": "Algorithm Intelligence Center",
+      "phase": 5,
+      "priority": 1,
+      "description": "Track and analyze X algorithm changes",
+      "acceptanceCriteria": [
+        "Current known algorithm factors with confidence levels",
+        "Recent algorithm changes detection",
+        "Monitored accounts: @nikitabier, @sweatystartup, etc.",
+        "Algorithm change alert system",
+        "Impact analysis for each change",
+        "Historical log of changes"
+      ],
+      "passes": false
+    },
+    {
+      "id": "V2-028",
+      "title": "Competitor War Room",
+      "phase": 5,
+      "priority": 1,
+      "description": "Comprehensive competitor analysis",
+      "acceptanceCriteria": [
+        "Grid view of tracked competitors with key metrics",
+        "Deep dive: recent posts, content strategy, top performers",
+        "Gap analysis visualization",
+        "Competitor content alerts",
+        "Strategy comparison charts",
+        "Weekly competitor report"
+      ],
+      "passes": false
+    },
+    {
+      "id": "V2-029",
+      "title": "Premium Influencer Database",
+      "phase": 5,
+      "priority": 2,
+      "description": "Searchable influencer database with analytics",
+      "acceptanceCriteria": [
+        "Searchable database of crypto/DeFi influencers",
+        "Tier classification: Mega (1M+), Macro (100K-1M), Micro (10K-100K), Nano (<10K)",
+        "Engagement authenticity score",
+        "Content focus analysis",
+        "Past collaboration tracking",
+        "Recommended influencers for campaigns"
+      ],
+      "passes": false
+    },
+    {
+      "id": "V2-030",
+      "title": "Path to #1 Strategy Engine",
+      "phase": 5,
+      "priority": 1,
+      "description": "Strategic roadmap to #1 position",
+      "acceptanceCriteria": [
+        "Current ranking among DeFi accounts",
+        "Gap analysis to #1 position",
+        "Required growth rate calculator",
+        "AI-generated weekly strategic recommendations",
+        "Milestone tracking with ETA",
+        "Dynamic strategy adjustment based on performance"
+      ],
+      "passes": false
+    },
+    {
+      "id": "V2-031",
+      "title": "Viral Hook Pattern Database",
+      "phase": 5,
+      "priority": 2,
+      "description": "Database of proven viral hooks",
+      "acceptanceCriteria": [
+        "Contrarian hooks: 'Unpopular opinion:', 'Nobody talks about:'",
+        "FOMO/Urgency hooks: 'This is your last chance...'",
+        "Educational hooks: 'Most people don't understand...'",
+        "Story hooks: 'I just spent 40 hours...'",
+        "Tribal hooks: 'If you're still not...', 'Real ones know...'",
+        "Data hooks: 'I analyzed 10,000...'",
+        "Performance tracking per hook pattern"
+      ],
+      "passes": false
+    },
+    {
+      "id": "V2-032",
+      "title": "Premium Animations & Micro-interactions",
+      "phase": 5,
+      "priority": 1,
+      "description": "Polish with premium animations",
+      "acceptanceCriteria": [
+        "Page transitions: cross-fade with y-translate (200ms)",
+        "Staggered child element animations (30ms delay)",
+        "Number count animations on data updates",
+        "Viral alert: confetti burst animation",
+        "Milestone celebration animations",
+        "Skeleton loaders with shimmer effect",
+        "Hover effects that reward exploration"
+      ],
+      "passes": false
+    },
+    {
+      "id": "V2-033",
+      "title": "Performance Optimization",
+      "phase": 5,
+      "priority": 1,
+      "description": "Meet premium performance targets",
+      "acceptanceCriteria": [
+        "LCP < 1.2 seconds",
+        "FID < 50ms",
+        "CLS < 0.05",
+        "Button click response < 16ms (one frame)",
+        "Page navigation < 200ms",
+        "Suggestion generation < 3 seconds",
+        "Optimistic updates everywhere"
+      ],
+      "passes": false
+    },
+    {
+      "id": "V2-034",
+      "title": "WebSocket Real-Time Infrastructure",
+      "phase": 2,
+      "priority": 1,
+      "description": "Real-time data delivery via WebSockets",
+      "acceptanceCriteria": [
+        "WebSocket connection for live data",
+        "Auto-reconnection on disconnect",
+        "Data broadcast to all connected clients",
+        "Event-driven architecture for alerts",
+        "Efficient delta updates (not full refreshes)",
+        "Connection status indicator in UI"
+      ],
+      "passes": false
+    },
+    {
+      "id": "V2-035",
+      "title": "Redis Caching Layer",
+      "phase": 2,
+      "priority": 2,
+      "description": "Redis for hot data caching",
+      "acceptanceCriteria": [
+        "Price data cached with 30s TTL",
+        "Trending topics cached with 5m TTL",
+        "User session data in Redis",
+        "Rate limit tracking",
+        "Cache invalidation on updates",
+        "Fallback to database on cache miss"
+      ],
+      "passes": false
+    }
+  ]
+}
