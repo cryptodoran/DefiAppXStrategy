@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { TwitterApi } from 'twitter-api-v2';
 import {
-  getUserByHandle,
   getUserTweets,
   calculateEngagementRate,
   getInfluencerTier,
@@ -31,11 +31,23 @@ export async function GET(
       });
     }
 
-    const user = await getUserByHandle(handle);
+    // Directly fetch to get better error messages
+    const client = new TwitterApi(process.env.TWITTER_BEARER_TOKEN);
+    const cleanHandle = handle.replace('@', '');
 
-    if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    const userResult = await client.v2.userByUsername(cleanHandle, {
+      'user.fields': ['description', 'profile_image_url', 'public_metrics', 'created_at'],
+    });
+
+    if (!userResult.data) {
+      return NextResponse.json({
+        error: 'User not found',
+        handle: cleanHandle,
+        twitterErrors: userResult.errors,
+      }, { status: 404 });
     }
+
+    const user = userResult.data;
 
     // Get recent tweets for engagement calculation
     const tweets = await getUserTweets(user.id, 20);
@@ -67,10 +79,15 @@ export async function GET(
         createdAt: tweet.created_at,
       })),
     });
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Twitter API error:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return NextResponse.json(
-      { error: 'Failed to fetch Twitter data' },
+      {
+        error: 'Failed to fetch Twitter data',
+        details: errorMessage,
+        code: (error as { code?: number })?.code,
+      },
       { status: 500 }
     );
   }
