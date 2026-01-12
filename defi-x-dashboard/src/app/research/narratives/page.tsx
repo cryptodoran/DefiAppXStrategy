@@ -15,6 +15,7 @@ import {
   MessageSquare,
 } from 'lucide-react';
 import { AppLayout } from '@/components/layout/app-layout';
+import { useRouter } from 'next/navigation';
 
 // US-023: CT Narrative Research
 
@@ -135,6 +136,12 @@ const fitConfig = {
 };
 
 export default function NarrativesPage() {
+  const router = useRouter();
+
+  const handleGenerateContent = (narrative: Narrative) => {
+    router.push(`/create?topic=${encodeURIComponent(narrative.name)}`);
+  };
+
   const formatNumber = (num: number) => {
     if (num >= 1000) return `${(num / 1000).toFixed(1)}K`;
     return num.toString();
@@ -263,7 +270,7 @@ export default function NarrativesPage() {
                 </div>
 
                 <div className="flex justify-end mt-4 pt-4 border-t border-white/5">
-                  <Button size="sm" className="bg-gradient-to-r from-violet-500 to-indigo-600">
+                  <Button size="sm" className="bg-gradient-to-r from-violet-500 to-indigo-600" onClick={() => handleGenerateContent(narrative)}>
                     <Sparkles className="mr-2 h-4 w-4" />
                     Generate Content
                   </Button>

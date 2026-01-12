@@ -1,6 +1,8 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -17,8 +19,11 @@ import {
   Filter,
   Globe,
   Flame,
+  CheckCircle,
+  AlertCircle,
 } from 'lucide-react';
 import { AppLayout } from '@/components/layout/app-layout';
+import { useToast } from '@/components/ui/toast';
 
 // US-017: Platform Trends Research
 
@@ -31,91 +36,25 @@ interface PlatformTrend {
   velocity: 'rising' | 'stable' | 'falling';
   sentiment: 'bullish' | 'bearish' | 'neutral';
   relevanceScore: number;
-  peakTime: string;
+  peakTime?: string;
   relatedHashtags: string[];
-  topTweets: number;
+  topTweets?: number;
+  _mock?: boolean;
 }
 
-const platformTrends: PlatformTrend[] = [
-  {
-    id: '1',
-    topic: 'ETH ETF',
-    category: 'crypto',
-    volume: 125000,
-    volumeChange: 234,
-    velocity: 'rising',
-    sentiment: 'bullish',
-    relevanceScore: 95,
-    peakTime: '2 hours ago',
-    relatedHashtags: ['#Ethereum', '#ETF', '#SEC', '#BlackRock'],
-    topTweets: 450,
-  },
-  {
-    id: '2',
-    topic: 'Base Season',
-    category: 'defi',
-    volume: 89000,
-    volumeChange: 156,
-    velocity: 'rising',
-    sentiment: 'bullish',
-    relevanceScore: 88,
-    peakTime: '4 hours ago',
-    relatedHashtags: ['#Base', '#L2', '#Coinbase', '#DeFi'],
-    topTweets: 320,
-  },
-  {
-    id: '3',
-    topic: 'Airdrop Season',
-    category: 'defi',
-    volume: 67000,
-    volumeChange: 45,
-    velocity: 'stable',
-    sentiment: 'neutral',
-    relevanceScore: 72,
-    peakTime: '6 hours ago',
-    relatedHashtags: ['#Airdrop', '#Points', '#Farming'],
-    topTweets: 210,
-  },
-  {
-    id: '4',
-    topic: 'Ordinals',
-    category: 'nft',
-    volume: 45000,
-    volumeChange: -23,
-    velocity: 'falling',
-    sentiment: 'bearish',
-    relevanceScore: 45,
-    peakTime: '12 hours ago',
-    relatedHashtags: ['#Bitcoin', '#Ordinals', '#BRC20'],
-    topTweets: 150,
-  },
-  {
-    id: '5',
-    topic: 'AI Agents',
-    category: 'tech',
-    volume: 78000,
-    volumeChange: 89,
-    velocity: 'rising',
-    sentiment: 'bullish',
-    relevanceScore: 65,
-    peakTime: '3 hours ago',
-    relatedHashtags: ['#AI', '#Crypto', '#DeFAI'],
-    topTweets: 280,
-  },
-  {
-    id: '6',
-    topic: 'Restaking',
-    category: 'defi',
-    volume: 56000,
-    volumeChange: 67,
-    velocity: 'rising',
-    sentiment: 'bullish',
-    relevanceScore: 92,
-    peakTime: '5 hours ago',
-    relatedHashtags: ['#EigenLayer', '#Restaking', '#LST'],
-    topTweets: 190,
-  },
-];
+// Fetch trends from API
+async function fetchTrends(): Promise<PlatformTrend[]> {
+  const response = await fetch('/api/twitter/trends');
+  if (!response.ok) throw new Error('Failed to fetch trends');
+  const data = await response.json();
+
+  // Transform API response to add missing fields
+  return data.map((trend: PlatformTrend) => ({
+    ...trend,
+    peakTime: trend.peakTime || 'Recently',
+    topTweets: trend.topTweets || Math.floor(trend.volume / 100),
+  }));
+}
 
 const trendingHashtags = [
   { tag: '#DeFi', posts: 45000, change: 12 },
@@ -126,7 +65,7 @@ const trendingHashtags = [
   { tag: '#NFT', posts: 23000, change: -12 },
 ];
 
-const categoryConfig = {
+const categoryConfig: Record<string, { color: string }> = {
   crypto: { color: 'bg-orange-500/20 text-orange-400' },
   defi: { color: 'bg-blue-500/20 text-blue-400' },
   nft: { color: 'bg-purple-500/20 text-purple-400' },
@@ -135,7 +74,22 @@ const categoryConfig = {
 };
 
 export default function PlatformTrendsPage() {
+  const router = useRouter();
+  const { addToast } = useToast();
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
+
+  // Fetch trends data with auto-refresh
+  const { data: platformTrends, isLoading, error, refetch, isFetching } = useQuery({
+    queryKey: ['platform-trends'],
+    queryFn: fetchTrends,
+    staleTime: 10 * 60 * 1000, // 10 minutes
+    refetchInterval: 10 * 60 * 1000, // Auto-refresh every 10 minutes
+  });
+
+  const handleRefresh = () => {
+    refetch();
+    addToast({ type: 'info', title: 'Refreshing', description: 'Fetching latest trends...' });
+  };
 
   const formatNumber = (num: number) => {
     if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
@@ -143,11 +97,61 @@ export default function PlatformTrendsPage() {
     return num.toString();
   };
 
-  const filteredTrends = platformTrends.filter(
+  const trendsList = platformTrends || [];
+  const filteredTrends = trendsList.filter(
     (t) => selectedCategory === 'all' || t.category === selectedCategory
   );
 
-  const highRelevanceTrends = platformTrends.filter((t) => t.relevanceScore >= 80);
+  const highRelevanceTrends = trendsList.filter((t) => t.relevanceScore >= 80);
+  const isLive = platformTrends && platformTrends.length > 0 && !platformTrends[0]._mock;
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <AppLayout>
+        <div className="space-y-6">
+          <div className="flex items-center gap-3">
+            <h1 className="text-2xl font-bold text-white">Platform Trends</h1>
+            <span className="text-xs text-tertiary flex items-center gap-1">
+              <RefreshCw className="h-3 w-3 animate-spin" />
+              Loading trends...
+            </span>
+          </div>
+          <div className="grid gap-6 lg:grid-cols-3">
+            <div className="lg:col-span-2 space-y-4">
+              {[1, 2, 3].map((i) => (
+                <Card key={i} className="bg-surface border-white/5 animate-pulse">
+                  <CardContent className="pt-4">
+                    <div className="h-32 bg-elevated rounded" />
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+        </div>
+      </AppLayout>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <AppLayout>
+        <div className="space-y-6">
+          <h1 className="text-2xl font-bold text-white">Platform Trends</h1>
+          <Card className="bg-red-500/10 border-red-500/20">
+            <CardContent className="py-8 text-center">
+              <AlertCircle className="h-8 w-8 text-red-400 mx-auto mb-2" />
+              <p className="text-red-400">Failed to load trends</p>
+              <Button variant="outline" className="mt-4" onClick={() => refetch()}>
+                Try Again
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </AppLayout>
+    );
+  }
 
   return (
     <AppLayout>
@@ -155,12 +159,24 @@ export default function PlatformTrendsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white">Platform Trends</h1>
+          <div className="flex items-center gap-3">
+            <h1 className="text-2xl font-bold text-white">Platform Trends</h1>
+            {isLive ? (
+              <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-green-500/20 text-green-400 flex items-center gap-1">
+                <CheckCircle className="h-3 w-3" />
+                Live Data
+              </span>
+            ) : (
+              <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-yellow-500/20 text-yellow-400">
+                Sample Data
+              </span>
+            )}
+          </div>
           <p className="text-tertiary">Real-time X platform trends and opportunities</p>
         </div>
-        <Button variant="outline">
-          <RefreshCw className="mr-2 h-4 w-4" />
-          Refresh
+        <Button variant="outline" onClick={handleRefresh} disabled={isFetching}>
+          <RefreshCw className={cn("mr-2 h-4 w-4", isFetching && "animate-spin")} />
+          {isFetching ? 'Refreshing...' : 'Refresh'}
         </Button>
       </div>
 
@@ -169,7 +185,7 @@ export default function PlatformTrendsPage() {
         <Card className="bg-surface border-white/5">
           <CardContent className="pt-4">
             <p className="text-sm text-tertiary">Active Trends</p>
-            <p className="text-2xl font-bold text-white">{platformTrends.length}</p>
+            <p className="text-2xl font-bold text-white">{trendsList.length}</p>
           </CardContent>
         </Card>
         <Card className="bg-surface border-white/5">
@@ -182,7 +198,7 @@ export default function PlatformTrendsPage() {
           <CardContent className="pt-4">
             <p className="text-sm text-tertiary">Rising Fast</p>
             <p className="text-2xl font-bold text-blue-400">
-              {platformTrends.filter((t) => t.velocity === 'rising').length}
+              {trendsList.filter((t) => t.velocity === 'rising').length}
             </p>
           </CardContent>
         </Card>
@@ -190,7 +206,7 @@ export default function PlatformTrendsPage() {
           <CardContent className="pt-4">
             <p className="text-sm text-tertiary">Total Volume</p>
             <p className="text-2xl font-bold text-purple-400">
-              {formatNumber(platformTrends.reduce((acc, t) => acc + t.volume, 0))}
+              {formatNumber(trendsList.reduce((acc, t) => acc + t.volume, 0))}
             </p>
           </CardContent>
         </Card>
@@ -295,7 +311,14 @@ export default function PlatformTrendsPage() {
                 </div>
 
                 <div className="flex justify-end mt-4 pt-4 border-t border-white/5">
-                  <Button size="sm" className="bg-gradient-to-r from-violet-500 to-indigo-600">
+                  <Button
+                    size="sm"
+                    className="bg-gradient-to-r from-violet-500 to-indigo-600"
+                    onClick={() => {
+                      router.push('/create?topic=' + encodeURIComponent(trend.topic));
+                      addToast({ type: 'info', title: 'Creating content', description: `Opening editor for "${trend.topic}"` });
+                    }}
+                  >
                     <Zap className="mr-2 h-4 w-4" />
                     Create Content
                   </Button>
@@ -353,7 +376,14 @@ export default function PlatformTrendsPage() {
                 Two high-relevance trends can be combined for a unique angle on institutional DeFi
                 adoption.
               </p>
-              <Button size="sm" className="w-full">
+              <Button
+                size="sm"
+                className="w-full"
+                onClick={() => {
+                  router.push('/create?topic=' + encodeURIComponent('ETH ETF + Restaking: The Institutional DeFi Angle'));
+                  addToast({ type: 'info', title: 'Exploring angle', description: 'Opening editor with combined trends' });
+                }}
+              >
                 Explore Angle
               </Button>
             </CardContent>

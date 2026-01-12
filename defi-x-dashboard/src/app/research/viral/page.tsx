@@ -18,6 +18,8 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { AppLayout } from '@/components/layout/app-layout';
+import { useRouter } from 'next/navigation';
+import { useToast } from '@/components/ui/toast';
 
 // US-024: Viral Content Research
 
@@ -170,6 +172,27 @@ const optimalTimings = [
 ];
 
 export default function ViralResearchPage() {
+  const router = useRouter();
+  const { addToast } = useToast();
+
+  const handleAdaptPattern = (post: ViralPost) => {
+    router.push(`/create?topic=${encodeURIComponent(`Viral style: ${post.postType.replace('_', ' ')} - ${post.viralFactors[0]}`)}`);
+    addToast({
+      type: 'info',
+      title: 'Adapting pattern',
+      description: `Using ${post.author}'s viral style as inspiration`,
+    });
+  };
+
+  const handleGenerateNow = () => {
+    router.push('/create?topic=' + encodeURIComponent('Viral content using proven patterns'));
+    addToast({
+      type: 'info',
+      title: 'Generating content',
+      description: 'Opening editor with viral pattern templates',
+    });
+  };
+
   const formatNumber = (num: number) => {
     if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
     if (num >= 1000) return `${(num / 1000).toFixed(1)}K`;
@@ -297,7 +320,7 @@ export default function ViralResearchPage() {
                   </div>
 
                   <div className="flex justify-end mt-4 pt-4 border-t border-white/5">
-                    <Button size="sm" variant="outline">
+                    <Button size="sm" variant="outline" onClick={() => handleAdaptPattern(post)}>
                       <Copy className="mr-2 h-4 w-4" />
                       Adapt Pattern
                     </Button>
@@ -392,7 +415,7 @@ export default function ViralResearchPage() {
               <p className="text-sm text-tertiary mb-4">
                 Use analyzed patterns to create high-potential content
               </p>
-              <Button className="w-full bg-gradient-to-r from-violet-500 to-indigo-600">
+              <Button className="w-full bg-gradient-to-r from-violet-500 to-indigo-600" onClick={handleGenerateNow}>
                 <Sparkles className="mr-2 h-4 w-4" />
                 Generate Now
               </Button>

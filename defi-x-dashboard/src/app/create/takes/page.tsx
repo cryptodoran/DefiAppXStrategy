@@ -29,6 +29,8 @@ import {
   TrendingUp,
 } from 'lucide-react';
 import { AppLayout } from '@/components/layout/app-layout';
+import { useToast } from '@/components/ui/toast';
+import { useRouter } from 'next/navigation';
 
 // US-027: Opinionated Take Generator
 
@@ -114,12 +116,60 @@ export default function TakeGeneratorPage() {
   const [stance, setStance] = useState('contrarian');
   const [takes, setTakes] = useState(generatedTakes);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [feedback, setFeedback] = useState<Record<string, 'up' | 'down' | null>>({});
+  const { addToast } = useToast();
+  const router = useRouter();
 
   const handleGenerate = () => {
     setIsGenerating(true);
     setTimeout(() => {
       setIsGenerating(false);
+      addToast({
+        type: 'success',
+        title: 'Takes generated',
+        description: `Generated ${takes.length} takes for "${topic}"`,
+      });
     }, 1500);
+  };
+
+  const handleThumbsUp = (takeId: string) => {
+    setFeedback(prev => ({ ...prev, [takeId]: prev[takeId] === 'up' ? null : 'up' }));
+    addToast({
+      type: 'success',
+      title: 'Feedback recorded',
+      description: 'This take has been marked as good',
+    });
+  };
+
+  const handleThumbsDown = (takeId: string) => {
+    setFeedback(prev => ({ ...prev, [takeId]: prev[takeId] === 'down' ? null : 'down' }));
+    addToast({
+      type: 'info',
+      title: 'Feedback recorded',
+      description: 'This take has been marked for improvement',
+    });
+  };
+
+  const handleRefreshTake = (takeId: string) => {
+    addToast({
+      type: 'info',
+      title: 'Regenerating take',
+      description: 'Generating a new variation...',
+    });
+    // In a real app, this would call the AI to regenerate just this take
+  };
+
+  const handleCopy = (content: string) => {
+    navigator.clipboard.writeText(content);
+    addToast({
+      type: 'success',
+      title: 'Copied to clipboard',
+      description: 'Take copied and ready to paste',
+    });
+  };
+
+  const handlePolishAndPost = (content: string) => {
+    router.push(`/create?topic=${encodeURIComponent(content)}`);
   };
 
   const getSpiceEmoji = (level: number) => {
@@ -338,22 +388,44 @@ export default function TakeGeneratorPage() {
 
                 <div className="flex items-center justify-between pt-4 border-t border-white/5">
                   <div className="flex gap-2">
-                    <Button variant="ghost" size="sm">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleThumbsUp(take.id)}
+                      className={cn(feedback[take.id] === 'up' && 'bg-green-500/20 text-green-400')}
+                    >
                       <ThumbsUp className="h-4 w-4" />
                     </Button>
-                    <Button variant="ghost" size="sm">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleThumbsDown(take.id)}
+                      className={cn(feedback[take.id] === 'down' && 'bg-red-500/20 text-red-400')}
+                    >
                       <ThumbsDown className="h-4 w-4" />
                     </Button>
-                    <Button variant="ghost" size="sm">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleRefreshTake(take.id)}
+                    >
                       <RefreshCw className="h-4 w-4" />
                     </Button>
                   </div>
                   <div className="flex gap-2">
-                    <Button variant="outline" size="sm">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleCopy(take.content)}
+                    >
                       <Copy className="mr-2 h-4 w-4" />
                       Copy
                     </Button>
-                    <Button size="sm" className="bg-gradient-to-r from-violet-500 to-indigo-600">
+                    <Button
+                      size="sm"
+                      className="bg-gradient-to-r from-violet-500 to-indigo-600"
+                      onClick={() => handlePolishAndPost(take.content)}
+                    >
                       <Sparkles className="mr-2 h-4 w-4" />
                       Polish & Post
                     </Button>

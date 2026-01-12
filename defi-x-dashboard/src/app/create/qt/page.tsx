@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -74,13 +75,33 @@ const mockQTOptions: QTOption[] = [
   },
 ];
 
-export default function QTOptimizerPage() {
+function QTOptimizerContent() {
+  const searchParams = useSearchParams();
   const [tweetUrl, setTweetUrl] = useState('');
   const [originalTweet, setOriginalTweet] = useState<typeof mockOriginalTweet | null>(null);
   const [options, setOptions] = useState<QTOption[]>([]);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [selectedOption, setSelectedOption] = useState<QTOption | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [autoAnalyzed, setAutoAnalyzed] = useState(false);
+
+  // Read URL from search params and auto-analyze
+  useEffect(() => {
+    const urlParam = searchParams.get('url');
+    if (urlParam && !autoAnalyzed) {
+      setTweetUrl(urlParam);
+      setAutoAnalyzed(true);
+      // Auto-trigger analysis after setting URL
+      setTimeout(() => {
+        setIsAnalyzing(true);
+        setTimeout(() => {
+          setOriginalTweet(mockOriginalTweet);
+          setOptions(mockQTOptions);
+          setIsAnalyzing(false);
+        }, 2000);
+      }, 100);
+    }
+  }, [searchParams, autoAnalyzed]);
 
   const handleAnalyze = async () => {
     setIsAnalyzing(true);
@@ -320,5 +341,19 @@ export default function QTOptimizerPage() {
       </div>
     </div>
     </AppLayout>
+  );
+}
+
+export default function QTOptimizerPage() {
+  return (
+    <Suspense fallback={
+      <AppLayout>
+        <div className="flex items-center justify-center h-64">
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-white/10 border-t-violet-500" />
+        </div>
+      </AppLayout>
+    }>
+      <QTOptimizerContent />
+    </Suspense>
   );
 }

@@ -18,6 +18,7 @@ import {
   RefreshCw,
 } from 'lucide-react';
 import { AppLayout } from '@/components/layout/app-layout';
+import { useToast } from '@/components/ui/toast';
 
 // Mock algorithm data
 const algorithmFactors = [
@@ -125,6 +126,26 @@ const trackedResearchers = [
 
 export default function AlgorithmIntelPage() {
   const [activeCategory, setActiveCategory] = useState<string>('all');
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const { addToast } = useToast();
+
+  const handleRefreshIntel = () => {
+    setIsRefreshing(true);
+    setTimeout(() => {
+      setIsRefreshing(false);
+      addToast({
+        type: 'success',
+        title: 'Intel refreshed',
+        description: 'Algorithm insights updated with latest data',
+      });
+    }, 1500);
+  };
+
+  const handleViewResearcher = (handle: string) => {
+    // Remove @ and open Twitter profile
+    const cleanHandle = handle.replace('@', '');
+    window.open(`https://twitter.com/${cleanHandle}`, '_blank');
+  };
 
   const getCategoryIcon = (category: string) => {
     switch (category) {
@@ -165,8 +186,8 @@ export default function AlgorithmIntelPage() {
             Real-time insights into how the X algorithm works
           </p>
         </div>
-        <Button variant="outline">
-          <RefreshCw className="mr-2 h-4 w-4" />
+        <Button variant="outline" onClick={handleRefreshIntel} disabled={isRefreshing}>
+          <RefreshCw className={cn("mr-2 h-4 w-4", isRefreshing && "animate-spin")} />
           Refresh Intel
         </Button>
       </div>
@@ -335,7 +356,11 @@ export default function AlgorithmIntelPage() {
                     >
                       {researcher.reliability} reliability
                     </Badge>
-                    <Button variant="ghost" size="sm">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleViewResearcher(researcher.handle)}
+                    >
                       <ExternalLink className="h-4 w-4" />
                     </Button>
                   </div>

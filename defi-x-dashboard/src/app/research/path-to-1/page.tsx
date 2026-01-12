@@ -16,6 +16,7 @@ import {
   Trophy,
 } from 'lucide-react';
 import { AppLayout } from '@/components/layout/app-layout';
+import { useToast } from '@/components/ui/toast';
 
 // Mock data
 const currentRanking = {
@@ -140,6 +141,15 @@ const weeklyProgress = [
 
 export default function PathTo1Page() {
   const requiredGrowthRate = 12.5; // % per month to reach #1 in 6 months
+  const { addToast } = useToast();
+
+  const handleGenerateActionPlan = () => {
+    addToast({
+      type: 'success',
+      title: 'Generating Action Plan',
+      description: 'Your weekly action plan is being created...',
+    });
+  };
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -337,7 +347,7 @@ export default function PathTo1Page() {
                 Generate a detailed weekly action plan based on these strategies
               </p>
             </div>
-            <Button className="bg-white text-black hover:bg-white/90">
+            <Button className="bg-white text-black hover:bg-white/90" onClick={handleGenerateActionPlan}>
               Generate Action Plan
               <ArrowRight className="ml-2 h-4 w-4" />
             </Button>

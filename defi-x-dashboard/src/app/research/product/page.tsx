@@ -19,6 +19,8 @@ import {
   BarChart3,
 } from 'lucide-react';
 import { AppLayout } from '@/components/layout/app-layout';
+import { useRouter } from 'next/navigation';
+import { useToast } from '@/components/ui/toast';
 
 // US-018: Product Intelligence Module
 
@@ -132,6 +134,23 @@ const statusConfig = {
 };
 
 export default function ProductIntelligencePage() {
+  const router = useRouter();
+  const { addToast } = useToast();
+
+  const handleGenerateContent = (feature: ProductFeature) => {
+    router.push(`/create?topic=${encodeURIComponent(feature.name)}`);
+  };
+
+  const handleHighlightStrengths = () => {
+    router.push('/create?topic=' + encodeURIComponent('Defi App Competitive Advantages'));
+    addToast({ type: 'info', title: 'Creating content', description: 'Opening editor for strengths highlight' });
+  };
+
+  const handleAddressGaps = () => {
+    router.push('/create?topic=' + encodeURIComponent('Defi App Roadmap Updates'));
+    addToast({ type: 'info', title: 'Creating content', description: 'Opening editor for gap addressing' });
+  };
+
   const formatNumber = (num: number) => {
     if (num >= 1000) return `${(num / 1000).toFixed(1)}K`;
     return num.toString();
@@ -250,7 +269,7 @@ export default function ProductIntelligencePage() {
                   </div>
 
                   <div className="flex justify-end mt-4 pt-4 border-t border-white/5">
-                    <Button size="sm" className="bg-gradient-to-r from-violet-500 to-indigo-600">
+                    <Button size="sm" className="bg-gradient-to-r from-violet-500 to-indigo-600" onClick={() => handleGenerateContent(feature)}>
                       <MessageSquare className="mr-2 h-4 w-4" />
                       Generate Content
                     </Button>
@@ -311,10 +330,10 @@ export default function ProductIntelligencePage() {
                 anticipation for upcoming features that close competitive gaps.
               </p>
               <div className="flex gap-2">
-                <Button size="sm" variant="outline">
+                <Button size="sm" variant="outline" onClick={handleHighlightStrengths}>
                   Highlight Strengths
                 </Button>
-                <Button size="sm" variant="outline">
+                <Button size="sm" variant="outline" onClick={handleAddressGaps}>
                   Address Gaps
                 </Button>
               </div>

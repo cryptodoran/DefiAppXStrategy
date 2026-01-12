@@ -18,6 +18,8 @@ import {
   AlertTriangle,
 } from 'lucide-react';
 import { AppLayout } from '@/components/layout/app-layout';
+import { useRouter } from 'next/navigation';
+import { useToast } from '@/components/ui/toast';
 
 // US-013: Content Calendar Manager
 
@@ -72,9 +74,20 @@ const optimalTimeSlots = [
 ];
 
 export default function ContentCalendarPage() {
+  const router = useRouter();
+  const { addToast } = useToast();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [view, setView] = useState<'month' | 'week'>('week');
+
+  const handleSchedulePost = () => {
+    router.push('/create');
+    addToast({
+      type: 'info',
+      title: 'Creating new post',
+      description: 'Opening editor to create a new scheduled post',
+    });
+  };
 
   const getTypeIcon = (type: ScheduledPost['type']) => {
     switch (type) {
@@ -156,7 +169,7 @@ export default function ContentCalendarPage() {
           <h1 className="text-2xl font-bold text-white">Content Calendar</h1>
           <p className="text-tertiary">Plan and schedule your content strategy</p>
         </div>
-        <Button className="bg-gradient-to-r from-violet-500 to-indigo-600">
+        <Button className="bg-gradient-to-r from-violet-500 to-indigo-600" onClick={handleSchedulePost}>
           <Plus className="mr-2 h-4 w-4" />
           Schedule Post
         </Button>

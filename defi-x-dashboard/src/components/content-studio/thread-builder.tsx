@@ -34,13 +34,24 @@ interface ThreadPerformancePrediction {
   viralityChance: number;
 }
 
-export function ThreadBuilder() {
+interface ThreadBuilderProps {
+  initialTopic?: string;
+}
+
+export function ThreadBuilder({ initialTopic }: ThreadBuilderProps) {
   const [tweets, setTweets] = React.useState<TweetItem[]>([
     { id: '1', content: '', characterCount: 0 },
   ]);
   const [prediction, setPrediction] = React.useState<ThreadPerformancePrediction | null>(null);
   const [isPosting, setIsPosting] = React.useState(false);
   const { addToast } = useToast();
+
+  // Pre-fill first tweet with topic if provided
+  React.useEffect(() => {
+    if (initialTopic && tweets[0].content === '') {
+      setTweets([{ id: '1', content: `Thread: ${initialTopic}\n\n`, characterCount: initialTopic.length + 10 }]);
+    }
+  }, [initialTopic]);
 
   const handlePostThread = async () => {
     const filledTweets = tweets.filter((t) => t.content.trim().length > 0);

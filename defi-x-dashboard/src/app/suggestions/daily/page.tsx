@@ -1,6 +1,8 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -16,99 +18,109 @@ import {
   Bookmark,
   Edit,
   Flame,
+  RefreshCw,
+  CheckCircle,
+  AlertCircle,
 } from 'lucide-react';
 import { AppLayout } from '@/components/layout/app-layout';
 import { useToast } from '@/components/ui/toast';
 
-// Mock suggestions
-const suggestions = [
-  {
-    id: '1',
-    content: 'Thread idea: "5 DeFi trends that will define 2026" - high engagement potential based on similar content performance',
-    type: 'TRENDING',
-    predictedScore: 85,
-    optimalTime: '2:00 PM EST',
-    source: 'Trending analysis',
-    spiceLevel: 4,
-    status: 'pending',
-  },
-  {
-    id: '2',
-    content: 'New feature announcement: Highlight the gas optimization update - your audience loves technical deep-dives',
-    type: 'PRODUCT_UPDATE',
-    predictedScore: 78,
-    optimalTime: '10:00 AM EST',
-    source: 'Product roadmap',
-    spiceLevel: 2,
-    status: 'pending',
-  },
-  {
-    id: '3',
-    content: 'Hot take opportunity: The SEC ruling today - take a stance on DeFi regulation. Historical similar posts did 3x better',
-    type: 'TRENDING',
-    predictedScore: 92,
-    optimalTime: 'ASAP',
-    source: 'Breaking news',
-    spiceLevel: 7,
-    status: 'pending',
-  },
-  {
-    id: '4',
-    content: 'Educational thread: "How to evaluate DeFi protocols" - your educational content consistently outperforms',
-    type: 'HISTORICAL_PATTERN',
-    predictedScore: 81,
-    optimalTime: '4:00 PM EST',
-    source: 'Pattern analysis',
-    spiceLevel: 3,
-    status: 'pending',
-  },
-  {
-    id: '5',
-    content: 'Competitor gap: None of the top 10 DeFi accounts are covering the new L2 launch today - first mover advantage',
-    type: 'COMPETITOR_GAP',
-    predictedScore: 88,
-    optimalTime: '12:00 PM EST',
-    source: 'Competitor analysis',
-    spiceLevel: 5,
-    status: 'pending',
-  },
-];
+interface AISuggestion {
+  id: string;
+  type: string;
+  content: string;
+  topic: string;
+  hook: string;
+  score: number;
+  reasoning: string;
+  createdAt: string;
+  status?: string;
+  _mock?: boolean;
+}
+
+// Fetch AI suggestions
+async function fetchSuggestions(): Promise<AISuggestion[]> {
+  const response = await fetch('/api/content/suggestions');
+  if (!response.ok) throw new Error('Failed to fetch suggestions');
+  return response.json();
+}
 
 export default function DailySuggestionsPage() {
-  const [items, setItems] = useState(suggestions);
+  const router = useRouter();
+  const queryClient = useQueryClient();
   const { addToast } = useToast();
+  const [localStatuses, setLocalStatuses] = useState<Record<string, string>>({});
+
+  // Fetch real AI suggestions
+  const { data: suggestions, isLoading, error, refetch, dataUpdatedAt } = useQuery({
+    queryKey: ['daily-suggestions'],
+    queryFn: fetchSuggestions,
+    staleTime: 60 * 60 * 1000, // 1 hour
+  });
+
+  // Regenerate suggestions
+  const regenerateMutation = useMutation({
+    mutationFn: async () => {
+      const response = await fetch('/api/content/suggestions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ regenerate: true }),
+      });
+      if (!response.ok) throw new Error('Failed to regenerate');
+      return response.json();
+    },
+    onSuccess: (data) => {
+      queryClient.setQueryData(['daily-suggestions'], data);
+      setLocalStatuses({});
+      addToast({ type: 'success', title: 'Regenerated', description: 'New AI suggestions generated!' });
+    },
+    onError: () => {
+      addToast({ type: 'error', title: 'Error', description: 'Failed to regenerate suggestions' });
+    },
+  });
 
   const updateStatus = (id: string, status: string) => {
-    setItems(items.map((item) => (item.id === id ? { ...item, status } : item)));
+    setLocalStatuses(prev => ({ ...prev, [id]: status }));
+    addToast({
+      type: status === 'approved' ? 'success' : 'info',
+      title: status === 'approved' ? 'Approved' : status === 'saved' ? 'Saved' : 'Dismissed',
+      description: `Suggestion ${status}`,
+    });
   };
 
   const getTypeIcon = (type: string) => {
-    switch (type) {
-      case 'TRENDING':
+    switch (type.toLowerCase()) {
+      case 'thread':
+      case 'thread idea':
         return <TrendingUp className="h-4 w-4" />;
-      case 'PRODUCT_UPDATE':
+      case 'single':
+      case 'single tweet':
         return <Sparkles className="h-4 w-4" />;
-      case 'HISTORICAL_PATTERN':
+      case 'qt':
+      case 'quote tweet':
+      case 'quote tweet angle':
         return <Clock className="h-4 w-4" />;
-      case 'COMPETITOR_GAP':
-        return <Lightbulb className="h-4 w-4" />;
-      case 'CALENDAR_EVENT':
-        return <Calendar className="h-4 w-4" />;
+      case 'take':
+        return <Flame className="h-4 w-4" />;
       default:
         return <Lightbulb className="h-4 w-4" />;
     }
   };
 
   const getTypeColor = (type: string) => {
-    switch (type) {
-      case 'TRENDING':
-        return 'bg-orange-500/20 text-orange-400';
-      case 'PRODUCT_UPDATE':
-        return 'bg-blue-500/20 text-blue-400';
-      case 'HISTORICAL_PATTERN':
+    switch (type.toLowerCase()) {
+      case 'thread':
+      case 'thread idea':
         return 'bg-purple-500/20 text-purple-400';
-      case 'COMPETITOR_GAP':
-        return 'bg-green-500/20 text-green-400';
+      case 'single':
+      case 'single tweet':
+        return 'bg-blue-500/20 text-blue-400';
+      case 'qt':
+      case 'quote tweet':
+      case 'quote tweet angle':
+        return 'bg-orange-500/20 text-orange-400';
+      case 'take':
+        return 'bg-red-500/20 text-red-400';
       default:
         return 'bg-white/5 text-tertiary';
     }
@@ -120,9 +132,60 @@ export default function DailySuggestionsPage() {
     return 'text-orange-400';
   };
 
+  // Merge local statuses with suggestions
+  const items = suggestions?.map(s => ({
+    ...s,
+    status: localStatuses[s.id] || 'pending',
+  })) || [];
+
   const pendingSuggestions = items.filter((item) => item.status === 'pending');
   const approvedSuggestions = items.filter((item) => item.status === 'approved');
   const savedSuggestions = items.filter((item) => item.status === 'saved');
+  const isLive = suggestions && suggestions.length > 0 && !suggestions[0]._mock;
+
+  if (isLoading) {
+    return (
+      <AppLayout>
+        <div className="space-y-6">
+          <div className="flex items-center gap-3">
+            <h1 className="text-2xl font-bold text-white">Daily Recommendations</h1>
+            <span className="text-xs text-tertiary flex items-center gap-1">
+              <RefreshCw className="h-3 w-3 animate-spin" />
+              Generating AI suggestions...
+            </span>
+          </div>
+          <div className="space-y-4">
+            {[1, 2, 3].map((i) => (
+              <Card key={i} className="bg-surface border-white/5 animate-pulse">
+                <CardContent className="pt-4">
+                  <div className="h-24 bg-elevated rounded" />
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </AppLayout>
+    );
+  }
+
+  if (error) {
+    return (
+      <AppLayout>
+        <div className="space-y-6">
+          <h1 className="text-2xl font-bold text-white">Daily Recommendations</h1>
+          <Card className="bg-red-500/10 border-red-500/20">
+            <CardContent className="py-8 text-center">
+              <AlertCircle className="h-8 w-8 text-red-400 mx-auto mb-2" />
+              <p className="text-red-400">Failed to load suggestions</p>
+              <Button variant="outline" className="mt-4" onClick={() => refetch()}>
+                Try Again
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </AppLayout>
+    );
+  }
 
   return (
     <AppLayout>
@@ -130,14 +193,34 @@ export default function DailySuggestionsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white">Daily Recommendations</h1>
+          <div className="flex items-center gap-3">
+            <h1 className="text-2xl font-bold text-white">Daily Recommendations</h1>
+            {isLive ? (
+              <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-green-500/20 text-green-400 flex items-center gap-1">
+                <CheckCircle className="h-3 w-3" />
+                AI Generated
+              </span>
+            ) : (
+              <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-yellow-500/20 text-yellow-400">
+                Sample Data
+              </span>
+            )}
+          </div>
           <p className="text-tertiary">
             AI-powered content suggestions based on trends and patterns
           </p>
         </div>
-        <Button variant="outline" onClick={() => addToast({ type: 'info', title: 'Generating', description: 'Generating new AI suggestions...' })}>
-          <Sparkles className="mr-2 h-4 w-4" />
-          Generate More
+        <Button
+          variant="outline"
+          onClick={() => regenerateMutation.mutate()}
+          disabled={regenerateMutation.isPending}
+        >
+          {regenerateMutation.isPending ? (
+            <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+          ) : (
+            <Sparkles className="mr-2 h-4 w-4" />
+          )}
+          {regenerateMutation.isPending ? 'Generating...' : 'Generate More'}
         </Button>
       </div>
 
@@ -165,7 +248,7 @@ export default function DailySuggestionsPage() {
           <CardContent className="pt-4">
             <p className="text-sm text-tertiary">Avg. Predicted Score</p>
             <p className="text-2xl font-bold text-blue-400">
-              {Math.round(items.reduce((acc, item) => acc + item.predictedScore, 0) / items.length)}
+              {items.length > 0 ? Math.round(items.reduce((acc, item) => acc + (item.score || 0), 0) / items.length) : 0}
             </p>
           </CardContent>
         </Card>
@@ -191,29 +274,32 @@ export default function DailySuggestionsPage() {
                 <div className="flex-1 min-w-0">
                   <p className="text-sm text-secondary">{suggestion.content}</p>
 
+                  {suggestion.hook && (
+                    <p className="text-xs text-tertiary mt-2 italic">Hook: {suggestion.hook}</p>
+                  )}
+
                   <div className="flex flex-wrap items-center gap-3 mt-3">
                     <Badge className={getTypeColor(suggestion.type)}>
-                      {suggestion.type.replace('_', ' ')}
+                      {suggestion.type}
                     </Badge>
-                    <span className="text-xs text-tertiary">
-                      Source: {suggestion.source}
-                    </span>
-                    <span className="text-xs text-tertiary flex items-center gap-1">
-                      <Clock className="h-3 w-3" />
-                      Best time: {suggestion.optimalTime}
-                    </span>
-                    <span className="text-xs text-tertiary flex items-center gap-1">
-                      <Flame className="h-3 w-3" />
-                      Spice: {suggestion.spiceLevel}/10
-                    </span>
+                    {suggestion.topic && (
+                      <span className="text-xs text-tertiary">
+                        Topic: {suggestion.topic}
+                      </span>
+                    )}
+                    {suggestion.reasoning && (
+                      <span className="text-xs text-tertiary">
+                        Why: {suggestion.reasoning.slice(0, 60)}...
+                      </span>
+                    )}
                   </div>
                 </div>
 
                 {/* Score and Actions */}
                 <div className="flex flex-col items-end gap-3">
                   <div className="text-right">
-                    <p className={cn('text-xl font-bold', getScoreColor(suggestion.predictedScore))}>
-                      {suggestion.predictedScore}
+                    <p className={cn('text-xl font-bold', getScoreColor(suggestion.score || 0))}>
+                      {suggestion.score || 0}
                     </p>
                     <p className="text-xs text-tertiary">Predicted</p>
                   </div>
@@ -239,7 +325,10 @@ export default function DailySuggestionsPage() {
                       variant="ghost"
                       size="sm"
                       className="text-tertiary hover:text-secondary"
-                      onClick={() => addToast({ type: 'info', title: 'Edit', description: 'Opening suggestion editor...' })}
+                      onClick={() => {
+                        router.push('/create?topic=' + encodeURIComponent(suggestion.content));
+                        addToast({ type: 'info', title: 'Opening editor', description: 'Loading suggestion in content studio...' });
+                      }}
                     >
                       <Edit className="h-4 w-4" />
                     </Button>
@@ -264,9 +353,16 @@ export default function DailySuggestionsPage() {
           <CardContent className="py-12 text-center">
             <Lightbulb className="h-12 w-12 text-tertiary mx-auto mb-4" />
             <h3 className="text-lg font-medium text-white mb-2">All caught up!</h3>
-            <p className="text-sm text-tertiary">
-              You&apos;ve reviewed all suggestions for today. Check back later for more.
+            <p className="text-sm text-tertiary mb-4">
+              You&apos;ve reviewed all suggestions for today.
             </p>
+            <Button
+              onClick={() => regenerateMutation.mutate()}
+              disabled={regenerateMutation.isPending}
+            >
+              <Sparkles className="mr-2 h-4 w-4" />
+              Generate New Suggestions
+            </Button>
           </CardContent>
         </Card>
       )}

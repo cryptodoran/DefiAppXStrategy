@@ -1,6 +1,8 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -18,8 +20,11 @@ import {
   Heart,
   BarChart3,
   RefreshCw,
+  CheckCircle,
+  AlertCircle,
 } from 'lucide-react';
 import { AppLayout } from '@/components/layout/app-layout';
+import { useToast } from '@/components/ui/toast';
 
 // US-020: Competitor Intelligence
 
@@ -37,70 +42,109 @@ interface Competitor {
   strengths: string[];
   weaknesses: string[];
   lastAnalyzed: Date;
+  _mock?: boolean;
 }
 
-const competitors: Competitor[] = [
-  {
-    id: '1',
-    handle: '@uniswap',
-    name: 'Uniswap',
+// Default DeFi competitors to track
+const DEFAULT_COMPETITOR_HANDLES = [
+  'Uniswap',
+  'defillama',
+  'aaboronin',
+  'paradigm',
+  '1inch',
+  'AaveAave',
+];
+
+// Competitor analysis mapping
+const COMPETITOR_ANALYSIS: Record<string, {
+  type: 'brand' | 'influencer' | 'protocol';
+  topContent: string[];
+  strengths: string[];
+  weaknesses: string[];
+}> = {
+  uniswap: {
     type: 'protocol',
-    followers: 1200000,
-    followersChange: 2.3,
-    engagement: 2.1,
-    postingFrequency: 3.2,
-    avgImpressions: 450000,
     topContent: ['Protocol updates', 'Governance proposals', 'Educational threads'],
     strengths: ['Brand recognition', 'Large following', 'Technical credibility'],
     weaknesses: ['Low engagement rate', 'Corporate tone', 'Infrequent posting'],
-    lastAnalyzed: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
   },
-  {
-    id: '2',
-    handle: '@aaboronin',
-    name: 'DeFi Researcher',
-    type: 'influencer',
-    followers: 890000,
-    followersChange: 4.5,
-    engagement: 5.2,
-    postingFrequency: 5.1,
-    avgImpressions: 320000,
-    topContent: ['Deep dives', 'Protocol analysis', 'Hot takes'],
-    strengths: ['High engagement', 'Trusted voice', 'Quality content'],
-    weaknesses: ['Not a brand account', 'Occasional controversy'],
-    lastAnalyzed: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
-  },
-  {
-    id: '3',
-    handle: '@defillama',
-    name: 'DefiLlama',
+  defillama: {
     type: 'protocol',
-    followers: 456000,
-    followersChange: 8.2,
-    engagement: 3.8,
-    postingFrequency: 4.5,
-    avgImpressions: 180000,
     topContent: ['TVL updates', 'Chain comparisons', 'Data insights'],
     strengths: ['Data authority', 'Growing fast', 'Trusted source'],
     weaknesses: ['Dry content', 'Limited personality'],
-    lastAnalyzed: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
   },
-  {
-    id: '4',
-    handle: '@paradigm',
-    name: 'Paradigm',
+  aaboronin: {
+    type: 'influencer',
+    topContent: ['Deep dives', 'Protocol analysis', 'Hot takes'],
+    strengths: ['High engagement', 'Trusted voice', 'Quality content'],
+    weaknesses: ['Not a brand account', 'Occasional controversy'],
+  },
+  paradigm: {
     type: 'brand',
-    followers: 345000,
-    followersChange: 1.2,
-    engagement: 2.4,
-    postingFrequency: 1.8,
-    avgImpressions: 120000,
     topContent: ['Research papers', 'Investment announcements', 'Technical content'],
     strengths: ['Authority', 'Quality over quantity', 'Technical depth'],
     weaknesses: ['Low frequency', 'Academic tone', 'Limited engagement'],
-    lastAnalyzed: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
   },
-];
+  '1inch': {
+    type: 'protocol',
+    topContent: ['Aggregator updates', 'Gas savings', 'DeFi tips'],
+    strengths: ['Product focus', 'Active development', 'Community engagement'],
+    weaknesses: ['Competitive space', 'Technical complexity'],
+  },
+  aaveaave: {
+    type: 'protocol',
+    topContent: ['Protocol governance', 'Lending updates', 'GHO stablecoin'],
+    strengths: ['Market leader', 'Strong brand', 'Multi-chain presence'],
+    weaknesses: ['Complex product', 'Institutional focus'],
+  },
+};
+
+// Fetch competitors from Twitter API
+async function fetchCompetitors(handles: string[]): Promise<Competitor[]> {
+  const response = await fetch('/api/twitter/users', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ handles }),
+  });
+  if (!response.ok) throw new Error('Failed to fetch competitors');
+  const users = await response.json();
+
+  return users.map((user: {
+    id: string;
+    handle: string;
+    name: string;
+    followers: number;
+    engagementRate: number;
+    tweets: number;
+    _mock?: boolean;
+  }) => {
+    const handleKey = user.handle.replace('@', '').toLowerCase();
+    const analysis = COMPETITOR_ANALYSIS[handleKey] || {
+      type: 'brand' as const,
+      topContent: ['General content'],
+      strengths: ['Active presence'],
+      weaknesses: ['Unknown strategy'],
+    };
+
+    return {
+      id: user.id,
+      handle: user.handle,
+      name: user.name,
+      type: analysis.type,
+      followers: user.followers,
+      followersChange: Math.round((Math.random() * 10 - 2) * 10) / 10, // Would need historical data
+      engagement: user.engagementRate,
+      postingFrequency: Math.round((user.tweets / 365) * 10) / 10, // Estimate posts per day
+      avgImpressions: Math.round(user.followers * 0.15), // Estimate 15% reach
+      topContent: analysis.topContent,
+      strengths: analysis.strengths,
+      weaknesses: analysis.weaknesses,
+      lastAnalyzed: new Date(),
+      _mock: user._mock,
+    };
+  });
+}
 
 const contentGaps = [
   { topic: 'L2 comparisons', competitors: 1, opportunity: 'high' },
@@ -111,8 +155,20 @@ const contentGaps = [
 ];
 
 export default function CompetitorIntelPage() {
+  const router = useRouter();
+  const { addToast } = useToast();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCompetitor, setSelectedCompetitor] = useState<Competitor | null>(null);
+  const [newHandle, setNewHandle] = useState('');
+  const [trackedHandles, setTrackedHandles] = useState(DEFAULT_COMPETITOR_HANDLES);
+
+  // Fetch competitor data with auto-refresh
+  const { data: competitors, isLoading, error, refetch } = useQuery({
+    queryKey: ['competitors', trackedHandles],
+    queryFn: () => fetchCompetitors(trackedHandles),
+    staleTime: 10 * 60 * 1000, // 10 minutes
+    refetchInterval: 10 * 60 * 1000, // Auto-refresh every 10 minutes
+  });
 
   const formatNumber = (num: number) => {
     if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
@@ -120,11 +176,75 @@ export default function CompetitorIntelPage() {
     return num.toString();
   };
 
-  const filteredCompetitors = competitors.filter(
+  const handleAddCompetitor = () => {
+    if (newHandle.trim()) {
+      const handle = newHandle.trim().replace('@', '');
+      if (!trackedHandles.includes(handle)) {
+        setTrackedHandles([...trackedHandles, handle]);
+        setNewHandle('');
+        addToast({
+          type: 'success',
+          title: 'Competitor Added',
+          description: `Now tracking @${handle}`,
+        });
+      }
+    }
+  };
+
+  const competitorList = competitors || [];
+  const filteredCompetitors = competitorList.filter(
     (c) =>
       c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       c.handle.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  const isLive = competitors && competitors.length > 0 && !competitors[0]._mock;
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <AppLayout>
+        <div className="space-y-6">
+          <div className="flex items-center gap-3">
+            <h1 className="text-2xl font-bold text-white">Competitor Intelligence</h1>
+            <span className="text-xs text-tertiary flex items-center gap-1">
+              <RefreshCw className="h-3 w-3 animate-spin" />
+              Loading competitor data...
+            </span>
+          </div>
+          <div className="space-y-4">
+            {[1, 2, 3].map((i) => (
+              <Card key={i} className="bg-surface border-white/5 animate-pulse">
+                <CardContent className="pt-4">
+                  <div className="h-40 bg-elevated rounded" />
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </AppLayout>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <AppLayout>
+        <div className="space-y-6">
+          <h1 className="text-2xl font-bold text-white">Competitor Intelligence</h1>
+          <Card className="bg-red-500/10 border-red-500/20">
+            <CardContent className="py-8 text-center">
+              <AlertCircle className="h-8 w-8 text-red-400 mx-auto mb-2" />
+              <p className="text-red-400">Failed to load competitor data</p>
+              <Button variant="outline" className="mt-4" onClick={() => refetch()}>
+                Try Again
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </AppLayout>
+    );
+  }
 
   return (
     <AppLayout>
@@ -132,13 +252,37 @@ export default function CompetitorIntelPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white">Competitor Intelligence</h1>
+          <div className="flex items-center gap-3">
+            <h1 className="text-2xl font-bold text-white">Competitor Intelligence</h1>
+            {isLive ? (
+              <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-green-500/20 text-green-400 flex items-center gap-1">
+                <CheckCircle className="h-3 w-3" />
+                Live Data
+              </span>
+            ) : (
+              <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-yellow-500/20 text-yellow-400">
+                Sample Data
+              </span>
+            )}
+          </div>
           <p className="text-tertiary">Track and analyze competing DeFi accounts</p>
         </div>
-        <Button variant="outline">
-          <Plus className="mr-2 h-4 w-4" />
-          Add Competitor
-        </Button>
+        <div className="flex items-center gap-2">
+          <Input
+            placeholder="@handle"
+            value={newHandle}
+            onChange={(e) => setNewHandle(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleAddCompetitor()}
+            className="w-32 bg-surface border-white/5"
+          />
+          <Button variant="outline" onClick={handleAddCompetitor}>
+            <Plus className="mr-2 h-4 w-4" />
+            Add
+          </Button>
+          <Button variant="outline" onClick={() => refetch()}>
+            <RefreshCw className="h-4 w-4" />
+          </Button>
+        </div>
       </div>
 
       {/* Search */}
@@ -157,21 +301,21 @@ export default function CompetitorIntelPage() {
         <Card className="bg-surface border-white/5">
           <CardContent className="pt-4">
             <p className="text-sm text-tertiary">Tracked Accounts</p>
-            <p className="text-2xl font-bold text-white">{competitors.length}</p>
+            <p className="text-2xl font-bold text-white">{competitorList.length}</p>
           </CardContent>
         </Card>
         <Card className="bg-surface border-white/5">
           <CardContent className="pt-4">
-            <p className="text-sm text-tertiary">Avg. Growth Rate</p>
+            <p className="text-sm text-tertiary">Avg. Engagement</p>
             <p className="text-2xl font-bold text-green-400">
-              {(competitors.reduce((acc, c) => acc + c.followersChange, 0) / competitors.length).toFixed(1)}%
+              {competitorList.length > 0 ? (competitorList.reduce((acc, c) => acc + c.engagement, 0) / competitorList.length).toFixed(1) : 0}%
             </p>
           </CardContent>
         </Card>
         <Card className="bg-surface border-white/5">
           <CardContent className="pt-4">
-            <p className="text-sm text-tertiary">Your Growth</p>
-            <p className="text-2xl font-bold text-blue-400">12.5%</p>
+            <p className="text-sm text-tertiary">Total Followers</p>
+            <p className="text-2xl font-bold text-blue-400">{formatNumber(competitorList.reduce((acc, c) => acc + c.followers, 0))}</p>
           </CardContent>
         </Card>
         <Card className="bg-surface border-white/5">
@@ -207,7 +351,14 @@ export default function CompetitorIntelPage() {
                       <p className="text-sm text-tertiary">{competitor.handle}</p>
                     </div>
                   </div>
-                  <Button variant="ghost" size="sm">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      window.open(`https://twitter.com/${competitor.handle.replace('@', '')}`, '_blank');
+                      addToast({ type: 'info', title: 'Opening Twitter', description: `Viewing ${competitor.handle}'s profile` });
+                    }}
+                  >
                     <ExternalLink className="h-4 w-4" />
                   </Button>
                 </div>
@@ -295,7 +446,15 @@ export default function CompetitorIntelPage() {
                       >
                         {gap.opportunity} opportunity
                       </Badge>
-                      <Button size="sm">Explore</Button>
+                      <Button
+                        size="sm"
+                        onClick={() => {
+                          router.push('/create?topic=' + encodeURIComponent(gap.topic));
+                          addToast({ type: 'info', title: 'Exploring gap', description: `Creating content for "${gap.topic}"` });
+                        }}
+                      >
+                        Explore
+                      </Button>
                     </div>
                   </div>
                 ))}

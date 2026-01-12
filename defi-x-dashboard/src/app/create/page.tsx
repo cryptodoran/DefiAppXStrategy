@@ -1,6 +1,8 @@
 'use client';
 
 import * as React from 'react';
+import { Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { AppLayout } from '@/components/layout/app-layout';
 import { ContentCreator } from '@/components/content-studio/content-creator';
@@ -12,7 +14,9 @@ import { cn } from '@/lib/utils';
 
 type ContentTab = 'post' | 'thread' | 'qt';
 
-export default function CreatePage() {
+function CreatePageContent() {
+  const searchParams = useSearchParams();
+  const topicParam = searchParams.get('topic');
   const [activeTab, setActiveTab] = React.useState<ContentTab>('post');
 
   const tabs = [
@@ -55,10 +59,24 @@ export default function CreatePage() {
         </div>
 
         {/* Content */}
-        {activeTab === 'post' && <ContentCreator />}
-        {activeTab === 'thread' && <ThreadBuilder />}
+        {activeTab === 'post' && <ContentCreator initialTopic={topicParam || undefined} />}
+        {activeTab === 'thread' && <ThreadBuilder initialTopic={topicParam || undefined} />}
         {activeTab === 'qt' && <QTStudio />}
       </motion.div>
     </AppLayout>
+  );
+}
+
+export default function CreatePage() {
+  return (
+    <Suspense fallback={
+      <AppLayout>
+        <div className="flex items-center justify-center h-64">
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-white/10 border-t-violet-500" />
+        </div>
+      </AppLayout>
+    }>
+      <CreatePageContent />
+    </Suspense>
   );
 }

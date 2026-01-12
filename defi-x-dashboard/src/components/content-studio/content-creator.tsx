@@ -64,12 +64,23 @@ const mockMarketContext: MarketContextData = {
   topTrend: '#ETH100K',
 };
 
-export function ContentCreator() {
+interface ContentCreatorProps {
+  initialTopic?: string;
+}
+
+export function ContentCreator({ initialTopic }: ContentCreatorProps) {
   const [content, setContent] = React.useState('');
   const [qualityScore, setQualityScore] = React.useState<QualityScore | null>(null);
   const [isAnalyzing, setIsAnalyzing] = React.useState(false);
   const [isPosting, setIsPosting] = React.useState(false);
   const { addToast } = useToast();
+
+  // Pre-fill content with topic if provided
+  React.useEffect(() => {
+    if (initialTopic && !content) {
+      setContent(`Thoughts on ${initialTopic}:\n\n`);
+    }
+  }, [initialTopic]);
 
   const handlePostNow = async () => {
     if (!content.trim()) {

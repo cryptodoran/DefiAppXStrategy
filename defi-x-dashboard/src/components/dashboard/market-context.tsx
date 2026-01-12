@@ -7,7 +7,23 @@ import { cn } from '@/lib/utils';
 import { Sparkline } from '@/components/ui/sparkline';
 import { MarketMoodBadge } from '@/components/ui/premium-badge';
 import { useToast } from '@/components/ui/toast';
-import { getRelativeTime, minutesAgo, hoursAgo } from '@/lib/utils/time';
+import { getRelativeTime } from '@/lib/utils/time';
+import {
+  fetchRealCryptoPrices,
+  fetchRealFearGreed,
+  fetchRealTVL,
+  calculateMarketMood,
+  type CryptoPrice,
+  type FearGreedData,
+  type TVLData,
+  type MarketMood,
+} from '@/services/real-market-data';
+import {
+  TRENDING_HASHTAGS,
+  getUpcomingEconomicEvents,
+  CRYPTO_NEWS_SOURCES,
+  type EconomicEvent,
+} from '@/services/real-twitter-links';
 import {
   TrendingUp,
   TrendingDown,
@@ -17,166 +33,53 @@ import {
   Newspaper,
   Calendar,
   RefreshCw,
+  ExternalLink,
+  AlertCircle,
 } from 'lucide-react';
-
-// Types
-type MarketMood = 'euphoria' | 'bullish' | 'neutral' | 'bearish' | 'panic' | 'chaos';
-
-interface CryptoPrice {
-  symbol: string;
-  name: string;
-  price: number;
-  change24h: number;
-  sparkline: number[];
-}
-
-interface TradFiIndex {
-  name: string;
-  value: number;
-  change: number;
-  isOpen: boolean;
-}
-
-interface NewsItem {
-  id: string;
-  title: string;
-  source: string;
-  createdAt: Date;
-  isBreaking?: boolean;
-}
-
-interface EconomicEvent {
-  date: string;
-  name: string;
-  importance: 'high' | 'medium' | 'low';
-}
-
-// Simulated price fluctuation
-function fluctuatePrice(basePrice: number, volatility: number = 0.002): number {
-  const change = basePrice * volatility * (Math.random() - 0.5) * 2;
-  return basePrice + change;
-}
-
-function generateSparkline(basePrice: number, points: number = 7): number[] {
-  const sparkline: number[] = [];
-  let price = basePrice * 0.98;
-  for (let i = 0; i < points; i++) {
-    price = fluctuatePrice(price, 0.01);
-    sparkline.push(price);
-  }
-  sparkline[points - 1] = basePrice;
-  return sparkline;
-}
-
-// Generate dynamic crypto data
-function generateCryptoData(): CryptoPrice[] {
-  const basePrices = [
-    { symbol: 'BTC', name: 'Bitcoin', base: 97842 },
-    { symbol: 'ETH', name: 'Ethereum', base: 3456 },
-    { symbol: 'SOL', name: 'Solana', base: 198.45 },
-    { symbol: 'AVAX', name: 'Avalanche', base: 42.18 },
-  ];
-
-  return basePrices.map(crypto => {
-    const price = fluctuatePrice(crypto.base, 0.005);
-    const change24h = ((price - crypto.base) / crypto.base) * 100 + (Math.random() - 0.5) * 5;
-    return {
-      symbol: crypto.symbol,
-      name: crypto.name,
-      price: Math.round(price * 100) / 100,
-      change24h: Math.round(change24h * 100) / 100,
-      sparkline: generateSparkline(price),
-    };
-  });
-}
-
-// Generate dynamic TradFi data
-function generateTradFiData(): TradFiIndex[] {
-  const baseIndices = [
-    { name: 'S&P 500', base: 5234.56 },
-    { name: 'NASDAQ', base: 16432.12 },
-    { name: 'DXY', base: 103.42 },
-    { name: 'VIX', base: 14.32 },
-  ];
-
-  return baseIndices.map(index => ({
-    name: index.name,
-    value: Math.round(fluctuatePrice(index.base, 0.002) * 100) / 100,
-    change: Math.round((Math.random() - 0.5) * 4 * 100) / 100,
-    isOpen: true,
-  }));
-}
-
-// Generate dynamic news
-function generateNews(): NewsItem[] {
-  const headlines = [
-    { title: 'Major L2 Protocol Announces Token Launch', source: 'The Block', breaking: true },
-    { title: 'Fed Minutes Suggest Continued Rate Pause', source: 'Bloomberg', breaking: false },
-    { title: 'DeFi TVL Reaches New ATH at $180B', source: 'DeFiLlama', breaking: false },
-    { title: 'Ethereum Foundation Announces New Grants', source: 'CoinDesk', breaking: false },
-    { title: 'Bitcoin ETF Sees Record Inflows', source: 'Reuters', breaking: true },
-    { title: 'Major Exchange Lists New DeFi Token', source: 'The Block', breaking: false },
-  ];
-
-  // Randomly select 3 headlines and assign random recent times
-  const shuffled = headlines.sort(() => Math.random() - 0.5).slice(0, 3);
-
-  return shuffled.map((item, index) => ({
-    id: String(index + 1),
-    title: item.title,
-    source: item.source,
-    createdAt: index === 0 ? minutesAgo(Math.floor(Math.random() * 20) + 5) : hoursAgo(Math.floor(Math.random() * 3) + 1),
-    isBreaking: index === 0 && item.breaking,
-  }));
-}
-
-const economicEvents: EconomicEvent[] = [
-  { date: 'Jan 15', name: 'CPI Data Release', importance: 'high' },
-  { date: 'Jan 22', name: 'FOMC Meeting', importance: 'high' },
-  { date: 'Jan 25', name: 'GDP Report', importance: 'medium' },
-];
 
 export function MarketContextPanel() {
   const [cryptos, setCryptos] = React.useState<CryptoPrice[]>([]);
-  const [tradFi, setTradFi] = React.useState<TradFiIndex[]>([]);
-  const [news, setNews] = React.useState<NewsItem[]>([]);
-  const [fearGreedIndex, setFearGreedIndex] = React.useState(72);
-  const [currentMood, setCurrentMood] = React.useState<MarketMood>('bullish');
+  const [fearGreed, setFearGreed] = React.useState<FearGreedData | null>(null);
+  const [tvl, setTvl] = React.useState<TVLData | null>(null);
+  const [currentMood, setCurrentMood] = React.useState<MarketMood>('neutral');
   const [lastUpdate, setLastUpdate] = React.useState<Date>(new Date());
   const [isRefreshing, setIsRefreshing] = React.useState(false);
+  const [hasError, setHasError] = React.useState(false);
+  const [economicEvents] = React.useState<EconomicEvent[]>(getUpcomingEconomicEvents());
 
-  // Refresh all market data
-  const refreshData = React.useCallback(() => {
+  // Fetch real data
+  const refreshData = React.useCallback(async () => {
     setIsRefreshing(true);
-    setTimeout(() => {
-      setCryptos(generateCryptoData());
-      setTradFi(generateTradFiData());
-      setNews(generateNews());
+    setHasError(false);
 
-      // Fluctuate fear/greed
-      const newFearGreed = Math.max(20, Math.min(90, fearGreedIndex + Math.floor((Math.random() - 0.5) * 10)));
-      setFearGreedIndex(newFearGreed);
+    try {
+      const [pricesData, fgData, tvlData] = await Promise.all([
+        fetchRealCryptoPrices(),
+        fetchRealFearGreed(),
+        fetchRealTVL(),
+      ]);
 
-      // Update mood based on fear/greed
-      if (newFearGreed > 75) setCurrentMood('euphoria');
-      else if (newFearGreed > 55) setCurrentMood('bullish');
-      else if (newFearGreed > 45) setCurrentMood('neutral');
-      else if (newFearGreed > 25) setCurrentMood('bearish');
-      else setCurrentMood('panic');
-
+      setCryptos(pricesData);
+      setFearGreed(fgData);
+      setTvl(tvlData);
+      setCurrentMood(calculateMarketMood(fgData.value));
       setLastUpdate(new Date());
+    } catch (error) {
+      console.error('Failed to fetch market data:', error);
+      setHasError(true);
+    } finally {
       setIsRefreshing(false);
-    }, 300);
-  }, [fearGreedIndex]);
+    }
+  }, []);
 
   // Initial load
   React.useEffect(() => {
     refreshData();
-  }, []);
+  }, [refreshData]);
 
-  // Auto-refresh every 15 seconds
+  // Auto-refresh every 60 seconds
   React.useEffect(() => {
-    const interval = setInterval(refreshData, 15000);
+    const interval = setInterval(refreshData, 60000);
     return () => clearInterval(interval);
   }, [refreshData]);
 
@@ -194,7 +97,7 @@ export function MarketContextPanel() {
         <div className="flex items-center justify-between">
           <div>
             <h2 className="font-semibold text-primary">Market Context</h2>
-            <p className="text-xs text-tertiary mt-1">Live market intelligence</p>
+            <p className="text-xs text-tertiary mt-1">Real-time data</p>
           </div>
           <button
             onClick={refreshData}
@@ -204,9 +107,17 @@ export function MarketContextPanel() {
             <RefreshCw className={cn("h-4 w-4", isRefreshing && "animate-spin")} />
           </button>
         </div>
-        <p className="text-[10px] text-tertiary mt-2">
-          Updated {getRelativeTime(lastUpdate)}
-        </p>
+        <div className="flex items-center gap-2 mt-2">
+          <p className="text-[10px] text-tertiary">
+            Updated {getRelativeTime(lastUpdate)}
+          </p>
+          {hasError && (
+            <span className="flex items-center gap-1 text-[10px] text-yellow-400">
+              <AlertCircle className="h-3 w-3" />
+              Using cached data
+            </span>
+          )}
+        </div>
       </div>
 
       <div className="flex-1 overflow-y-auto">
@@ -224,13 +135,13 @@ export function MarketContextPanel() {
             <div className="flex items-center gap-2">
               <span className={cn(
                 'font-mono font-semibold',
-                fearGreedIndex > 60 ? 'text-green-400' :
-                  fearGreedIndex > 40 ? 'text-yellow-400' : 'text-red-400'
+                (fearGreed?.value || 50) > 60 ? 'text-green-400' :
+                  (fearGreed?.value || 50) > 40 ? 'text-yellow-400' : 'text-red-400'
               )}>
-                {fearGreedIndex}
+                {fearGreed?.value || '--'}
               </span>
               <span className="text-xs text-tertiary">
-                {fearGreedIndex > 60 ? 'Greed' : fearGreedIndex > 40 ? 'Neutral' : 'Fear'}
+                {fearGreed?.classification || 'Loading...'}
               </span>
             </div>
           </div>
@@ -238,58 +149,153 @@ export function MarketContextPanel() {
             <motion.div
               className={cn(
                 'h-full rounded-full',
-                fearGreedIndex > 75 ? 'bg-green-500' :
-                  fearGreedIndex > 50 ? 'bg-lime-500' :
-                    fearGreedIndex > 25 ? 'bg-yellow-500' : 'bg-red-500'
+                (fearGreed?.value || 50) > 75 ? 'bg-green-500' :
+                  (fearGreed?.value || 50) > 50 ? 'bg-lime-500' :
+                    (fearGreed?.value || 50) > 25 ? 'bg-yellow-500' : 'bg-red-500'
               )}
               initial={{ width: 0 }}
-              animate={{ width: `${fearGreedIndex}%` }}
+              animate={{ width: `${fearGreed?.value || 50}%` }}
               transition={{ duration: 0.5 }}
             />
           </div>
+          {fearGreed?.verifyUrl && (
+            <a
+              href={fearGreed.verifyUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1 text-[10px] text-violet-400 hover:text-violet-300 mt-2"
+            >
+              <ExternalLink className="h-3 w-3" />
+              Verify on Alternative.me
+            </a>
+          )}
         </section>
 
         {/* Crypto Prices */}
         <section className="p-4 border-b border-white/5">
           <div className="flex items-center justify-between mb-3">
             <span className="text-sm text-tertiary">Top Cryptos</span>
-            <Link href="/analytics/followers" className="text-xs text-violet-400 hover:text-violet-300">View all</Link>
+            <a
+              href="https://www.coingecko.com/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs text-violet-400 hover:text-violet-300 flex items-center gap-1"
+            >
+              CoinGecko
+              <ExternalLink className="h-3 w-3" />
+            </a>
           </div>
           <div className="space-y-3">
-            {cryptos.map((crypto) => (
-              <CryptoRow key={crypto.symbol} crypto={crypto} />
-            ))}
+            {cryptos.length > 0 ? (
+              cryptos.map((crypto) => (
+                <CryptoRow key={crypto.id} crypto={crypto} />
+              ))
+            ) : (
+              <div className="text-center py-4 text-tertiary text-sm">
+                Loading prices...
+              </div>
+            )}
           </div>
         </section>
 
-        {/* TradFi */}
+        {/* DeFi TVL */}
         <section className="p-4 border-b border-white/5">
           <div className="flex items-center justify-between mb-3">
-            <span className="text-sm text-tertiary">TradFi Markets</span>
-            <span className="flex items-center gap-1 text-xs text-green-400">
-              <span className="h-1.5 w-1.5 rounded-full bg-green-400 animate-pulse" />
-              Live
-            </span>
+            <span className="text-sm text-tertiary">DeFi TVL</span>
+            <a
+              href="https://defillama.com/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs text-violet-400 hover:text-violet-300 flex items-center gap-1"
+            >
+              DeFiLlama
+              <ExternalLink className="h-3 w-3" />
+            </a>
           </div>
-          <div className="grid grid-cols-2 gap-2">
-            {tradFi.map((index) => (
-              <TradFiCard key={index.name} index={index} />
-            ))}
-          </div>
+          {tvl ? (
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-secondary">Total TVL</span>
+                <span className="font-mono font-semibold text-primary">
+                  ${(tvl.total / 1e9).toFixed(2)}B
+                </span>
+              </div>
+              <div className="space-y-1">
+                {tvl.chains.slice(0, 4).map((chain) => (
+                  <a
+                    key={chain.name}
+                    href={chain.verifyUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-between text-xs hover:bg-elevated p-1 rounded transition-colors"
+                  >
+                    <span className="text-tertiary">{chain.name}</span>
+                    <span className="font-mono text-secondary">
+                      ${(chain.tvl / 1e9).toFixed(2)}B
+                    </span>
+                  </a>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="text-center py-4 text-tertiary text-sm">
+              Loading TVL...
+            </div>
+          )}
         </section>
 
-        {/* News */}
+        {/* Trending Hashtags */}
         <section className="p-4 border-b border-white/5">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <Newspaper className="h-4 w-4 text-tertiary" />
-              <span className="text-sm text-tertiary">Latest News</span>
+              <span className="text-sm text-tertiary">CT Hashtags</span>
             </div>
-            <Link href="/research" className="text-xs text-violet-400 hover:text-violet-300">More</Link>
+            <span className="text-xs text-tertiary">Click to view on X</span>
+          </div>
+          <div className="flex flex-wrap gap-1.5">
+            {TRENDING_HASHTAGS.slice(0, 8).map((hashtag) => (
+              <a
+                key={hashtag.tag}
+                href={hashtag.searchUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-2 py-1 rounded bg-elevated text-xs text-secondary hover:text-primary hover:bg-hover transition-colors"
+              >
+                {hashtag.tag}
+              </a>
+            ))}
+          </div>
+        </section>
+
+        {/* News Sources */}
+        <section className="p-4 border-b border-white/5">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <Newspaper className="h-4 w-4 text-tertiary" />
+              <span className="text-sm text-tertiary">News Sources</span>
+            </div>
           </div>
           <div className="space-y-2">
-            {news.map((item) => (
-              <NewsRow key={item.id} news={item} />
+            {CRYPTO_NEWS_SOURCES.slice(0, 4).map((source) => (
+              <div key={source.name} className="flex items-center justify-between">
+                <a
+                  href={source.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm text-secondary hover:text-primary transition-colors"
+                >
+                  {source.name}
+                </a>
+                <a
+                  href={source.twitterUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs text-violet-400 hover:text-violet-300"
+                >
+                  {source.twitterHandle}
+                </a>
+              </div>
             ))}
           </div>
         </section>
@@ -317,8 +323,25 @@ export function MarketContextPanel() {
 function CryptoRow({ crypto }: { crypto: CryptoPrice }) {
   const isPositive = crypto.change24h >= 0;
 
+  // Generate a simple sparkline based on the price
+  const generateSparkline = (price: number): number[] => {
+    const data: number[] = [];
+    let val = price * 0.98;
+    for (let i = 0; i < 6; i++) {
+      val = val + (price - val) * (0.1 + Math.random() * 0.2);
+      data.push(val);
+    }
+    data.push(price);
+    return data;
+  };
+
   return (
-    <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-elevated transition-colors">
+    <a
+      href={crypto.verifyUrl}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="flex items-center gap-3 p-2 rounded-lg hover:bg-elevated transition-colors group"
+    >
       <div className="w-8 h-8 rounded-full bg-elevated flex items-center justify-center text-xs font-semibold text-primary">
         {crypto.symbol}
       </div>
@@ -326,7 +349,7 @@ function CryptoRow({ crypto }: { crypto: CryptoPrice }) {
         <div className="flex items-center justify-between">
           <span className="font-medium text-sm text-primary">{crypto.name}</span>
           <span className="font-mono text-sm font-semibold text-primary">
-            ${crypto.price.toLocaleString()}
+            ${crypto.price > 0 ? crypto.price.toLocaleString(undefined, { maximumFractionDigits: 2 }) : '--'}
           </span>
         </div>
         <div className="flex items-center justify-between">
@@ -334,78 +357,19 @@ function CryptoRow({ crypto }: { crypto: CryptoPrice }) {
             'text-xs font-medium',
             isPositive ? 'text-market-up' : 'text-market-down'
           )}>
-            {isPositive ? '+' : ''}{crypto.change24h.toFixed(2)}%
+            {crypto.price > 0 ? (
+              <>
+                {isPositive ? '+' : ''}{crypto.change24h.toFixed(2)}%
+              </>
+            ) : '--'}
           </span>
-          <Sparkline data={crypto.sparkline} width={40} height={14} />
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function TradFiCard({ index }: { index: TradFiIndex }) {
-  const isPositive = index.change >= 0;
-
-  return (
-    <div className="p-2 rounded-lg bg-elevated">
-      <div className="flex items-center justify-between mb-1">
-        <span className="text-xs text-tertiary">{index.name}</span>
-        {isPositive ? (
-          <TrendingUp className="h-3 w-3 text-market-up" />
-        ) : (
-          <TrendingDown className="h-3 w-3 text-market-down" />
-        )}
-      </div>
-      <div className="flex items-baseline gap-1.5">
-        <span className="font-mono text-sm font-semibold text-primary">
-          {index.value.toLocaleString()}
-        </span>
-        <span className={cn(
-          'text-[10px] font-medium',
-          isPositive ? 'text-market-up' : 'text-market-down'
-        )}>
-          {isPositive ? '+' : ''}{index.change.toFixed(2)}%
-        </span>
-      </div>
-    </div>
-  );
-}
-
-function NewsRow({ news }: { news: NewsItem }) {
-  const { addToast } = useToast();
-
-  const handleClick = () => {
-    addToast({
-      type: 'info',
-      title: 'Opening article',
-      description: news.title.slice(0, 50) + '...',
-    });
-  };
-
-  return (
-    <button
-      onClick={handleClick}
-      className="w-full flex items-start gap-2 p-2 rounded-lg hover:bg-elevated transition-colors text-left group"
-    >
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2 mb-0.5">
-          {news.isBreaking && (
-            <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-red-500/20 text-red-400 animate-pulse">
-              BREAKING
-            </span>
+          {crypto.price > 0 && (
+            <Sparkline data={generateSparkline(crypto.price)} width={40} height={14} />
           )}
-          <span className="text-xs text-tertiary">{news.source}</span>
         </div>
-        <p className="text-sm text-secondary line-clamp-2 group-hover:text-primary transition-colors">
-          {news.title}
-        </p>
-        <span className="text-xs text-tertiary mt-0.5 flex items-center gap-1">
-          <Clock className="h-3 w-3" />
-          {getRelativeTime(news.createdAt)}
-        </span>
       </div>
-      <ChevronRight className="h-4 w-4 text-tertiary opacity-0 group-hover:opacity-100 transition-opacity mt-1" />
-    </button>
+      <ExternalLink className="h-3 w-3 text-tertiary opacity-0 group-hover:opacity-100 transition-opacity" />
+    </a>
   );
 }
 
@@ -417,17 +381,25 @@ function EventRow({ event }: { event: EconomicEvent }) {
   };
 
   return (
-    <div className="flex items-center justify-between p-2 rounded-lg hover:bg-elevated transition-colors">
+    <a
+      href={event.sourceUrl}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="flex items-center justify-between p-2 rounded-lg hover:bg-elevated transition-colors group"
+    >
       <div className="flex items-center gap-3">
         <span className="text-xs font-medium text-tertiary w-12">{event.date}</span>
         <span className="text-sm text-secondary">{event.name}</span>
       </div>
-      <span className={cn(
-        'px-1.5 py-0.5 rounded text-[10px] font-medium uppercase',
-        importanceColors[event.importance]
-      )}>
-        {event.importance}
-      </span>
-    </div>
+      <div className="flex items-center gap-2">
+        <span className={cn(
+          'px-1.5 py-0.5 rounded text-[10px] font-medium uppercase',
+          importanceColors[event.importance]
+        )}>
+          {event.importance}
+        </span>
+        <ExternalLink className="h-3 w-3 text-tertiary opacity-0 group-hover:opacity-100 transition-opacity" />
+      </div>
+    </a>
   );
 }
