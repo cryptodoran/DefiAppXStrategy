@@ -2,9 +2,11 @@
 
 import * as React from 'react';
 import { AppLayout } from '@/components/layout/app-layout';
-import { PriorityMetrics, SecondaryMetrics } from '@/components/dashboard/priority-metrics';
-import { ActionCenter } from '@/components/dashboard/action-center';
 import { MarketContextPanel } from '@/components/dashboard/market-context';
+import { MarketPulseWidget } from '@/components/dashboard/market-pulse';
+import { TopViralPreview } from '@/components/dashboard/top-viral-preview';
+import { ProactiveSuggestions } from '@/components/dashboard/proactive-suggestions';
+import { ActionCenter } from '@/components/dashboard/action-center';
 import { PremiumCard } from '@/components/ui/premium-card';
 import { motion } from 'framer-motion';
 import { getRelativeTime } from '@/lib/utils/time';
@@ -46,7 +48,7 @@ export default function DashboardPage() {
           <div>
             <h1 className="text-2xl font-bold text-primary">Dashboard</h1>
             <p className="text-tertiary mt-1">
-              Real-time insights for CT domination
+              AI-powered suggestions ready to post
             </p>
           </div>
           <div className="flex items-center gap-2 text-xs text-tertiary">
@@ -56,19 +58,17 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Priority Metrics */}
-        <PriorityMetrics />
-
-        {/* Secondary Metrics */}
-        <SecondaryMetrics />
-
-        {/* Main Grid */}
-        <div className="grid gap-6 lg:grid-cols-2">
-          {/* Action Center */}
-          <div className="lg:col-span-2">
-            <ActionCenter />
-          </div>
+        {/* Top Row: Market Pulse + Top Viral */}
+        <div className="grid gap-4 md:grid-cols-2">
+          <MarketPulseWidget />
+          <TopViralPreview />
         </div>
+
+        {/* Main Feature: Proactive Suggestions */}
+        <ProactiveSuggestions />
+
+        {/* Action Center (Viral Opportunities) */}
+        <ActionCenter />
 
         {/* Quick Insights Row */}
         <div className="grid gap-4 md:grid-cols-3">

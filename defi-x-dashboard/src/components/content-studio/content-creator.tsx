@@ -24,6 +24,7 @@ import {
   Copy,
   RefreshCw,
 } from 'lucide-react';
+import { VoiceMatchIndicator } from '@/components/ui/voice-match-indicator';
 
 interface ContentAnalysis {
   overallScore: number;
@@ -331,6 +332,15 @@ export function ContentCreator({ initialTopic }: ContentCreatorProps) {
               </PremiumButton>
             </div>
           </div>
+
+          {/* Voice Match Indicator - Real-time feedback */}
+          <VoiceMatchIndicator
+            score={analysis?.voiceAlignment ?? null}
+            isLoading={isAnalyzing}
+            showSuggestions={true}
+            suggestions={analysis?.improvements || []}
+            className="mb-4"
+          />
 
           {/* Textarea */}
           <PremiumTextarea
