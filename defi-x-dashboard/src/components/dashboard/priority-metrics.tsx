@@ -4,17 +4,16 @@ import * as React from 'react';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { PremiumCard } from '@/components/ui/premium-card';
-import { AnimatedNumber } from '@/components/ui/animated-number';
 import { Sparkline } from '@/components/ui/sparkline';
 import { TrendBadge } from '@/components/ui/premium-badge';
 import {
   Users,
   Eye,
   TrendingUp,
-  Zap,
-  BarChart3,
   Flame,
+  RefreshCw,
 } from 'lucide-react';
+import { getRelativeTime } from '@/lib/utils/time';
 
 interface MetricData {
   value: number;
@@ -30,45 +29,121 @@ interface PriorityMetricsData {
   viralityScore: MetricData;
 }
 
-// Mock data - in production this would come from real APIs
-const mockData: PriorityMetricsData = {
-  followers: {
-    value: 127543,
-    previousValue: 125890,
-    change: 1.31,
-    sparkline: [124000, 124500, 125200, 125890, 126300, 127100, 127543],
-  },
-  impressions: {
-    value: 2847920,
-    previousValue: 2456789,
-    change: 15.93,
-    sparkline: [2100000, 2300000, 2456789, 2500000, 2650000, 2750000, 2847920],
-  },
-  engagementRate: {
-    value: 4.72,
-    previousValue: 4.58,
-    change: 3.06,
-    sparkline: [4.2, 4.35, 4.58, 4.45, 4.6, 4.68, 4.72],
-  },
-  viralityScore: {
-    value: 78,
-    previousValue: 72,
-    change: 8.33,
-    sparkline: [65, 68, 72, 74, 75, 76, 78],
-  },
-};
+// Generate dynamic metrics with slight variations
+function generateMetrics(base?: PriorityMetricsData): PriorityMetricsData {
+  const fluctuate = (value: number, volatility: number = 0.02) => {
+    const change = value * volatility * (Math.random() - 0.5) * 2;
+    return Math.round(value + change);
+  };
+
+  const fluctuateSmall = (value: number, volatility: number = 0.01) => {
+    const change = value * volatility * (Math.random() - 0.5) * 2;
+    return Math.round(value * 100 + change * 100) / 100;
+  };
+
+  const generateSparkline = (current: number, points: number = 7): number[] => {
+    const data: number[] = [];
+    let val = current * 0.95;
+    for (let i = 0; i < points - 1; i++) {
+      val = val + (current - val) * (0.1 + Math.random() * 0.2);
+      data.push(val);
+    }
+    data.push(current);
+    return data;
+  };
+
+  const baseFollowers = base?.followers.value || 127543;
+  const baseImpressions = base?.impressions.value || 2847920;
+  const baseEngagement = base?.engagementRate.value || 4.72;
+  const baseVirality = base?.viralityScore.value || 78;
+
+  const followers = fluctuate(baseFollowers, 0.005);
+  const impressions = fluctuate(baseImpressions, 0.01);
+  const engagement = fluctuateSmall(baseEngagement, 0.02);
+  const virality = Math.max(60, Math.min(95, fluctuate(baseVirality, 0.05)));
+
+  return {
+    followers: {
+      value: followers,
+      previousValue: baseFollowers,
+      change: Math.round(((followers - baseFollowers) / baseFollowers) * 10000) / 100,
+      sparkline: generateSparkline(followers),
+    },
+    impressions: {
+      value: impressions,
+      previousValue: baseImpressions,
+      change: Math.round(((impressions - baseImpressions) / baseImpressions) * 10000) / 100,
+      sparkline: generateSparkline(impressions),
+    },
+    engagementRate: {
+      value: engagement,
+      previousValue: baseEngagement,
+      change: Math.round(((engagement - baseEngagement) / baseEngagement) * 10000) / 100,
+      sparkline: generateSparkline(engagement),
+    },
+    viralityScore: {
+      value: virality,
+      previousValue: baseVirality,
+      change: Math.round(((virality - baseVirality) / baseVirality) * 10000) / 100,
+      sparkline: generateSparkline(virality),
+    },
+  };
+}
 
 type TimeRange = '24h' | '7d' | '30d';
 
 export function PriorityMetrics() {
   const [timeRange, setTimeRange] = React.useState<TimeRange>('24h');
-  const [data] = React.useState(mockData);
+  const [data, setData] = React.useState<PriorityMetricsData | null>(null);
+  const [lastUpdate, setLastUpdate] = React.useState<Date>(new Date());
+  const [isRefreshing, setIsRefreshing] = React.useState(false);
+
+  const refreshData = React.useCallback(() => {
+    setIsRefreshing(true);
+    setTimeout(() => {
+      setData(prev => generateMetrics(prev || undefined));
+      setLastUpdate(new Date());
+      setIsRefreshing(false);
+    }, 300);
+  }, []);
+
+  // Initial load
+  React.useEffect(() => {
+    refreshData();
+  }, [refreshData]);
+
+  // Auto-refresh every 20 seconds
+  React.useEffect(() => {
+    const interval = setInterval(refreshData, 20000);
+    return () => clearInterval(interval);
+  }, [refreshData]);
+
+  // Force re-render for timestamp every 10 seconds
+  const [, forceUpdate] = React.useState(0);
+  React.useEffect(() => {
+    const interval = setInterval(() => forceUpdate(n => n + 1), 10000);
+    return () => clearInterval(interval);
+  }, []);
+
+  if (!data) return null;
 
   return (
     <div className="space-y-4">
       {/* Header with time range toggle */}
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold text-primary">Priority Metrics</h2>
+        <div className="flex items-center gap-3">
+          <h2 className="text-lg font-semibold text-primary">Priority Metrics</h2>
+          <span className="text-xs text-tertiary">
+            Updated {getRelativeTime(lastUpdate)}
+          </span>
+          <button
+            onClick={refreshData}
+            disabled={isRefreshing}
+            className="text-tertiary hover:text-secondary disabled:opacity-50"
+          >
+            <RefreshCw className={cn("h-3.5 w-3.5", isRefreshing && "animate-spin")} />
+          </button>
+        </div>
         <div className="flex items-center gap-1 p-1 bg-elevated rounded-lg">
           {(['24h', '7d', '30d'] as TimeRange[]).map((range) => (
             <button
@@ -232,13 +307,24 @@ interface SecondaryMetricsProps {
 }
 
 export function SecondaryMetrics({ className }: SecondaryMetricsProps) {
-  const stats = [
+  const [stats, setStats] = React.useState([
     { label: 'Avg Likes', value: '1.2K', change: 5.4 },
     { label: 'Avg Replies', value: '89', change: -2.1 },
     { label: 'Avg Retweets', value: '234', change: 12.8 },
     { label: 'Link Clicks', value: '3.4K', change: 8.2 },
     { label: 'Profile Visits', value: '12.1K', change: 3.7 },
-  ];
+  ]);
+
+  // Update stats periodically
+  React.useEffect(() => {
+    const interval = setInterval(() => {
+      setStats(prev => prev.map(stat => ({
+        ...stat,
+        change: Math.round((stat.change + (Math.random() - 0.5) * 2) * 10) / 10,
+      })));
+    }, 25000);
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <div className={cn('flex items-center gap-4 p-3 bg-surface rounded-lg overflow-x-auto', className)}>

@@ -1,0 +1,80 @@
+{
+  "projectName": "Defi App X Dashboard - Dynamic Data & API Audit",
+  "version": "1.0",
+  "description": "Comprehensive audit to ensure all data is dynamic, APIs are functional, and real-time updates work correctly",
+
+  "problemStatement": {
+    "issues": [
+      "Opportunities section shows static timestamps ('10mins ago', '2 hours ago') that never update",
+      "Vitalik post and other content appears hardcoded",
+      "Data doesn't refresh or update dynamically",
+      "APIs may be returning mock data or not being called at all"
+    ],
+    "rootCause": "Components likely using hardcoded mock data instead of API calls or real-time data"
+  },
+
+  "auditScope": {
+    "phase1": {
+      "name": "API Endpoint Audit",
+      "tasks": [
+        "Identify all API routes in /api directory",
+        "Test each API endpoint for functionality",
+        "Check if APIs return real or mock data",
+        "Verify API response structures"
+      ]
+    },
+    "phase2": {
+      "name": "Dashboard Component Audit",
+      "tasks": [
+        "Audit main dashboard page.tsx",
+        "Identify all components displaying dynamic data",
+        "Check if components fetch from APIs or use hardcoded data",
+        "Find all mock data objects and constants"
+      ]
+    },
+    "phase3": {
+      "name": "Data Flow Audit",
+      "tasks": [
+        "Trace data flow from API to UI",
+        "Identify components using useState with static initial values",
+        "Find useEffect hooks that should fetch data but don't",
+        "Check for missing data refresh logic"
+      ]
+    },
+    "phase4": {
+      "name": "Timestamp & Real-time Audit",
+      "tasks": [
+        "Find all timestamp displays",
+        "Check if timestamps are calculated dynamically",
+        "Identify polling/refresh mechanisms",
+        "Audit real-time update subscriptions"
+      ]
+    },
+    "phase5": {
+      "name": "Fix Implementation",
+      "tasks": [
+        "Replace hardcoded mock data with API calls",
+        "Implement proper data fetching with useEffect",
+        "Add refresh intervals for real-time data",
+        "Ensure timestamps update dynamically"
+      ]
+    }
+  },
+
+  "criticalComponents": [
+    "Dashboard opportunities/action-center",
+    "Market context panel",
+    "Trending topics",
+    "Competitor activity",
+    "AI suggestions",
+    "Analytics charts",
+    "Content calendar"
+  ],
+
+  "expectedBehavior": {
+    "timestamps": "Should show relative time that updates (e.g., '5 minutes ago' should become '6 minutes ago')",
+    "opportunities": "Should fetch from API and refresh periodically",
+    "analytics": "Should show real or simulated real-time data",
+    "suggestions": "Should generate new suggestions via API"
+  }
+}

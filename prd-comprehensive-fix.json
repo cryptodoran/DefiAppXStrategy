@@ -1,0 +1,83 @@
+{
+  "projectName": "Defi App X Dashboard - Comprehensive Functionality Fix",
+  "version": "3.0",
+  "description": "Complete audit and fix of ALL non-functional UI elements and missing layouts",
+
+  "criticalIssues": [
+    {
+      "id": "CRIT-001",
+      "issue": "24 Pages Missing AppLayout Wrapper",
+      "severity": "CRITICAL",
+      "description": "Users lose navigation when visiting these pages - they see content but no sidebar to navigate back",
+      "affectedPages": [
+        "analytics/engagement",
+        "analytics/exposure",
+        "analytics/followers",
+        "analytics/posts",
+        "create/article",
+        "create/qt",
+        "create/spicy",
+        "create/takes",
+        "create/thread",
+        "create/viral",
+        "research/algorithm",
+        "research/brand",
+        "research/competitors",
+        "research/influencers",
+        "research/narratives",
+        "research/path-to-1",
+        "research/product",
+        "research/trends",
+        "research/viral",
+        "settings/page",
+        "settings/brand-voice",
+        "suggestions/calendar",
+        "suggestions/daily",
+        "suggestions/trending"
+      ],
+      "resolution": "Add AppLayout wrapper to all pages"
+    },
+    {
+      "id": "CRIT-002",
+      "issue": "13 Buttons Without onClick Handlers",
+      "severity": "HIGH",
+      "description": "Buttons appear functional but do nothing when clicked",
+      "affectedButtons": [
+        {"file": "settings/page.tsx", "buttons": 10},
+        {"file": "create/article/page.tsx", "buttons": 1},
+        {"file": "suggestions/daily/page.tsx", "buttons": 2},
+        {"file": "settings/brand-voice/page.tsx", "buttons": 1}
+      ],
+      "resolution": "Add onClick handlers with toast feedback"
+    }
+  ],
+
+  "executionPlan": [
+    {
+      "phase": 1,
+      "name": "Fix All Page Layouts",
+      "tasks": [
+        "Add AppLayout wrapper to all 24 missing pages",
+        "Ensure consistent navigation across entire app"
+      ]
+    },
+    {
+      "phase": 2,
+      "name": "Fix All Placeholder Buttons",
+      "tasks": [
+        "Add onClick handlers to settings page buttons",
+        "Add onClick handlers to create/article buttons",
+        "Add onClick handlers to suggestions/daily buttons",
+        "Add onClick handlers to settings/brand-voice buttons"
+      ]
+    },
+    {
+      "phase": 3,
+      "name": "Build and Deploy",
+      "tasks": [
+        "Verify build succeeds",
+        "Deploy to Vercel"
+      ]
+    }
+  ]
+}

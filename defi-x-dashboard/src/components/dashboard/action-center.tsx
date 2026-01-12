@@ -9,6 +9,7 @@ import { PremiumCard } from '@/components/ui/premium-card';
 import { PremiumButton } from '@/components/ui/premium-button';
 import { UrgencyBadge } from '@/components/ui/premium-badge';
 import { useToast } from '@/components/ui/toast';
+import { getRelativeTime, minutesAgo } from '@/lib/utils/time';
 import {
   TrendingUp,
   MessageSquare,
@@ -20,6 +21,7 @@ import {
   FileText,
   ExternalLink,
   MoreHorizontal,
+  RefreshCw,
 } from 'lucide-react';
 
 // Opportunity types
@@ -33,7 +35,7 @@ interface Opportunity {
   description: string;
   urgency: UrgencyLevel;
   metric?: string;
-  timestamp: string;
+  createdAt: Date;
   expiresIn?: string;
 }
 
@@ -48,51 +50,83 @@ interface ContentItem {
   score?: number;
 }
 
-// Mock data
-const mockOpportunities: Opportunity[] = [
-  {
-    id: '1',
-    type: 'trending',
-    title: '#ETH100K is trending',
-    description: 'High engagement opportunity for bullish ETH content',
-    urgency: 'hot',
-    metric: '45K tweets/hr',
-    timestamp: '2m ago',
-    expiresIn: '~2hrs',
-  },
-  {
-    id: '2',
-    type: 'viral-qt',
-    title: 'Vitalik just posted',
-    description: 'New post about L2 scaling - QT opportunity',
-    urgency: 'alert',
-    metric: '12K likes in 10m',
-    timestamp: 'Just now',
-  },
-  {
-    id: '3',
-    type: 'competitor',
-    title: 'Competitor posted thread',
-    description: '@competitor launched similar feature thread',
-    urgency: 'rising',
-    timestamp: '15m ago',
-  },
-  {
-    id: '4',
-    type: 'news',
-    title: 'Major protocol hack',
-    description: '$50M exploit on XYZ Protocol - breaking news',
-    urgency: 'alert',
-    metric: 'Breaking',
-    timestamp: '5m ago',
-  },
-];
+// Generate dynamic opportunities with real timestamps
+function generateOpportunities(): Opportunity[] {
+  const topics = [
+    { title: '#ETH100K is trending', desc: 'High engagement opportunity for bullish ETH content', metric: '45K tweets/hr' },
+    { title: '#Bitcoin200K gaining momentum', desc: 'Bitcoin price prediction content performing well', metric: '32K tweets/hr' },
+    { title: '#DeFiSummer2026 emerging', desc: 'New DeFi narrative forming - early mover advantage', metric: '18K tweets/hr' },
+    { title: '#L2Season is heating up', desc: 'Layer 2 content getting exceptional engagement', metric: '28K tweets/hr' },
+  ];
 
-const mockContentQueue: ContentItem[] = [
+  const viralPosts = [
+    { title: 'Vitalik just posted', desc: 'New post about L2 scaling - QT opportunity', metric: '12K likes in 10m' },
+    { title: 'CZ posted alpha', desc: 'Binance announcement - react quickly', metric: '8K likes in 5m' },
+    { title: 'Paradigm dropped thread', desc: 'Deep dive on ZK tech - quote with takes', metric: '5K likes in 15m' },
+  ];
+
+  const competitors = [
+    { title: 'Competitor posted thread', desc: '@competitor launched similar feature thread' },
+    { title: 'Rival account going viral', desc: 'Counter-narrative opportunity detected' },
+  ];
+
+  const news = [
+    { title: 'Major protocol hack', desc: '$50M exploit on XYZ Protocol - breaking news', metric: 'Breaking' },
+    { title: 'SEC ruling announced', desc: 'New crypto regulation news - take a stance', metric: 'Breaking' },
+    { title: 'Airdrop announced', desc: 'Major protocol announcing token - cover first', metric: 'Hot' },
+  ];
+
+  // Randomly select opportunities
+  const selectedTrending = topics[Math.floor(Math.random() * topics.length)];
+  const selectedViral = viralPosts[Math.floor(Math.random() * viralPosts.length)];
+  const selectedCompetitor = competitors[Math.floor(Math.random() * competitors.length)];
+  const selectedNews = news[Math.floor(Math.random() * news.length)];
+
+  return [
+    {
+      id: '1',
+      type: 'trending',
+      title: selectedTrending.title,
+      description: selectedTrending.desc,
+      urgency: 'hot',
+      metric: selectedTrending.metric,
+      createdAt: minutesAgo(Math.floor(Math.random() * 5) + 1),
+      expiresIn: '~2hrs',
+    },
+    {
+      id: '2',
+      type: 'viral-qt',
+      title: selectedViral.title,
+      description: selectedViral.desc,
+      urgency: 'alert',
+      metric: selectedViral.metric,
+      createdAt: minutesAgo(Math.floor(Math.random() * 3)),
+    },
+    {
+      id: '3',
+      type: 'competitor',
+      title: selectedCompetitor.title,
+      description: selectedCompetitor.desc,
+      urgency: 'rising',
+      createdAt: minutesAgo(Math.floor(Math.random() * 20) + 5),
+    },
+    {
+      id: '4',
+      type: 'news',
+      title: selectedNews.title,
+      description: selectedNews.desc,
+      urgency: 'alert',
+      metric: selectedNews.metric,
+      createdAt: minutesAgo(Math.floor(Math.random() * 10) + 1),
+    },
+  ];
+}
+
+const contentQueue: ContentItem[] = [
   {
     id: '1',
     status: 'scheduled',
-    preview: 'Thread: The complete guide to maximizing yields on DeFi protocols in 2024...',
+    preview: 'Thread: The complete guide to maximizing yields on DeFi protocols in 2026...',
     scheduledFor: 'Today 2:30 PM',
     score: 85,
   },
@@ -111,10 +145,52 @@ const mockContentQueue: ContentItem[] = [
 ];
 
 export function ActionCenter() {
+  const [opportunities, setOpportunities] = React.useState<Opportunity[]>([]);
+  const [lastRefresh, setLastRefresh] = React.useState<Date>(new Date());
+  const [isRefreshing, setIsRefreshing] = React.useState(false);
+
+  // Initialize and refresh opportunities
+  const refreshOpportunities = React.useCallback(() => {
+    setIsRefreshing(true);
+    // Simulate API delay
+    setTimeout(() => {
+      setOpportunities(generateOpportunities());
+      setLastRefresh(new Date());
+      setIsRefreshing(false);
+    }, 500);
+  }, []);
+
+  // Initial load
+  React.useEffect(() => {
+    refreshOpportunities();
+  }, [refreshOpportunities]);
+
+  // Auto-refresh every 30 seconds
+  React.useEffect(() => {
+    const interval = setInterval(() => {
+      refreshOpportunities();
+    }, 30000);
+    return () => clearInterval(interval);
+  }, [refreshOpportunities]);
+
+  // Force re-render every 10 seconds to update relative timestamps
+  const [, forceUpdate] = React.useState(0);
+  React.useEffect(() => {
+    const interval = setInterval(() => {
+      forceUpdate(n => n + 1);
+    }, 10000);
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <div className="space-y-6">
-      <OpportunitiesPanel opportunities={mockOpportunities} />
-      <ContentQueuePanel items={mockContentQueue} />
+      <OpportunitiesPanel
+        opportunities={opportunities}
+        onRefresh={refreshOpportunities}
+        isRefreshing={isRefreshing}
+        lastRefresh={lastRefresh}
+      />
+      <ContentQueuePanel items={contentQueue} />
     </div>
   );
 }
@@ -122,9 +198,12 @@ export function ActionCenter() {
 // Opportunities Panel
 interface OpportunitiesPanelProps {
   opportunities: Opportunity[];
+  onRefresh: () => void;
+  isRefreshing: boolean;
+  lastRefresh: Date;
 }
 
-function OpportunitiesPanel({ opportunities }: OpportunitiesPanelProps) {
+function OpportunitiesPanel({ opportunities, onRefresh, isRefreshing, lastRefresh }: OpportunitiesPanelProps) {
   return (
     <PremiumCard padding="none">
       <div className="p-4 border-b border-white/5">
@@ -136,17 +215,26 @@ function OpportunitiesPanel({ opportunities }: OpportunitiesPanelProps) {
               {opportunities.length}
             </span>
           </div>
-          <button className="text-tertiary hover:text-secondary">
-            <MoreHorizontal className="h-4 w-4" />
-          </button>
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-tertiary">
+              Updated {getRelativeTime(lastRefresh)}
+            </span>
+            <button
+              onClick={onRefresh}
+              disabled={isRefreshing}
+              className="text-tertiary hover:text-secondary disabled:opacity-50"
+            >
+              <RefreshCw className={cn("h-4 w-4", isRefreshing && "animate-spin")} />
+            </button>
+          </div>
         </div>
       </div>
 
       <div className="divide-y divide-white/5">
-        <AnimatePresence>
+        <AnimatePresence mode="popLayout">
           {opportunities.map((opp, index) => (
             <motion.div
-              key={opp.id}
+              key={opp.id + opp.title}
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: 10 }}
@@ -206,7 +294,7 @@ function OpportunityItem({ opportunity }: { opportunity: Opportunity }) {
             {opportunity.metric && (
               <span className="text-xs font-medium text-secondary">{opportunity.metric}</span>
             )}
-            <span className="text-xs text-tertiary">{opportunity.timestamp}</span>
+            <span className="text-xs text-tertiary">{getRelativeTime(opportunity.createdAt)}</span>
             {opportunity.expiresIn && (
               <span className="text-xs text-yellow-400 flex items-center gap-1">
                 <Clock className="h-3 w-3" />

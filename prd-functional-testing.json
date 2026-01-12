@@ -1,0 +1,90 @@
+{
+  "projectName": "Defi App X Dashboard - Functional Testing PRD",
+  "version": "1.0",
+  "description": "Comprehensive local functional testing of all UI elements, navigation, and interactions",
+
+  "testingObjectives": [
+    "Verify all 27 pages load without errors",
+    "Verify navigation sidebar appears on all pages",
+    "Verify all buttons have click handlers",
+    "Verify toast notifications display correctly",
+    "Verify no console errors or warnings"
+  ],
+
+  "testPlan": {
+    "phase1": {
+      "name": "Build Verification",
+      "tests": [
+        "Run npm run build - should complete without errors",
+        "Run npm run lint - should pass without errors"
+      ]
+    },
+    "phase2": {
+      "name": "Page Load Testing",
+      "description": "Start dev server and verify each page loads",
+      "pages": [
+        { "path": "/", "name": "Dashboard" },
+        { "path": "/create", "name": "Create Hub" },
+        { "path": "/create/article", "name": "Article Generator" },
+        { "path": "/create/qt", "name": "QT Studio" },
+        { "path": "/create/spicy", "name": "Spicy Takes" },
+        { "path": "/create/takes", "name": "Hot Takes" },
+        { "path": "/create/thread", "name": "Thread Builder" },
+        { "path": "/create/viral", "name": "Viral Hooks" },
+        { "path": "/analytics/engagement", "name": "Engagement Analytics" },
+        { "path": "/analytics/exposure", "name": "Exposure Analytics" },
+        { "path": "/analytics/followers", "name": "Follower Analytics" },
+        { "path": "/analytics/posts", "name": "Post Analytics" },
+        { "path": "/research", "name": "Research Hub" },
+        { "path": "/research/algorithm", "name": "Algorithm Research" },
+        { "path": "/research/brand", "name": "Brand Research" },
+        { "path": "/research/competitors", "name": "Competitor Analysis" },
+        { "path": "/research/influencers", "name": "Influencer Research" },
+        { "path": "/research/narratives", "name": "Narrative Research" },
+        { "path": "/research/path-to-1", "name": "Path to 1M" },
+        { "path": "/research/product", "name": "Product Research" },
+        { "path": "/research/trends", "name": "Trends Research" },
+        { "path": "/research/viral", "name": "Viral Research" },
+        { "path": "/settings", "name": "Settings" },
+        { "path": "/settings/brand-voice", "name": "Brand Voice Settings" },
+        { "path": "/suggestions/calendar", "name": "Content Calendar" },
+        { "path": "/suggestions/daily", "name": "Daily Suggestions" },
+        { "path": "/suggestions/trending", "name": "Trending Suggestions" }
+      ]
+    },
+    "phase3": {
+      "name": "Navigation Testing",
+      "tests": [
+        "Verify sidebar is visible on all pages",
+        "Verify all nav links are clickable",
+        "Verify active state highlights correctly",
+        "Verify sidebar collapse/expand works"
+      ]
+    },
+    "phase4": {
+      "name": "Button Functionality Testing",
+      "buttonsToTest": [
+        { "page": "/settings", "buttons": ["Save Changes", "Manage Keys", "View All", "Refresh", "Connect", "Save API Keys", "Reset", "Delete"] },
+        { "page": "/create/article", "buttons": ["Generate Article", "Copy All", "Copy Tweet", "Preview/Edit Mode"] },
+        { "page": "/suggestions/daily", "buttons": ["Generate More", "Approve", "Bookmark", "Edit", "Dismiss"] },
+        { "page": "/settings/brand-voice", "buttons": ["Save All Settings", "Check Brand Compliance", "Add buttons for lists"] }
+      ]
+    },
+    "phase5": {
+      "name": "Toast Notification Testing",
+      "tests": [
+        "Click buttons and verify toast appears",
+        "Verify toast auto-dismisses after ~4 seconds",
+        "Verify toast shows correct message"
+      ]
+    }
+  },
+
+  "executionMethod": {
+    "step1": "Run build to verify no compilation errors",
+    "step2": "Run linter to check code quality",
+    "step3": "Start dev server",
+    "step4": "Use curl/fetch to verify all pages return 200 OK",
+    "step5": "Report results"
+  }
+}

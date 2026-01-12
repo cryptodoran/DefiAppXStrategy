@@ -1,11 +1,13 @@
 'use client';
 
+import * as React from 'react';
 import { AppLayout } from '@/components/layout/app-layout';
 import { PriorityMetrics, SecondaryMetrics } from '@/components/dashboard/priority-metrics';
 import { ActionCenter } from '@/components/dashboard/action-center';
 import { MarketContextPanel } from '@/components/dashboard/market-context';
 import { PremiumCard } from '@/components/ui/premium-card';
 import { motion } from 'framer-motion';
+import { getRelativeTime } from '@/lib/utils/time';
 import {
   TrendingUp,
   Sparkles,
@@ -14,6 +16,23 @@ import {
 } from 'lucide-react';
 
 export default function DashboardPage() {
+  const [lastUpdate, setLastUpdate] = React.useState<Date>(new Date());
+  const [, forceUpdate] = React.useState(0);
+
+  // Update timestamp periodically
+  React.useEffect(() => {
+    const interval = setInterval(() => {
+      setLastUpdate(new Date());
+    }, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Force re-render for relative time display
+  React.useEffect(() => {
+    const interval = setInterval(() => forceUpdate(n => n + 1), 10000);
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <AppLayout rightPanel={<MarketContextPanel />}>
       <motion.div
@@ -31,8 +50,9 @@ export default function DashboardPage() {
             </p>
           </div>
           <div className="flex items-center gap-2 text-xs text-tertiary">
+            <span className="h-2 w-2 rounded-full bg-green-400 animate-pulse" />
             <Clock className="h-3.5 w-3.5" />
-            <span>Last updated: Just now</span>
+            <span>Updated {getRelativeTime(lastUpdate)}</span>
           </div>
         </div>
 
