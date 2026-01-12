@@ -90,7 +90,7 @@ const followerData = {
     { post: 'Educational thread on DeFi', followers: 178, impressions: 67000 },
   ],
   competitorComparison: [
-    { name: 'DeFi App', followers: 47832, growth: 12.5 },
+    { name: 'Defi App', followers: 47832, growth: 12.5 },
     { name: '@uniswap', followers: 1200000, growth: 2.3 },
     { name: '@aaboronin', followers: 890000, growth: 4.5 },
     { name: '@defillama', followers: 456000, growth: 8.2 },
@@ -109,49 +109,49 @@ export default function FollowerAnalyticsPage() {
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold text-white">Follower Analytics</h1>
-        <p className="text-zinc-400">Deep insights into your follower base</p>
+        <p className="text-tertiary">Deep insights into your follower base</p>
       </div>
 
       {/* Key Metrics */}
       <div className="grid gap-4 md:grid-cols-4">
-        <Card className="bg-zinc-900 border-zinc-800">
+        <Card className="bg-surface border-white/5">
           <CardContent className="pt-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-zinc-400">Total Followers</p>
+                <p className="text-sm text-tertiary">Total Followers</p>
                 <p className="text-3xl font-bold text-white">{formatNumber(followerData.total)}</p>
               </div>
               <Users className="h-8 w-8 text-blue-400" />
             </div>
           </CardContent>
         </Card>
-        <Card className="bg-zinc-900 border-zinc-800">
+        <Card className="bg-surface border-white/5">
           <CardContent className="pt-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-zinc-400">Weekly Growth</p>
+                <p className="text-sm text-tertiary">Weekly Growth</p>
                 <p className="text-3xl font-bold text-green-400">+{formatNumber(followerData.growth.weekly)}</p>
               </div>
               <TrendingUp className="h-8 w-8 text-green-400" />
             </div>
           </CardContent>
         </Card>
-        <Card className="bg-zinc-900 border-zinc-800">
+        <Card className="bg-surface border-white/5">
           <CardContent className="pt-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-zinc-400">Quality Score</p>
+                <p className="text-sm text-tertiary">Quality Score</p>
                 <p className="text-3xl font-bold text-yellow-400">{followerData.quality.averageScore}</p>
               </div>
               <Star className="h-8 w-8 text-yellow-400" />
             </div>
           </CardContent>
         </Card>
-        <Card className="bg-zinc-900 border-zinc-800">
+        <Card className="bg-surface border-white/5">
           <CardContent className="pt-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-zinc-400">Growth Rate</p>
+                <p className="text-sm text-tertiary">Growth Rate</p>
                 <p className="text-3xl font-bold text-purple-400">+{followerData.growth.percentChange}%</p>
               </div>
               <TrendingUp className="h-8 w-8 text-purple-400" />
@@ -161,7 +161,7 @@ export default function FollowerAnalyticsPage() {
       </div>
 
       <Tabs defaultValue="overview" className="space-y-6">
-        <TabsList className="bg-zinc-900">
+        <TabsList className="bg-surface">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="demographics">Demographics</TabsTrigger>
           <TabsTrigger value="quality">Quality</TabsTrigger>
@@ -171,7 +171,7 @@ export default function FollowerAnalyticsPage() {
 
         <TabsContent value="overview" className="space-y-6">
           {/* Growth Chart */}
-          <Card className="bg-zinc-900 border-zinc-800">
+          <Card className="bg-surface border-white/5">
             <CardHeader>
               <CardTitle className="text-white">Follower Growth Trend</CardTitle>
             </CardHeader>
@@ -202,17 +202,17 @@ export default function FollowerAnalyticsPage() {
           </Card>
 
           {/* Growth Attribution */}
-          <Card className="bg-zinc-900 border-zinc-800">
+          <Card className="bg-surface border-white/5">
             <CardHeader>
               <CardTitle className="text-white">Growth Attribution</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
                 {followerData.growthAttribution.map((item, index) => (
-                  <div key={index} className="flex items-center justify-between p-3 bg-zinc-950 rounded-lg">
+                  <div key={index} className="flex items-center justify-between p-3 bg-base rounded-lg">
                     <div>
-                      <p className="text-sm text-zinc-300">{item.post}</p>
-                      <p className="text-xs text-zinc-500">{formatNumber(item.impressions)} impressions</p>
+                      <p className="text-sm text-secondary">{item.post}</p>
+                      <p className="text-xs text-tertiary">{formatNumber(item.impressions)} impressions</p>
                     </div>
                     <div className="flex items-center gap-2 text-green-400">
                       <UserPlus className="h-4 w-4" />
@@ -228,7 +228,7 @@ export default function FollowerAnalyticsPage() {
         <TabsContent value="demographics" className="space-y-6">
           <div className="grid gap-6 lg:grid-cols-2">
             {/* Location Distribution */}
-            <Card className="bg-zinc-900 border-zinc-800">
+            <Card className="bg-surface border-white/5">
               <CardHeader>
                 <CardTitle className="text-white flex items-center gap-2">
                   <MapPin className="h-5 w-5" />
@@ -259,7 +259,7 @@ export default function FollowerAnalyticsPage() {
             </Card>
 
             {/* Language Distribution */}
-            <Card className="bg-zinc-900 border-zinc-800">
+            <Card className="bg-surface border-white/5">
               <CardHeader>
                 <CardTitle className="text-white flex items-center gap-2">
                   <Globe className="h-5 w-5" />
@@ -271,10 +271,10 @@ export default function FollowerAnalyticsPage() {
                   {followerData.demographics.languages.map((lang, index) => (
                     <div key={index}>
                       <div className="flex justify-between text-sm mb-1">
-                        <span className="text-zinc-400">{lang.name}</span>
+                        <span className="text-tertiary">{lang.name}</span>
                         <span className="text-white">{lang.value}%</span>
                       </div>
-                      <div className="h-2 bg-zinc-800 rounded-full">
+                      <div className="h-2 bg-elevated rounded-full">
                         <div
                           className="h-full bg-blue-500 rounded-full"
                           style={{ width: `${lang.value}%` }}
@@ -290,7 +290,7 @@ export default function FollowerAnalyticsPage() {
 
         <TabsContent value="quality" className="space-y-6">
           <div className="grid gap-6 lg:grid-cols-2">
-            <Card className="bg-zinc-900 border-zinc-800">
+            <Card className="bg-surface border-white/5">
               <CardHeader>
                 <CardTitle className="text-white">Follower Quality Distribution</CardTitle>
               </CardHeader>
@@ -301,48 +301,48 @@ export default function FollowerAnalyticsPage() {
                       <span className="text-green-400">High Quality</span>
                       <span className="text-2xl font-bold text-green-400">{followerData.quality.distribution.high}%</span>
                     </div>
-                    <p className="text-xs text-zinc-500 mt-1">Active, engaged, real accounts</p>
+                    <p className="text-xs text-tertiary mt-1">Active, engaged, real accounts</p>
                   </div>
                   <div className="p-4 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
                     <div className="flex justify-between items-center">
                       <span className="text-yellow-400">Medium Quality</span>
                       <span className="text-2xl font-bold text-yellow-400">{followerData.quality.distribution.medium}%</span>
                     </div>
-                    <p className="text-xs text-zinc-500 mt-1">Occasional engagement</p>
+                    <p className="text-xs text-tertiary mt-1">Occasional engagement</p>
                   </div>
                   <div className="p-4 bg-orange-500/10 border border-orange-500/20 rounded-lg">
                     <div className="flex justify-between items-center">
                       <span className="text-orange-400">Low Quality</span>
                       <span className="text-2xl font-bold text-orange-400">{followerData.quality.distribution.low}%</span>
                     </div>
-                    <p className="text-xs text-zinc-500 mt-1">Inactive or low engagement</p>
+                    <p className="text-xs text-tertiary mt-1">Inactive or low engagement</p>
                   </div>
                   <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-lg">
                     <div className="flex justify-between items-center">
                       <span className="text-red-400">Suspected Bots</span>
                       <span className="text-2xl font-bold text-red-400">{followerData.quality.distribution.bot}%</span>
                     </div>
-                    <p className="text-xs text-zinc-500 mt-1">Automated or fake accounts</p>
+                    <p className="text-xs text-tertiary mt-1">Automated or fake accounts</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="bg-zinc-900 border-zinc-800">
+            <Card className="bg-surface border-white/5">
               <CardHeader>
                 <CardTitle className="text-white">Competitor Growth Comparison</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
                   {followerData.competitorComparison.map((comp, index) => (
-                    <div key={index} className="flex items-center justify-between p-3 bg-zinc-950 rounded-lg">
+                    <div key={index} className="flex items-center justify-between p-3 bg-base rounded-lg">
                       <div>
                         <p className={cn('font-medium', index === 0 ? 'text-blue-400' : 'text-white')}>
                           {comp.name}
                         </p>
-                        <p className="text-sm text-zinc-500">{formatNumber(comp.followers)} followers</p>
+                        <p className="text-sm text-tertiary">{formatNumber(comp.followers)} followers</p>
                       </div>
-                      <Badge className={comp.growth > 10 ? 'bg-green-500/20 text-green-400' : 'bg-zinc-500/20 text-zinc-400'}>
+                      <Badge className={comp.growth > 10 ? 'bg-green-500/20 text-green-400' : 'bg-white/5 text-tertiary'}>
                         +{comp.growth}%
                       </Badge>
                     </div>
@@ -354,27 +354,27 @@ export default function FollowerAnalyticsPage() {
         </TabsContent>
 
         <TabsContent value="notable" className="space-y-6">
-          <Card className="bg-zinc-900 border-zinc-800">
+          <Card className="bg-surface border-white/5">
             <CardHeader>
               <CardTitle className="text-white">Notable Followers</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
                 {followerData.notableFollowers.map((follower, index) => (
-                  <div key={index} className="flex items-center justify-between p-4 bg-zinc-950 rounded-lg">
+                  <div key={index} className="flex items-center justify-between p-4 bg-base rounded-lg">
                     <div className="flex items-center gap-4">
-                      <div className="h-12 w-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600" />
+                      <div className="h-12 w-12 rounded-full bg-gradient-to-br from-violet-500 to-indigo-600" />
                       <div>
                         <div className="flex items-center gap-2">
                           <span className="font-medium text-white">{follower.name}</span>
                           {follower.verified && <CheckCircle className="h-4 w-4 text-blue-400" />}
                         </div>
-                        <p className="text-sm text-zinc-500">{follower.handle}</p>
+                        <p className="text-sm text-tertiary">{follower.handle}</p>
                       </div>
                     </div>
                     <div className="text-right">
                       <p className="font-medium text-white">{formatNumber(follower.followers)}</p>
-                      <p className="text-sm text-zinc-500">{follower.engagement}% engagement</p>
+                      <p className="text-sm text-tertiary">{follower.engagement}% engagement</p>
                     </div>
                   </div>
                 ))}
@@ -385,7 +385,7 @@ export default function FollowerAnalyticsPage() {
 
         <TabsContent value="churn" className="space-y-6">
           <div className="grid gap-6 lg:grid-cols-2">
-            <Card className="bg-zinc-900 border-zinc-800">
+            <Card className="bg-surface border-white/5">
               <CardHeader>
                 <CardTitle className="text-white flex items-center gap-2">
                   <UserMinus className="h-5 w-5 text-red-400" />
@@ -395,16 +395,16 @@ export default function FollowerAnalyticsPage() {
               <CardContent>
                 <div className="text-center mb-6">
                   <p className="text-4xl font-bold text-red-400">{followerData.churn.totalUnfollows}</p>
-                  <p className="text-zinc-500">unfollows this month</p>
+                  <p className="text-tertiary">unfollows this month</p>
                 </div>
                 <div className="space-y-3">
                   {followerData.churn.reasons.map((reason, index) => (
                     <div key={index}>
                       <div className="flex justify-between text-sm mb-1">
-                        <span className="text-zinc-400">{reason.reason}</span>
+                        <span className="text-tertiary">{reason.reason}</span>
                         <span className="text-white">{reason.percentage}%</span>
                       </div>
-                      <div className="h-2 bg-zinc-800 rounded-full">
+                      <div className="h-2 bg-elevated rounded-full">
                         <div
                           className="h-full bg-red-500 rounded-full"
                           style={{ width: `${reason.percentage}%` }}
@@ -416,22 +416,22 @@ export default function FollowerAnalyticsPage() {
               </CardContent>
             </Card>
 
-            <Card className="bg-zinc-900 border-zinc-800">
+            <Card className="bg-surface border-white/5">
               <CardHeader>
                 <CardTitle className="text-white">Churn Prevention Tips</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg">
                   <p className="text-sm text-blue-400 font-medium">Maintain Posting Consistency</p>
-                  <p className="text-xs text-zinc-500 mt-1">20% of unfollows are due to irregular posting. Aim for 1-2 posts daily.</p>
+                  <p className="text-xs text-tertiary mt-1">20% of unfollows are due to irregular posting. Aim for 1-2 posts daily.</p>
                 </div>
                 <div className="p-4 bg-green-500/10 border border-green-500/20 rounded-lg">
                   <p className="text-sm text-green-400 font-medium">Engage With Your Audience</p>
-                  <p className="text-xs text-zinc-500 mt-1">Reply to comments and acknowledge your community to reduce churn.</p>
+                  <p className="text-xs text-tertiary mt-1">Reply to comments and acknowledge your community to reduce churn.</p>
                 </div>
                 <div className="p-4 bg-purple-500/10 border border-purple-500/20 rounded-lg">
                   <p className="text-sm text-purple-400 font-medium">Stay On Topic</p>
-                  <p className="text-xs text-zinc-500 mt-1">25% unfollow due to content mismatch. Keep content relevant to DeFi.</p>
+                  <p className="text-xs text-tertiary mt-1">25% unfollow due to content mismatch. Keep content relevant to DeFi.</p>
                 </div>
               </CardContent>
             </Card>

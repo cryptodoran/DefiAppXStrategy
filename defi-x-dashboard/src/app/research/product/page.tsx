@@ -127,7 +127,7 @@ const statusConfig = {
   live: { color: 'bg-green-500/20 text-green-400', icon: CheckCircle },
   beta: { color: 'bg-blue-500/20 text-blue-400', icon: Clock },
   coming_soon: { color: 'bg-yellow-500/20 text-yellow-400', icon: Clock },
-  planned: { color: 'bg-zinc-500/20 text-zinc-400', icon: Clock },
+  planned: { color: 'bg-white/5 text-tertiary', icon: Clock },
 };
 
 export default function ProductIntelligencePage() {
@@ -141,41 +141,41 @@ export default function ProductIntelligencePage() {
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold text-white">Product Intelligence</h1>
-        <p className="text-zinc-400">
+        <p className="text-tertiary">
           Track product sentiment and discover content opportunities
         </p>
       </div>
 
       {/* Stats */}
       <div className="grid gap-4 md:grid-cols-4">
-        <Card className="bg-zinc-900 border-zinc-800">
+        <Card className="bg-surface border-white/5">
           <CardContent className="pt-4">
-            <p className="text-sm text-zinc-400">Total Mentions</p>
+            <p className="text-sm text-tertiary">Total Mentions</p>
             <p className="text-2xl font-bold text-white">
               {formatNumber(productFeatures.reduce((acc, f) => acc + f.mentions, 0))}
             </p>
           </CardContent>
         </Card>
-        <Card className="bg-zinc-900 border-zinc-800">
+        <Card className="bg-surface border-white/5">
           <CardContent className="pt-4">
-            <p className="text-sm text-zinc-400">Positive Sentiment</p>
+            <p className="text-sm text-tertiary">Positive Sentiment</p>
             <p className="text-2xl font-bold text-green-400">
               {productFeatures.filter((f) => f.userSentiment === 'positive').length}/
               {productFeatures.length}
             </p>
           </CardContent>
         </Card>
-        <Card className="bg-zinc-900 border-zinc-800">
+        <Card className="bg-surface border-white/5">
           <CardContent className="pt-4">
-            <p className="text-sm text-zinc-400">Features Ahead</p>
+            <p className="text-sm text-tertiary">Features Ahead</p>
             <p className="text-2xl font-bold text-blue-400">
               {competitorComparison.filter((c) => c.defiAppStatus === 'ahead').length}
             </p>
           </CardContent>
         </Card>
-        <Card className="bg-zinc-900 border-zinc-800">
+        <Card className="bg-surface border-white/5">
           <CardContent className="pt-4">
-            <p className="text-sm text-zinc-400">Content Ideas</p>
+            <p className="text-sm text-tertiary">Content Ideas</p>
             <p className="text-2xl font-bold text-purple-400">
               {productFeatures.reduce((acc, f) => acc + f.contentOpportunities.length, 0)}
             </p>
@@ -184,7 +184,7 @@ export default function ProductIntelligencePage() {
       </div>
 
       <Tabs defaultValue="features" className="space-y-6">
-        <TabsList className="bg-zinc-900">
+        <TabsList className="bg-surface">
           <TabsTrigger value="features">Features</TabsTrigger>
           <TabsTrigger value="competitors">Competitive</TabsTrigger>
           <TabsTrigger value="feedback">Feedback</TabsTrigger>
@@ -195,12 +195,12 @@ export default function ProductIntelligencePage() {
             const StatusIcon = statusConfig[feature.status].icon;
 
             return (
-              <Card key={feature.id} className="bg-zinc-900 border-zinc-800">
+              <Card key={feature.id} className="bg-surface border-white/5">
                 <CardContent className="pt-4">
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex items-center gap-3">
-                      <div className="p-2 rounded-lg bg-zinc-800">
-                        <Package className="h-5 w-5 text-zinc-400" />
+                      <div className="p-2 rounded-lg bg-elevated">
+                        <Package className="h-5 w-5 text-tertiary" />
                       </div>
                       <div>
                         <h3 className="font-medium text-white">{feature.name}</h3>
@@ -226,20 +226,20 @@ export default function ProductIntelligencePage() {
                       <p className="text-lg font-bold text-white">
                         {formatNumber(feature.mentions)}
                       </p>
-                      <p className="text-xs text-zinc-500">mentions</p>
+                      <p className="text-xs text-tertiary">mentions</p>
                     </div>
                   </div>
 
-                  <p className="text-sm text-zinc-400 mb-4">{feature.feedbackSummary}</p>
+                  <p className="text-sm text-tertiary mb-4">{feature.feedbackSummary}</p>
 
-                  <div className="p-3 bg-zinc-950 rounded-lg">
+                  <div className="p-3 bg-base rounded-lg">
                     <div className="flex items-center gap-2 mb-2">
                       <Lightbulb className="h-4 w-4 text-yellow-400" />
-                      <span className="text-xs text-zinc-500">Content Opportunities</span>
+                      <span className="text-xs text-tertiary">Content Opportunities</span>
                     </div>
                     <ul className="space-y-1">
                       {feature.contentOpportunities.map((opp, i) => (
-                        <li key={i} className="text-sm text-zinc-300 flex items-center gap-2">
+                        <li key={i} className="text-sm text-secondary flex items-center gap-2">
                           <span className="h-1.5 w-1.5 rounded-full bg-blue-400" />
                           {opp}
                         </li>
@@ -247,8 +247,8 @@ export default function ProductIntelligencePage() {
                     </ul>
                   </div>
 
-                  <div className="flex justify-end mt-4 pt-4 border-t border-zinc-800">
-                    <Button size="sm" className="bg-gradient-to-r from-blue-600 to-purple-600">
+                  <div className="flex justify-end mt-4 pt-4 border-t border-white/5">
+                    <Button size="sm" className="bg-gradient-to-r from-violet-500 to-indigo-600">
                       <MessageSquare className="mr-2 h-4 w-4" />
                       Generate Content
                     </Button>
@@ -260,7 +260,7 @@ export default function ProductIntelligencePage() {
         </TabsContent>
 
         <TabsContent value="competitors" className="space-y-4">
-          <Card className="bg-zinc-900 border-zinc-800">
+          <Card className="bg-surface border-white/5">
             <CardHeader>
               <CardTitle className="text-white">Feature Comparison</CardTitle>
             </CardHeader>
@@ -269,12 +269,12 @@ export default function ProductIntelligencePage() {
                 {competitorComparison.map((item, index) => (
                   <div
                     key={index}
-                    className="flex items-center justify-between p-4 bg-zinc-950 rounded-lg"
+                    className="flex items-center justify-between p-4 bg-base rounded-lg"
                   >
                     <div className="flex items-center gap-4">
                       <div className="text-sm">
-                        <span className="text-zinc-500">{item.competitor}</span>
-                        <span className="text-zinc-600 mx-2">•</span>
+                        <span className="text-tertiary">{item.competitor}</span>
+                        <span className="text-tertiary mx-2">•</span>
                         <span className="text-white">{item.feature}</span>
                       </div>
                     </div>
@@ -288,7 +288,7 @@ export default function ProductIntelligencePage() {
                       )}
                     >
                       {item.defiAppStatus === 'ahead'
-                        ? 'DeFi App Ahead'
+                        ? 'Defi App Ahead'
                         : item.defiAppStatus === 'behind'
                         ? 'Gap to Close'
                         : 'Parity'}
@@ -304,8 +304,8 @@ export default function ProductIntelligencePage() {
               <CardTitle className="text-sm text-blue-400">Content Strategy</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-zinc-300 mb-4">
-                Focus content on areas where DeFi App leads (multi-chain) while building
+              <p className="text-sm text-secondary mb-4">
+                Focus content on areas where Defi App leads (multi-chain) while building
                 anticipation for upcoming features that close competitive gaps.
               </p>
               <div className="flex gap-2">
@@ -321,7 +321,7 @@ export default function ProductIntelligencePage() {
         </TabsContent>
 
         <TabsContent value="feedback" className="space-y-4">
-          <Card className="bg-zinc-900 border-zinc-800">
+          <Card className="bg-surface border-white/5">
             <CardHeader>
               <CardTitle className="text-white">Top Feedback Themes</CardTitle>
             </CardHeader>
@@ -330,13 +330,13 @@ export default function ProductIntelligencePage() {
                 {userFeedbackThemes.map((theme, index) => (
                   <div
                     key={index}
-                    className="flex items-center justify-between p-4 bg-zinc-950 rounded-lg"
+                    className="flex items-center justify-between p-4 bg-base rounded-lg"
                   >
                     <div className="flex items-center gap-4">
-                      <span className="text-zinc-500 text-sm w-6">#{index + 1}</span>
+                      <span className="text-tertiary text-sm w-6">#{index + 1}</span>
                       <div>
                         <p className="text-white">{theme.theme}</p>
-                        <p className="text-xs text-zinc-500">{theme.count} mentions</p>
+                        <p className="text-xs text-tertiary">{theme.count} mentions</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-3">
@@ -346,7 +346,7 @@ export default function ProductIntelligencePage() {
                             ? 'bg-green-500/20 text-green-400'
                             : theme.trend === 'falling'
                             ? 'bg-red-500/20 text-red-400'
-                            : 'bg-zinc-500/20 text-zinc-400'
+                            : 'bg-white/5 text-tertiary'
                         )}
                       >
                         {theme.trend}
@@ -357,7 +357,7 @@ export default function ProductIntelligencePage() {
                             ? 'bg-red-500/20 text-red-400'
                             : theme.priority === 'medium'
                             ? 'bg-yellow-500/20 text-yellow-400'
-                            : 'bg-zinc-500/20 text-zinc-400'
+                            : 'bg-white/5 text-tertiary'
                         )}
                       >
                         {theme.priority} priority
@@ -369,7 +369,7 @@ export default function ProductIntelligencePage() {
             </CardContent>
           </Card>
 
-          <Card className="bg-zinc-900 border-zinc-800">
+          <Card className="bg-surface border-white/5">
             <CardHeader>
               <CardTitle className="text-sm text-white">Response Strategy</CardTitle>
             </CardHeader>
@@ -377,19 +377,19 @@ export default function ProductIntelligencePage() {
               <div className="space-y-3">
                 <div className="p-3 bg-green-500/10 border border-green-500/20 rounded-lg">
                   <p className="text-sm text-green-400 font-medium">Acknowledge & Engage</p>
-                  <p className="text-xs text-zinc-400 mt-1">
+                  <p className="text-xs text-tertiary mt-1">
                     Respond to high-priority feedback publicly to build trust
                   </p>
                 </div>
                 <div className="p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
                   <p className="text-sm text-blue-400 font-medium">Build Anticipation</p>
-                  <p className="text-xs text-zinc-400 mt-1">
+                  <p className="text-xs text-tertiary mt-1">
                     Tease upcoming features that address common requests
                   </p>
                 </div>
                 <div className="p-3 bg-purple-500/10 border border-purple-500/20 rounded-lg">
                   <p className="text-sm text-purple-400 font-medium">Educate Users</p>
-                  <p className="text-xs text-zinc-400 mt-1">
+                  <p className="text-xs text-tertiary mt-1">
                     Create content explaining current capabilities users may not know about
                   </p>
                 </div>

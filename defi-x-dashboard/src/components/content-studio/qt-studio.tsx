@@ -109,7 +109,7 @@ export function QTStudio() {
       label: 'Agree & Expand',
       icon: <ThumbsUp className="h-4 w-4" />,
       description: 'Support the take and add your perspective',
-      suggestedContent: 'This is exactly why the future of Ethereum is so exciting. Here\'s what this means for DeFi protocols and why DeFi App is positioned perfectly for this transition...',
+      suggestedContent: 'This is exactly why the future of Ethereum is so exciting. Here\'s what this means for DeFi protocols and why Defi App is positioned perfectly for this transition...',
       predictedEngagement: 72,
     },
     {
@@ -117,7 +117,7 @@ export function QTStudio() {
       label: 'Add Context',
       icon: <MessageCircle className="h-4 w-4" />,
       description: 'Provide additional information or data',
-      suggestedContent: 'For those wondering what this means in practice:\n\n• L2 tx costs will drop 90%+\n• Account abstraction = no more seed phrases\n• EIP-4844 enables 100x more data\n\nHere\'s how DeFi App is already building for this...',
+      suggestedContent: 'For those wondering what this means in practice:\n\n• L2 tx costs will drop 90%+\n• Account abstraction = no more seed phrases\n• EIP-4844 enables 100x more data\n\nHere\'s how Defi App is already building for this...',
       predictedEngagement: 85,
     },
     {

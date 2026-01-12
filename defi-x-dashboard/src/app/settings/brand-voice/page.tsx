@@ -141,13 +141,13 @@ export default function BrandVoicePage() {
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold text-white">Brand Voice & Guidelines</h1>
-        <p className="text-zinc-400">
+        <p className="text-tertiary">
           Configure brand voice parameters and topic guidelines
         </p>
       </div>
 
       <Tabs defaultValue="voice" className="space-y-6">
-        <TabsList className="bg-zinc-900">
+        <TabsList className="bg-surface">
           <TabsTrigger value="voice">Brand Voice</TabsTrigger>
           <TabsTrigger value="topics">Topic Lists</TabsTrigger>
           <TabsTrigger value="test">Test Content</TabsTrigger>
@@ -156,7 +156,7 @@ export default function BrandVoicePage() {
         <TabsContent value="voice" className="space-y-6">
           <div className="grid gap-6 lg:grid-cols-3">
             {/* Tone */}
-            <Card className="bg-zinc-900 border-zinc-800">
+            <Card className="bg-surface border-white/5">
               <CardHeader>
                 <CardTitle className="text-white">Tone</CardTitle>
               </CardHeader>
@@ -179,7 +179,7 @@ export default function BrandVoicePage() {
                     placeholder="Add tone..."
                     value={newTone}
                     onChange={(e) => setNewTone(e.target.value)}
-                    className="bg-zinc-950 border-zinc-800"
+                    className="bg-base border-white/5"
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') {
                         addToList('tone', newTone);
@@ -201,7 +201,7 @@ export default function BrandVoicePage() {
             </Card>
 
             {/* Vocabulary */}
-            <Card className="bg-zinc-900 border-zinc-800">
+            <Card className="bg-surface border-white/5">
               <CardHeader>
                 <CardTitle className="text-white">Key Vocabulary</CardTitle>
               </CardHeader>
@@ -224,7 +224,7 @@ export default function BrandVoicePage() {
                     placeholder="Add word..."
                     value={newWord}
                     onChange={(e) => setNewWord(e.target.value)}
-                    className="bg-zinc-950 border-zinc-800"
+                    className="bg-base border-white/5"
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') {
                         addToList('vocabulary', newWord);
@@ -246,7 +246,7 @@ export default function BrandVoicePage() {
             </Card>
 
             {/* Avoid Words */}
-            <Card className="bg-zinc-900 border-zinc-800">
+            <Card className="bg-surface border-white/5">
               <CardHeader>
                 <CardTitle className="text-white">Words to Avoid</CardTitle>
               </CardHeader>
@@ -269,7 +269,7 @@ export default function BrandVoicePage() {
                     placeholder="Add word..."
                     value={newAvoid}
                     onChange={(e) => setNewAvoid(e.target.value)}
-                    className="bg-zinc-950 border-zinc-800"
+                    className="bg-base border-white/5"
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') {
                         addToList('avoidWords', newAvoid);
@@ -295,7 +295,7 @@ export default function BrandVoicePage() {
         <TabsContent value="topics" className="space-y-6">
           <div className="grid gap-6 lg:grid-cols-3">
             {/* Blacklist */}
-            <Card className="bg-zinc-900 border-zinc-800">
+            <Card className="bg-surface border-white/5">
               <CardHeader>
                 <CardTitle className="text-white flex items-center gap-2">
                   <X className="h-5 w-5 text-red-400" />
@@ -309,7 +309,7 @@ export default function BrandVoicePage() {
                       key={item.id}
                       className="flex items-center justify-between p-2 bg-red-500/10 border border-red-500/20 rounded-lg"
                     >
-                      <span className="text-sm text-zinc-300">{item.text}</span>
+                      <span className="text-sm text-secondary">{item.text}</span>
                       <button
                         onClick={() => removeTopic('blacklist', item.id)}
                         className="text-red-400 hover:text-red-300"
@@ -324,7 +324,7 @@ export default function BrandVoicePage() {
                     placeholder="Add topic..."
                     value={newBlacklist}
                     onChange={(e) => setNewBlacklist(e.target.value)}
-                    className="bg-zinc-950 border-zinc-800"
+                    className="bg-base border-white/5"
                   />
                   <Button
                     size="sm"
@@ -340,7 +340,7 @@ export default function BrandVoicePage() {
             </Card>
 
             {/* Whitelist */}
-            <Card className="bg-zinc-900 border-zinc-800">
+            <Card className="bg-surface border-white/5">
               <CardHeader>
                 <CardTitle className="text-white flex items-center gap-2">
                   <Check className="h-5 w-5 text-green-400" />
@@ -354,7 +354,7 @@ export default function BrandVoicePage() {
                       key={item.id}
                       className="flex items-center justify-between p-2 bg-green-500/10 border border-green-500/20 rounded-lg"
                     >
-                      <span className="text-sm text-zinc-300">{item.text}</span>
+                      <span className="text-sm text-secondary">{item.text}</span>
                       <button
                         onClick={() => removeTopic('whitelist', item.id)}
                         className="text-green-400 hover:text-green-300"
@@ -369,7 +369,7 @@ export default function BrandVoicePage() {
                     placeholder="Add topic..."
                     value={newWhitelist}
                     onChange={(e) => setNewWhitelist(e.target.value)}
-                    className="bg-zinc-950 border-zinc-800"
+                    className="bg-base border-white/5"
                   />
                   <Button
                     size="sm"
@@ -385,7 +385,7 @@ export default function BrandVoicePage() {
             </Card>
 
             {/* Graylist */}
-            <Card className="bg-zinc-900 border-zinc-800">
+            <Card className="bg-surface border-white/5">
               <CardHeader>
                 <CardTitle className="text-white flex items-center gap-2">
                   <HelpCircle className="h-5 w-5 text-yellow-400" />
@@ -399,7 +399,7 @@ export default function BrandVoicePage() {
                       key={item.id}
                       className="flex items-center justify-between p-2 bg-yellow-500/10 border border-yellow-500/20 rounded-lg"
                     >
-                      <span className="text-sm text-zinc-300">{item.text}</span>
+                      <span className="text-sm text-secondary">{item.text}</span>
                       <button
                         onClick={() => removeTopic('graylist', item.id)}
                         className="text-yellow-400 hover:text-yellow-300"
@@ -414,7 +414,7 @@ export default function BrandVoicePage() {
                     placeholder="Add topic..."
                     value={newGraylist}
                     onChange={(e) => setNewGraylist(e.target.value)}
-                    className="bg-zinc-950 border-zinc-800"
+                    className="bg-base border-white/5"
                   />
                   <Button
                     size="sm"
@@ -433,7 +433,7 @@ export default function BrandVoicePage() {
 
         <TabsContent value="test" className="space-y-6">
           <div className="grid gap-6 lg:grid-cols-2">
-            <Card className="bg-zinc-900 border-zinc-800">
+            <Card className="bg-surface border-white/5">
               <CardHeader>
                 <CardTitle className="text-white">Test Content</CardTitle>
               </CardHeader>
@@ -442,7 +442,7 @@ export default function BrandVoicePage() {
                   placeholder="Paste or write content to test against brand guidelines..."
                   value={testContent}
                   onChange={(e) => setTestContent(e.target.value)}
-                  className="min-h-[200px] bg-zinc-950 border-zinc-800"
+                  className="min-h-[200px] bg-base border-white/5"
                 />
                 <Button onClick={testBrandVoice} className="w-full">
                   <Shield className="mr-2 h-4 w-4" />
@@ -451,7 +451,7 @@ export default function BrandVoicePage() {
               </CardContent>
             </Card>
 
-            <Card className="bg-zinc-900 border-zinc-800">
+            <Card className="bg-surface border-white/5">
               <CardHeader>
                 <CardTitle className="text-white">Results</CardTitle>
               </CardHeader>
@@ -481,7 +481,7 @@ export default function BrandVoicePage() {
                         <p className="text-sm font-medium text-red-400 mb-2">Issues:</p>
                         <ul className="space-y-1">
                           {testResult.issues.map((issue, i) => (
-                            <li key={i} className="text-sm text-zinc-400 flex items-center gap-2">
+                            <li key={i} className="text-sm text-tertiary flex items-center gap-2">
                               <X className="h-3 w-3 text-red-400" />
                               {issue}
                             </li>
@@ -495,7 +495,7 @@ export default function BrandVoicePage() {
                         <p className="text-sm font-medium text-yellow-400 mb-2">Suggestions:</p>
                         <ul className="space-y-1">
                           {testResult.suggestions.map((suggestion, i) => (
-                            <li key={i} className="text-sm text-zinc-400 flex items-center gap-2">
+                            <li key={i} className="text-sm text-tertiary flex items-center gap-2">
                               <HelpCircle className="h-3 w-3 text-yellow-400" />
                               {suggestion}
                             </li>
@@ -505,7 +505,7 @@ export default function BrandVoicePage() {
                     )}
                   </div>
                 ) : (
-                  <div className="text-center py-8 text-zinc-500">
+                  <div className="text-center py-8 text-tertiary">
                     Enter content and click check to see results
                   </div>
                 )}
@@ -517,7 +517,7 @@ export default function BrandVoicePage() {
 
       {/* Save Button */}
       <div className="flex justify-end">
-        <Button className="bg-gradient-to-r from-blue-600 to-purple-600">
+        <Button className="bg-gradient-to-r from-violet-500 to-indigo-600">
           <Save className="mr-2 h-4 w-4" />
           Save All Settings
         </Button>

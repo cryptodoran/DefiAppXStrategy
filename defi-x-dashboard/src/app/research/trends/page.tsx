@@ -129,7 +129,7 @@ const categoryConfig = {
   crypto: { color: 'bg-orange-500/20 text-orange-400' },
   defi: { color: 'bg-blue-500/20 text-blue-400' },
   nft: { color: 'bg-purple-500/20 text-purple-400' },
-  general: { color: 'bg-zinc-500/20 text-zinc-400' },
+  general: { color: 'bg-white/5 text-tertiary' },
   tech: { color: 'bg-green-500/20 text-green-400' },
 };
 
@@ -154,7 +154,7 @@ export default function PlatformTrendsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-white">Platform Trends</h1>
-          <p className="text-zinc-400">Real-time X platform trends and opportunities</p>
+          <p className="text-tertiary">Real-time X platform trends and opportunities</p>
         </div>
         <Button variant="outline">
           <RefreshCw className="mr-2 h-4 w-4" />
@@ -164,29 +164,29 @@ export default function PlatformTrendsPage() {
 
       {/* Stats */}
       <div className="grid gap-4 md:grid-cols-4">
-        <Card className="bg-zinc-900 border-zinc-800">
+        <Card className="bg-surface border-white/5">
           <CardContent className="pt-4">
-            <p className="text-sm text-zinc-400">Active Trends</p>
+            <p className="text-sm text-tertiary">Active Trends</p>
             <p className="text-2xl font-bold text-white">{platformTrends.length}</p>
           </CardContent>
         </Card>
-        <Card className="bg-zinc-900 border-zinc-800">
+        <Card className="bg-surface border-white/5">
           <CardContent className="pt-4">
-            <p className="text-sm text-zinc-400">High Relevance</p>
+            <p className="text-sm text-tertiary">High Relevance</p>
             <p className="text-2xl font-bold text-green-400">{highRelevanceTrends.length}</p>
           </CardContent>
         </Card>
-        <Card className="bg-zinc-900 border-zinc-800">
+        <Card className="bg-surface border-white/5">
           <CardContent className="pt-4">
-            <p className="text-sm text-zinc-400">Rising Fast</p>
+            <p className="text-sm text-tertiary">Rising Fast</p>
             <p className="text-2xl font-bold text-blue-400">
               {platformTrends.filter((t) => t.velocity === 'rising').length}
             </p>
           </CardContent>
         </Card>
-        <Card className="bg-zinc-900 border-zinc-800">
+        <Card className="bg-surface border-white/5">
           <CardContent className="pt-4">
-            <p className="text-sm text-zinc-400">Total Volume</p>
+            <p className="text-sm text-tertiary">Total Volume</p>
             <p className="text-2xl font-bold text-purple-400">
               {formatNumber(platformTrends.reduce((acc, t) => acc + t.volume, 0))}
             </p>
@@ -213,7 +213,7 @@ export default function PlatformTrendsPage() {
         <div className="lg:col-span-2 space-y-4">
           <h2 className="text-lg font-semibold text-white">Trending Topics</h2>
           {filteredTrends.map((trend) => (
-            <Card key={trend.id} className="bg-zinc-900 border-zinc-800">
+            <Card key={trend.id} className="bg-surface border-white/5">
               <CardContent className="pt-4">
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex items-center gap-3">
@@ -224,7 +224,7 @@ export default function PlatformTrendsPage() {
                           ? 'bg-green-500/20'
                           : trend.velocity === 'falling'
                           ? 'bg-red-500/20'
-                          : 'bg-zinc-500/20'
+                          : 'bg-white/5'
                       )}
                     >
                       {trend.velocity === 'rising' ? (
@@ -232,7 +232,7 @@ export default function PlatformTrendsPage() {
                       ) : trend.velocity === 'falling' ? (
                         <TrendingDown className="h-5 w-5 text-red-400" />
                       ) : (
-                        <BarChart3 className="h-5 w-5 text-zinc-400" />
+                        <BarChart3 className="h-5 w-5 text-tertiary" />
                       )}
                     </div>
                     <div>
@@ -247,7 +247,7 @@ export default function PlatformTrendsPage() {
                               ? 'bg-green-500/20 text-green-400'
                               : trend.sentiment === 'bearish'
                               ? 'bg-red-500/20 text-red-400'
-                              : 'bg-zinc-500/20 text-zinc-400'
+                              : 'bg-white/5 text-tertiary'
                           )}
                         >
                           {trend.sentiment}
@@ -270,17 +270,17 @@ export default function PlatformTrendsPage() {
                 </div>
 
                 <div className="grid grid-cols-3 gap-4 mb-4">
-                  <div className="text-center p-2 bg-zinc-950 rounded-lg">
+                  <div className="text-center p-2 bg-base rounded-lg">
                     <p className="text-lg font-bold text-white">{trend.relevanceScore}</p>
-                    <p className="text-xs text-zinc-500">Relevance</p>
+                    <p className="text-xs text-tertiary">Relevance</p>
                   </div>
-                  <div className="text-center p-2 bg-zinc-950 rounded-lg">
+                  <div className="text-center p-2 bg-base rounded-lg">
                     <p className="text-lg font-bold text-white">{trend.topTweets}</p>
-                    <p className="text-xs text-zinc-500">Top Tweets</p>
+                    <p className="text-xs text-tertiary">Top Tweets</p>
                   </div>
-                  <div className="text-center p-2 bg-zinc-950 rounded-lg">
+                  <div className="text-center p-2 bg-base rounded-lg">
                     <p className="text-sm font-medium text-white">{trend.peakTime}</p>
-                    <p className="text-xs text-zinc-500">Peak</p>
+                    <p className="text-xs text-tertiary">Peak</p>
                   </div>
                 </div>
 
@@ -292,8 +292,8 @@ export default function PlatformTrendsPage() {
                   ))}
                 </div>
 
-                <div className="flex justify-end mt-4 pt-4 border-t border-zinc-800">
-                  <Button size="sm" className="bg-gradient-to-r from-blue-600 to-purple-600">
+                <div className="flex justify-end mt-4 pt-4 border-t border-white/5">
+                  <Button size="sm" className="bg-gradient-to-r from-violet-500 to-indigo-600">
                     <Zap className="mr-2 h-4 w-4" />
                     Create Content
                   </Button>
@@ -306,7 +306,7 @@ export default function PlatformTrendsPage() {
         {/* Sidebar */}
         <div className="space-y-6">
           {/* Trending Hashtags */}
-          <Card className="bg-zinc-900 border-zinc-800">
+          <Card className="bg-surface border-white/5">
             <CardHeader>
               <CardTitle className="text-sm text-white flex items-center gap-2">
                 <Hash className="h-4 w-4" />
@@ -317,11 +317,11 @@ export default function PlatformTrendsPage() {
               {trendingHashtags.map((hashtag, index) => (
                 <div key={index} className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <span className="text-zinc-500 text-sm w-4">{index + 1}</span>
+                    <span className="text-tertiary text-sm w-4">{index + 1}</span>
                     <span className="text-sm text-white">{hashtag.tag}</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-xs text-zinc-500">{formatNumber(hashtag.posts)}</span>
+                    <span className="text-xs text-tertiary">{formatNumber(hashtag.posts)}</span>
                     <span
                       className={cn(
                         'text-xs',
@@ -347,7 +347,7 @@ export default function PlatformTrendsPage() {
             </CardHeader>
             <CardContent>
               <p className="text-sm text-white mb-2">ETH ETF + Restaking</p>
-              <p className="text-xs text-zinc-400 mb-4">
+              <p className="text-xs text-tertiary mb-4">
                 Two high-relevance trends can be combined for a unique angle on institutional DeFi
                 adoption.
               </p>
@@ -358,7 +358,7 @@ export default function PlatformTrendsPage() {
           </Card>
 
           {/* Timing Insights */}
-          <Card className="bg-zinc-900 border-zinc-800">
+          <Card className="bg-surface border-white/5">
             <CardHeader>
               <CardTitle className="text-sm text-white flex items-center gap-2">
                 <Clock className="h-4 w-4" />
@@ -373,7 +373,7 @@ export default function PlatformTrendsPage() {
                 { time: '9:00 PM', activity: 'Medium', score: 72 },
               ].map((slot, index) => (
                 <div key={index} className="flex items-center justify-between">
-                  <span className="text-sm text-zinc-400">{slot.time}</span>
+                  <span className="text-sm text-tertiary">{slot.time}</span>
                   <div className="flex items-center gap-2">
                     <Badge
                       className={cn(
@@ -381,12 +381,12 @@ export default function PlatformTrendsPage() {
                           ? 'bg-green-500/20 text-green-400'
                           : slot.activity === 'High'
                           ? 'bg-blue-500/20 text-blue-400'
-                          : 'bg-zinc-500/20 text-zinc-400'
+                          : 'bg-white/5 text-tertiary'
                       )}
                     >
                       {slot.activity}
                     </Badge>
-                    <span className="text-xs text-zinc-500">{slot.score}%</span>
+                    <span className="text-xs text-tertiary">{slot.score}%</span>
                   </div>
                 </div>
               ))}

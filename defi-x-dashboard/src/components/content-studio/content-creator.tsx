@@ -272,7 +272,7 @@ export function ContentCreator() {
               <div className="h-10 w-10 rounded-full bg-gradient-to-br from-violet-500 to-indigo-600" />
               <div className="flex-1">
                 <div className="flex items-center gap-2">
-                  <span className="font-semibold text-primary">DeFi App</span>
+                  <span className="font-semibold text-primary">Defi App</span>
                   <span className="text-tertiary">@defiapp</span>
                 </div>
                 <p className="text-secondary mt-1 whitespace-pre-wrap">

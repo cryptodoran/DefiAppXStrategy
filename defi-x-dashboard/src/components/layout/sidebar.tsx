@@ -96,13 +96,13 @@ export function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <div className="flex h-full w-64 flex-col bg-zinc-950 border-r border-zinc-800">
+    <div className="flex h-full w-64 flex-col bg-base border-r border-white/5">
       {/* Logo */}
-      <div className="flex h-16 items-center gap-2 px-6 border-b border-zinc-800">
-        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-purple-600">
+      <div className="flex h-16 items-center gap-2 px-6 border-b border-white/5">
+        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-violet-500 to-indigo-600">
           <span className="text-sm font-bold text-white">D</span>
         </div>
-        <span className="text-lg font-semibold text-white">DeFi App</span>
+        <span className="text-lg font-semibold text-white">Defi App</span>
       </div>
 
       {/* Navigation */}
@@ -119,8 +119,8 @@ export function Sidebar() {
                   className={cn(
                     'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
                     isActive
-                      ? 'bg-zinc-800 text-white'
-                      : 'text-zinc-400 hover:bg-zinc-900 hover:text-white'
+                      ? 'bg-elevated text-white'
+                      : 'text-tertiary hover:bg-surface hover:text-white'
                   )}
                 >
                   <Icon className="h-5 w-5" />
@@ -129,7 +129,7 @@ export function Sidebar() {
 
                 {/* Children */}
                 {item.children && isActive && (
-                  <ul className="mt-1 ml-4 space-y-1 border-l border-zinc-800 pl-4">
+                  <ul className="mt-1 ml-4 space-y-1 border-l border-white/5 pl-4">
                     {item.children.map((child) => {
                       const isChildActive = pathname === child.href;
                       const ChildIcon = child.icon;
@@ -141,8 +141,8 @@ export function Sidebar() {
                             className={cn(
                               'flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors',
                               isChildActive
-                                ? 'bg-zinc-800 text-white'
-                                : 'text-zinc-500 hover:bg-zinc-900 hover:text-zinc-300'
+                                ? 'bg-elevated text-white'
+                                : 'text-tertiary hover:bg-surface hover:text-secondary'
                             )}
                           >
                             <ChildIcon className="h-4 w-4" />
@@ -160,13 +160,13 @@ export function Sidebar() {
       </nav>
 
       {/* Bottom section */}
-      <div className="border-t border-zinc-800 p-4">
-        <div className="rounded-lg bg-zinc-900 p-3">
+      <div className="border-t border-white/5 p-4">
+        <div className="rounded-lg bg-surface p-3">
           <div className="flex items-center justify-between text-sm">
-            <span className="text-zinc-400">Exposure Budget</span>
+            <span className="text-tertiary">Exposure Budget</span>
             <span className="font-medium text-green-400">73%</span>
           </div>
-          <div className="mt-2 h-1.5 rounded-full bg-zinc-800">
+          <div className="mt-2 h-1.5 rounded-full bg-elevated">
             <div
               className="h-full rounded-full bg-gradient-to-r from-green-500 to-emerald-400"
               style={{ width: '73%' }}

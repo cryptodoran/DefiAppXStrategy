@@ -15,7 +15,7 @@ export interface TrendingTopic {
   tweetCount: number;
   velocity: number; // tweets per hour
   lifecycle: TrendLifecycle;
-  relevanceScore: number; // 0-100 for DeFi App
+  relevanceScore: number; // 0-100 for Defi App
   viralityPotential: number; // 0-100
   startedAt: Date;
   peakAt?: Date;
@@ -202,7 +202,7 @@ function generateMockViralPosts(): ViralPost[] {
       suggestedQTs: [
         {
           angle: 'add-context',
-          content: 'This is huge for DeFi. Here\'s what it means for protocols like DeFi App...',
+          content: 'This is huge for DeFi. Here\'s what it means for protocols like Defi App...',
           predictedEngagement: 88,
           reasoning: 'Adding specific context for DeFi users increases relevance',
         },
@@ -232,7 +232,7 @@ function generateMockViralPosts(): ViralPost[] {
       suggestedQTs: [
         {
           angle: 'agree',
-          content: 'This is exactly why we built DeFi App differently. Here\'s our approach...',
+          content: 'This is exactly why we built Defi App differently. Here\'s our approach...',
           predictedEngagement: 85,
           reasoning: 'Aligning with popular sentiment while showcasing differentiation',
         },
@@ -345,7 +345,7 @@ export function analyzeTrendOpportunity(trend: TrendingTopic): {
       shouldEngage: false,
       urgency: 'optional',
       bestApproach: null,
-      reasoning: 'Trend is either dead or not relevant to DeFi App',
+      reasoning: 'Trend is either dead or not relevant to Defi App',
     };
   }
 

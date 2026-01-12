@@ -38,7 +38,7 @@ const actions = [
 
 export function QuickActions() {
   return (
-    <Card className="bg-zinc-900 border-zinc-800">
+    <Card className="bg-surface border-white/5">
       <CardHeader>
         <CardTitle className="text-white">Quick Actions</CardTitle>
       </CardHeader>
@@ -48,7 +48,7 @@ export function QuickActions() {
             const Icon = action.icon;
             return (
               <Link key={action.name} href={action.href}>
-                <div className="group rounded-lg border border-zinc-800 bg-zinc-950 p-4 transition-all hover:border-zinc-700 hover:bg-zinc-900">
+                <div className="group rounded-lg border border-white/5 bg-base p-4 transition-all hover:border-white/10 hover:bg-surface">
                   <div
                     className={`mb-3 inline-flex rounded-lg bg-gradient-to-r p-2 ${action.color}`}
                   >
@@ -57,7 +57,7 @@ export function QuickActions() {
                   <h4 className="font-medium text-white group-hover:text-white">
                     {action.name}
                   </h4>
-                  <p className="mt-1 text-xs text-zinc-500">{action.description}</p>
+                  <p className="mt-1 text-xs text-tertiary">{action.description}</p>
                 </div>
               </Link>
             );

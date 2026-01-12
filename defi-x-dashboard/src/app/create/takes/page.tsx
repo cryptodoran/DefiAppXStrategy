@@ -104,7 +104,7 @@ const stanceConfig = {
   bullish: { color: 'bg-green-500/20 text-green-400' },
   bearish: { color: 'bg-red-500/20 text-red-400' },
   contrarian: { color: 'bg-purple-500/20 text-purple-400' },
-  neutral: { color: 'bg-zinc-500/20 text-zinc-400' },
+  neutral: { color: 'bg-white/5 text-tertiary' },
 };
 
 export default function TakeGeneratorPage() {
@@ -142,7 +142,7 @@ export default function TakeGeneratorPage() {
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold text-white">Opinionated Take Generator</h1>
-        <p className="text-zinc-400">
+        <p className="text-tertiary">
           Generate spicy, engagement-driving takes that spark conversation
         </p>
       </div>
@@ -150,7 +150,7 @@ export default function TakeGeneratorPage() {
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Generator Controls */}
         <div className="space-y-6">
-          <Card className="bg-zinc-900 border-zinc-800">
+          <Card className="bg-surface border-white/5">
             <CardHeader>
               <CardTitle className="text-white flex items-center gap-2">
                 <Zap className="h-5 w-5" />
@@ -160,12 +160,12 @@ export default function TakeGeneratorPage() {
             <CardContent className="space-y-6">
               {/* Topic Input */}
               <div className="space-y-2">
-                <label className="text-sm text-zinc-400">Topic</label>
+                <label className="text-sm text-tertiary">Topic</label>
                 <Input
                   placeholder="Enter a topic or trend..."
                   value={topic}
                   onChange={(e) => setTopic(e.target.value)}
-                  className="bg-zinc-950 border-zinc-800"
+                  className="bg-base border-white/5"
                 />
                 <div className="flex flex-wrap gap-1 mt-2">
                   {topicSuggestions.slice(0, 5).map((suggestion) => (
@@ -185,7 +185,7 @@ export default function TakeGeneratorPage() {
               {/* Spice Level */}
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <label className="text-sm text-zinc-400">Spice Level</label>
+                  <label className="text-sm text-tertiary">Spice Level</label>
                   <span className="text-sm">
                     {getSpiceEmoji(spiceLevel[0])} {getSpiceLabel(spiceLevel[0])}
                   </span>
@@ -198,7 +198,7 @@ export default function TakeGeneratorPage() {
                   step={1}
                   className="py-4"
                 />
-                <div className="flex justify-between text-xs text-zinc-500">
+                <div className="flex justify-between text-xs text-tertiary">
                   <span>Safe</span>
                   <span>Nuclear</span>
                 </div>
@@ -206,9 +206,9 @@ export default function TakeGeneratorPage() {
 
               {/* Stance */}
               <div className="space-y-2">
-                <label className="text-sm text-zinc-400">Stance</label>
+                <label className="text-sm text-tertiary">Stance</label>
                 <Select value={stance} onValueChange={setStance}>
-                  <SelectTrigger className="bg-zinc-950 border-zinc-800">
+                  <SelectTrigger className="bg-base border-white/5">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -248,7 +248,7 @@ export default function TakeGeneratorPage() {
                 <AlertTriangle className="h-5 w-5 text-yellow-400 flex-shrink-0 mt-0.5" />
                 <div>
                   <p className="text-sm text-yellow-400 font-medium">Spice Responsibly</p>
-                  <p className="text-xs text-zinc-400 mt-1">
+                  <p className="text-xs text-tertiary mt-1">
                     Higher spice levels may drive engagement but also controversy.
                     Review all takes before posting to ensure they align with brand voice.
                   </p>
@@ -258,7 +258,7 @@ export default function TakeGeneratorPage() {
           </Card>
 
           {/* Risk Level Guide */}
-          <Card className="bg-zinc-900 border-zinc-800">
+          <Card className="bg-surface border-white/5">
             <CardHeader>
               <CardTitle className="text-sm text-white">Risk Levels</CardTitle>
             </CardHeader>
@@ -266,7 +266,7 @@ export default function TakeGeneratorPage() {
               {Object.entries(riskConfig).map(([key, config]) => (
                 <div key={key} className="flex items-start gap-2">
                   <Badge className={config.color}>{key}</Badge>
-                  <p className="text-xs text-zinc-500">{config.description}</p>
+                  <p className="text-xs text-tertiary">{config.description}</p>
                 </div>
               ))}
             </CardContent>
@@ -277,7 +277,7 @@ export default function TakeGeneratorPage() {
         <div className="lg:col-span-2 space-y-4">
           <h2 className="text-lg font-semibold text-white">Generated Takes</h2>
           {takes.map((take) => (
-            <Card key={take.id} className="bg-zinc-900 border-zinc-800">
+            <Card key={take.id} className="bg-surface border-white/5">
               <CardContent className="pt-4">
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex items-center gap-2">
@@ -286,22 +286,22 @@ export default function TakeGeneratorPage() {
                   </div>
                   <div className="flex items-center gap-1">
                     <span className="text-sm">{getSpiceEmoji(take.spiceLevel)}</span>
-                    <span className="text-xs text-zinc-500">{take.spiceLevel}/10</span>
+                    <span className="text-xs text-tertiary">{take.spiceLevel}/10</span>
                   </div>
                 </div>
 
-                <div className="p-4 bg-zinc-950 rounded-lg mb-4">
-                  <p className="text-zinc-200">{take.content}</p>
+                <div className="p-4 bg-base rounded-lg mb-4">
+                  <p className="text-primary">{take.content}</p>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4 mb-4">
-                  <div className="p-3 bg-zinc-950 rounded-lg">
+                  <div className="p-3 bg-base rounded-lg">
                     <div className="flex items-center gap-2 mb-1">
                       <TrendingUp className="h-4 w-4 text-green-400" />
-                      <span className="text-xs text-zinc-500">Engagement Potential</span>
+                      <span className="text-xs text-tertiary">Engagement Potential</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <div className="flex-1 h-2 bg-zinc-800 rounded-full overflow-hidden">
+                      <div className="flex-1 h-2 bg-elevated rounded-full overflow-hidden">
                         <div
                           className="h-full bg-green-500 rounded-full"
                           style={{ width: `${take.engagementPotential}%` }}
@@ -310,13 +310,13 @@ export default function TakeGeneratorPage() {
                       <span className="text-sm font-medium text-white">{take.engagementPotential}%</span>
                     </div>
                   </div>
-                  <div className="p-3 bg-zinc-950 rounded-lg">
+                  <div className="p-3 bg-base rounded-lg">
                     <div className="flex items-center gap-2 mb-1">
                       <Flame className="h-4 w-4 text-orange-400" />
-                      <span className="text-xs text-zinc-500">Controversy Score</span>
+                      <span className="text-xs text-tertiary">Controversy Score</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <div className="flex-1 h-2 bg-zinc-800 rounded-full overflow-hidden">
+                      <div className="flex-1 h-2 bg-elevated rounded-full overflow-hidden">
                         <div
                           className={cn(
                             'h-full rounded-full',
@@ -334,7 +334,7 @@ export default function TakeGeneratorPage() {
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between pt-4 border-t border-zinc-800">
+                <div className="flex items-center justify-between pt-4 border-t border-white/5">
                   <div className="flex gap-2">
                     <Button variant="ghost" size="sm">
                       <ThumbsUp className="h-4 w-4" />
@@ -351,7 +351,7 @@ export default function TakeGeneratorPage() {
                       <Copy className="mr-2 h-4 w-4" />
                       Copy
                     </Button>
-                    <Button size="sm" className="bg-gradient-to-r from-blue-600 to-purple-600">
+                    <Button size="sm" className="bg-gradient-to-r from-violet-500 to-indigo-600">
                       <Sparkles className="mr-2 h-4 w-4" />
                       Polish & Post
                     </Button>

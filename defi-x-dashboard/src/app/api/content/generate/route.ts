@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
       10: 'nuclear - rarely appropriate',
     };
 
-    const systemPrompt = `You are a viral content creator for DeFi App, a leading DeFi platform.
+    const systemPrompt = `You are a viral content creator for Defi App, a leading DeFi platform.
 Your goal is to create ${goal}-focused content with a ${tone} tone.
 Spice level: ${spiceLevel}/10 (${spiceDescriptions[spiceLevel] || 'balanced'})
 Create content that is engaging, authentic, and aligned with the DeFi/Crypto Twitter culture.
@@ -70,7 +70,7 @@ For each variation, provide:
         hookRating: 5,
       },
       {
-        content: `Hot take: 90% of "DeFi protocols" will be obsolete in 2 years.\n\nThe ones that survive? They're solving real problems, not chasing TVL.\n\nDeFi App is built different. Let me explain why...`,
+        content: `Hot take: 90% of "DeFi protocols" will be obsolete in 2 years.\n\nThe ones that survive? They're solving real problems, not chasing TVL.\n\nDefi App is built different. Let me explain why...`,
         predictedScore: 82,
         viralElements: ['Controversy', 'FOMO', 'Educational'],
         hookRating: 4,

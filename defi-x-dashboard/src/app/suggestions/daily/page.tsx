@@ -107,7 +107,7 @@ export default function DailySuggestionsPage() {
       case 'COMPETITOR_GAP':
         return 'bg-green-500/20 text-green-400';
       default:
-        return 'bg-zinc-500/20 text-zinc-400';
+        return 'bg-white/5 text-tertiary';
     }
   };
 
@@ -127,7 +127,7 @@ export default function DailySuggestionsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-white">Daily Recommendations</h1>
-          <p className="text-zinc-400">
+          <p className="text-tertiary">
             AI-powered content suggestions based on trends and patterns
           </p>
         </div>
@@ -139,27 +139,27 @@ export default function DailySuggestionsPage() {
 
       {/* Stats */}
       <div className="grid gap-4 md:grid-cols-4">
-        <Card className="bg-zinc-900 border-zinc-800">
+        <Card className="bg-surface border-white/5">
           <CardContent className="pt-4">
-            <p className="text-sm text-zinc-400">Today&apos;s Suggestions</p>
+            <p className="text-sm text-tertiary">Today&apos;s Suggestions</p>
             <p className="text-2xl font-bold text-white">{items.length}</p>
           </CardContent>
         </Card>
-        <Card className="bg-zinc-900 border-zinc-800">
+        <Card className="bg-surface border-white/5">
           <CardContent className="pt-4">
-            <p className="text-sm text-zinc-400">Pending Review</p>
+            <p className="text-sm text-tertiary">Pending Review</p>
             <p className="text-2xl font-bold text-yellow-400">{pendingSuggestions.length}</p>
           </CardContent>
         </Card>
-        <Card className="bg-zinc-900 border-zinc-800">
+        <Card className="bg-surface border-white/5">
           <CardContent className="pt-4">
-            <p className="text-sm text-zinc-400">Approved</p>
+            <p className="text-sm text-tertiary">Approved</p>
             <p className="text-2xl font-bold text-green-400">{approvedSuggestions.length}</p>
           </CardContent>
         </Card>
-        <Card className="bg-zinc-900 border-zinc-800">
+        <Card className="bg-surface border-white/5">
           <CardContent className="pt-4">
-            <p className="text-sm text-zinc-400">Avg. Predicted Score</p>
+            <p className="text-sm text-tertiary">Avg. Predicted Score</p>
             <p className="text-2xl font-bold text-blue-400">
               {Math.round(items.reduce((acc, item) => acc + item.predictedScore, 0) / items.length)}
             </p>
@@ -170,7 +170,7 @@ export default function DailySuggestionsPage() {
       {/* Suggestions List */}
       <div className="space-y-4">
         {pendingSuggestions.map((suggestion) => (
-          <Card key={suggestion.id} className="bg-zinc-900 border-zinc-800">
+          <Card key={suggestion.id} className="bg-surface border-white/5">
             <CardContent className="pt-4">
               <div className="flex items-start gap-4">
                 {/* Type indicator */}
@@ -185,20 +185,20 @@ export default function DailySuggestionsPage() {
 
                 {/* Content */}
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm text-zinc-300">{suggestion.content}</p>
+                  <p className="text-sm text-secondary">{suggestion.content}</p>
 
                   <div className="flex flex-wrap items-center gap-3 mt-3">
                     <Badge className={getTypeColor(suggestion.type)}>
                       {suggestion.type.replace('_', ' ')}
                     </Badge>
-                    <span className="text-xs text-zinc-500">
+                    <span className="text-xs text-tertiary">
                       Source: {suggestion.source}
                     </span>
-                    <span className="text-xs text-zinc-500 flex items-center gap-1">
+                    <span className="text-xs text-tertiary flex items-center gap-1">
                       <Clock className="h-3 w-3" />
                       Best time: {suggestion.optimalTime}
                     </span>
-                    <span className="text-xs text-zinc-500 flex items-center gap-1">
+                    <span className="text-xs text-tertiary flex items-center gap-1">
                       <Flame className="h-3 w-3" />
                       Spice: {suggestion.spiceLevel}/10
                     </span>
@@ -211,7 +211,7 @@ export default function DailySuggestionsPage() {
                     <p className={cn('text-xl font-bold', getScoreColor(suggestion.predictedScore))}>
                       {suggestion.predictedScore}
                     </p>
-                    <p className="text-xs text-zinc-500">Predicted</p>
+                    <p className="text-xs text-tertiary">Predicted</p>
                   </div>
 
                   <div className="flex items-center gap-2">
@@ -234,7 +234,7 @@ export default function DailySuggestionsPage() {
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="text-zinc-400 hover:text-zinc-300"
+                      className="text-tertiary hover:text-secondary"
                     >
                       <Edit className="h-4 w-4" />
                     </Button>
@@ -255,11 +255,11 @@ export default function DailySuggestionsPage() {
       </div>
 
       {pendingSuggestions.length === 0 && (
-        <Card className="bg-zinc-900 border-zinc-800">
+        <Card className="bg-surface border-white/5">
           <CardContent className="py-12 text-center">
-            <Lightbulb className="h-12 w-12 text-zinc-600 mx-auto mb-4" />
+            <Lightbulb className="h-12 w-12 text-tertiary mx-auto mb-4" />
             <h3 className="text-lg font-medium text-white mb-2">All caught up!</h3>
-            <p className="text-sm text-zinc-400">
+            <p className="text-sm text-tertiary">
               You&apos;ve reviewed all suggestions for today. Check back later for more.
             </p>
           </CardContent>

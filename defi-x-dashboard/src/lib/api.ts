@@ -1,4 +1,4 @@
-// API client for DeFi App X Strategy Dashboard
+// API client for Defi App X Strategy Dashboard
 
 const API_BASE = '/api';
 

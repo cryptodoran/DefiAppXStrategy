@@ -53,16 +53,16 @@ export function QualityAnalyzer({
     { label: 'Value Density', value: breakdown.valueDensity, description: 'Information per character' },
     { label: 'Engagement Hooks', value: breakdown.engagementHooks, description: 'Elements that drive interaction' },
     { label: 'Clarity', value: breakdown.clarity, description: 'Easy to understand' },
-    { label: 'Brand Voice', value: breakdown.brandVoice, description: 'Alignment with DeFi App tone' },
+    { label: 'Brand Voice', value: breakdown.brandVoice, description: 'Alignment with Defi App tone' },
   ];
 
   if (isAnalyzing) {
     return (
-      <Card className="bg-zinc-900 border-zinc-800">
+      <Card className="bg-surface border-white/5">
         <CardContent className="flex items-center justify-center py-12">
           <div className="text-center">
-            <div className="h-8 w-8 animate-spin rounded-full border-2 border-zinc-700 border-t-blue-500 mx-auto" />
-            <p className="mt-4 text-sm text-zinc-400">Analyzing content quality...</p>
+            <div className="h-8 w-8 animate-spin rounded-full border-2 border-white/10 border-t-blue-500 mx-auto" />
+            <p className="mt-4 text-sm text-tertiary">Analyzing content quality...</p>
           </div>
         </CardContent>
       </Card>
@@ -70,19 +70,19 @@ export function QualityAnalyzer({
   }
 
   return (
-    <Card className="bg-zinc-900 border-zinc-800">
+    <Card className="bg-surface border-white/5">
       <CardHeader>
         <CardTitle className="text-white">Quality Analysis</CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
         {/* Overall Score */}
-        <div className="flex items-center justify-between rounded-lg bg-zinc-950 p-4">
+        <div className="flex items-center justify-between rounded-lg bg-base p-4">
           <div>
-            <p className="text-sm text-zinc-400">Overall Score</p>
+            <p className="text-sm text-tertiary">Overall Score</p>
             <p className={cn('text-3xl font-bold', getScoreColor(score))}>
               {score}
             </p>
-            <p className="text-sm text-zinc-500">{getScoreLabel(score)}</p>
+            <p className="text-sm text-tertiary">{getScoreLabel(score)}</p>
           </div>
           <div
             className={cn(
@@ -100,16 +100,16 @@ export function QualityAnalyzer({
 
         {/* Breakdown */}
         <div className="space-y-3">
-          <h4 className="text-sm font-medium text-zinc-300">Breakdown</h4>
+          <h4 className="text-sm font-medium text-secondary">Breakdown</h4>
           {breakdownItems.map((item) => (
             <div key={item.label} className="space-y-1">
               <div className="flex items-center justify-between text-sm">
-                <span className="text-zinc-400">{item.label}</span>
+                <span className="text-tertiary">{item.label}</span>
                 <span className={cn('font-medium', getScoreColor(item.value))}>
                   {item.value}
                 </span>
               </div>
-              <div className="h-1.5 rounded-full bg-zinc-800">
+              <div className="h-1.5 rounded-full bg-elevated">
                 <div
                   className={cn('h-full rounded-full bg-gradient-to-r', getScoreBg(item.value))}
                   style={{ width: `${item.value}%` }}
@@ -128,7 +128,7 @@ export function QualityAnalyzer({
             </h4>
             <ul className="space-y-1">
               {warnings.map((warning, i) => (
-                <li key={i} className="text-sm text-zinc-400 pl-6">
+                <li key={i} className="text-sm text-tertiary pl-6">
                   {warning}
                 </li>
               ))}
@@ -145,7 +145,7 @@ export function QualityAnalyzer({
             </h4>
             <ul className="space-y-1">
               {improvements.map((improvement, i) => (
-                <li key={i} className="text-sm text-zinc-400 pl-6">
+                <li key={i} className="text-sm text-tertiary pl-6">
                   {improvement}
                 </li>
               ))}

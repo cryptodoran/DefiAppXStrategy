@@ -42,10 +42,10 @@ const mockGeneratedArticle: ArticleSection[] = [
   { id: '4', type: 'paragraph', content: 'The first generation of DeFi protocols suffered from several critical flaws: unsustainable yield mechanics, poor user experience, and a lack of real utility beyond speculation. These issues led to the infamous "DeFi winter" that caused many to write off the entire sector.' },
   { id: '5', type: 'list', content: '• Unsustainable token emissions\n• Complex interfaces that alienated mainstream users\n• Security vulnerabilities and frequent exploits\n• Lack of regulatory clarity' },
   { id: '6', type: 'heading', content: 'What\'s Different Now' },
-  { id: '7', type: 'paragraph', content: 'DeFi App represents the new generation of protocols that have learned from past mistakes. By focusing on real utility, sustainable economics, and user-friendly interfaces, we\'re building infrastructure that can actually scale to mainstream adoption.' },
-  { id: '8', type: 'quote', content: '"The protocols that survive won\'t be the ones with the highest yields, but the ones that solve real problems." - DeFi App Team' },
+  { id: '7', type: 'paragraph', content: 'Defi App represents the new generation of protocols that have learned from past mistakes. By focusing on real utility, sustainable economics, and user-friendly interfaces, we\'re building infrastructure that can actually scale to mainstream adoption.' },
+  { id: '8', type: 'quote', content: '"The protocols that survive won\'t be the ones with the highest yields, but the ones that solve real problems." - Defi App Team' },
   { id: '9', type: 'heading', content: 'Conclusion' },
-  { id: '10', type: 'paragraph', content: 'The future of DeFi is not about recreating the hype cycles of the past. It\'s about building genuine financial infrastructure that serves real needs. DeFi App is committed to being at the forefront of this transformation.' },
+  { id: '10', type: 'paragraph', content: 'The future of DeFi is not about recreating the hype cycles of the past. It\'s about building genuine financial infrastructure that serves real needs. Defi App is committed to being at the forefront of this transformation.' },
 ];
 
 export default function ArticleGeneratorPage() {
@@ -80,7 +80,7 @@ export default function ArticleGeneratorPage() {
       case 'heading':
         return <span className="text-blue-400 font-bold">H</span>;
       case 'paragraph':
-        return <span className="text-zinc-400">¶</span>;
+        return <span className="text-tertiary">¶</span>;
       case 'list':
         return <span className="text-green-400">•</span>;
       case 'quote':
@@ -96,7 +96,7 @@ export default function ArticleGeneratorPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-white">X Article Generator</h1>
-          <p className="text-zinc-400">
+          <p className="text-tertiary">
             Create long-form X Articles that the algorithm favors
           </p>
         </div>
@@ -111,7 +111,7 @@ export default function ArticleGeneratorPage() {
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Input Section */}
         <div className="space-y-6">
-          <Card className="bg-zinc-900 border-zinc-800">
+          <Card className="bg-surface border-white/5">
             <CardHeader>
               <CardTitle className="text-white">Article Settings</CardTitle>
             </CardHeader>
@@ -122,7 +122,7 @@ export default function ArticleGeneratorPage() {
                   placeholder="e.g., The Future of DeFi..."
                   value={topic}
                   onChange={(e) => setTopic(e.target.value)}
-                  className="bg-zinc-950 border-zinc-800"
+                  className="bg-base border-white/5"
                 />
               </div>
 
@@ -132,7 +132,7 @@ export default function ArticleGeneratorPage() {
                   placeholder="Enter main sections or let AI generate..."
                   value={outline}
                   onChange={(e) => setOutline(e.target.value)}
-                  className="bg-zinc-950 border-zinc-800 min-h-[100px]"
+                  className="bg-base border-white/5 min-h-[100px]"
                 />
               </div>
 
@@ -142,14 +142,14 @@ export default function ArticleGeneratorPage() {
                   placeholder="Main arguments or facts to include..."
                   value={keyPoints}
                   onChange={(e) => setKeyPoints(e.target.value)}
-                  className="bg-zinc-950 border-zinc-800 min-h-[80px]"
+                  className="bg-base border-white/5 min-h-[80px]"
                 />
               </div>
 
               <div className="space-y-2">
                 <Label>Target Length</Label>
                 <Select value={targetLength} onValueChange={setTargetLength}>
-                  <SelectTrigger className="bg-zinc-950 border-zinc-800">
+                  <SelectTrigger className="bg-base border-white/5">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -161,7 +161,7 @@ export default function ArticleGeneratorPage() {
               </div>
 
               <Button
-                className="w-full bg-gradient-to-r from-blue-600 to-purple-600"
+                className="w-full bg-gradient-to-r from-violet-500 to-indigo-600"
                 onClick={handleGenerate}
                 disabled={!topic || isGenerating}
               >
@@ -181,7 +181,7 @@ export default function ArticleGeneratorPage() {
           </Card>
 
           {/* SEO Tips */}
-          <Card className="bg-zinc-900 border-zinc-800">
+          <Card className="bg-surface border-white/5">
             <CardHeader>
               <CardTitle className="text-sm text-white flex items-center gap-2">
                 <Search className="h-4 w-4" />
@@ -191,15 +191,15 @@ export default function ArticleGeneratorPage() {
             <CardContent className="space-y-3 text-sm">
               <div className="flex items-center gap-2">
                 <div className="h-2 w-2 rounded-full bg-green-400" />
-                <span className="text-zinc-400">Keyword density: optimal</span>
+                <span className="text-tertiary">Keyword density: optimal</span>
               </div>
               <div className="flex items-center gap-2">
                 <div className="h-2 w-2 rounded-full bg-green-400" />
-                <span className="text-zinc-400">Readability: excellent</span>
+                <span className="text-tertiary">Readability: excellent</span>
               </div>
               <div className="flex items-center gap-2">
                 <div className="h-2 w-2 rounded-full bg-yellow-400" />
-                <span className="text-zinc-400">Add more subheadings</span>
+                <span className="text-tertiary">Add more subheadings</span>
               </div>
             </CardContent>
           </Card>
@@ -208,18 +208,18 @@ export default function ArticleGeneratorPage() {
         {/* Article Editor/Preview */}
         <div className="lg:col-span-2 space-y-6">
           {article.length === 0 ? (
-            <Card className="bg-zinc-900 border-zinc-800">
+            <Card className="bg-surface border-white/5">
               <CardContent className="py-16 text-center">
-                <FileText className="h-12 w-12 text-zinc-600 mx-auto mb-4" />
+                <FileText className="h-12 w-12 text-tertiary mx-auto mb-4" />
                 <h3 className="text-lg font-medium text-white mb-2">No article yet</h3>
-                <p className="text-sm text-zinc-500">
+                <p className="text-sm text-tertiary">
                   Enter a topic and generate your X Article
                 </p>
               </CardContent>
             </Card>
           ) : (
             <>
-              <Card className="bg-zinc-900 border-zinc-800">
+              <Card className="bg-surface border-white/5">
                 <CardHeader className="flex flex-row items-center justify-between">
                   <CardTitle className="text-white">Article Content</CardTitle>
                   <Button variant="outline" size="sm" onClick={copyArticle}>
@@ -249,19 +249,19 @@ export default function ArticleGeneratorPage() {
                             );
                           case 'paragraph':
                             return (
-                              <p key={section.id} className="text-zinc-300 mb-4">
+                              <p key={section.id} className="text-secondary mb-4">
                                 {section.content}
                               </p>
                             );
                           case 'list':
                             return (
-                              <div key={section.id} className="text-zinc-300 mb-4 whitespace-pre-line">
+                              <div key={section.id} className="text-secondary mb-4 whitespace-pre-line">
                                 {section.content}
                               </div>
                             );
                           case 'quote':
                             return (
-                              <blockquote key={section.id} className="border-l-4 border-purple-500 pl-4 italic text-zinc-400 my-4">
+                              <blockquote key={section.id} className="border-l-4 border-purple-500 pl-4 italic text-tertiary my-4">
                                 {section.content}
                               </blockquote>
                             );
@@ -275,16 +275,16 @@ export default function ArticleGeneratorPage() {
                       {article.map((section) => (
                         <div
                           key={section.id}
-                          className="flex gap-3 p-3 bg-zinc-950 rounded-lg"
+                          className="flex gap-3 p-3 bg-base rounded-lg"
                         >
-                          <div className="shrink-0 w-6 h-6 flex items-center justify-center bg-zinc-800 rounded">
+                          <div className="shrink-0 w-6 h-6 flex items-center justify-center bg-elevated rounded">
                             {getSectionIcon(section.type)}
                           </div>
                           <div className="flex-1">
                             <Badge variant="outline" className="mb-2 text-xs">
                               {section.type}
                             </Badge>
-                            <p className="text-sm text-zinc-300 whitespace-pre-line">
+                            <p className="text-sm text-secondary whitespace-pre-line">
                               {section.content}
                             </p>
                           </div>
@@ -296,7 +296,7 @@ export default function ArticleGeneratorPage() {
               </Card>
 
               {/* Promotional Tweet */}
-              <Card className="bg-zinc-900 border-zinc-800">
+              <Card className="bg-surface border-white/5">
                 <CardHeader>
                   <CardTitle className="text-white flex items-center gap-2">
                     <Link className="h-5 w-5" />
@@ -307,10 +307,10 @@ export default function ArticleGeneratorPage() {
                   <Textarea
                     value={promotionalTweet}
                     onChange={(e) => setPromotionalTweet(e.target.value)}
-                    className="bg-zinc-950 border-zinc-800 min-h-[100px]"
+                    className="bg-base border-white/5 min-h-[100px]"
                   />
                   <div className="flex items-center justify-between mt-3">
-                    <span className="text-sm text-zinc-500">
+                    <span className="text-sm text-tertiary">
                       {promotionalTweet.length} / 280 characters
                     </span>
                     <Button size="sm">

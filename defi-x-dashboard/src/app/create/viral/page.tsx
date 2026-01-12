@@ -29,14 +29,14 @@ const mockVariations = [
   },
   {
     id: '2',
-    content: "Hot take: 90% of \"DeFi protocols\" will be obsolete in 2 years.\n\nThe ones that survive? They're solving real problems, not chasing TVL.\n\nDeFi App is built different. Let me explain why...",
+    content: "Hot take: 90% of \"DeFi protocols\" will be obsolete in 2 years.\n\nThe ones that survive? They're solving real problems, not chasing TVL.\n\nDefi App is built different. Let me explain why...",
     predictedScore: 82,
     viralElements: ['Controversy', 'FOMO', 'Educational'],
     hookRating: 4,
   },
   {
     id: '3',
-    content: "Everyone's talking about the next bull run.\n\nBut here's what separates winners from losers in DeFi:\n\nIt's not about timing the market. It's about using the right tools.\n\n(A thread on how DeFi App changes the game)",
+    content: "Everyone's talking about the next bull run.\n\nBut here's what separates winners from losers in DeFi:\n\nIt's not about timing the market. It's about using the right tools.\n\n(A thread on how Defi App changes the game)",
     predictedScore: 79,
     viralElements: ['Educational', 'FOMO'],
     hookRating: 4,
@@ -88,7 +88,7 @@ export default function ViralPostCreatorPage() {
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold text-white">Viral Post Creator</h1>
-        <p className="text-zinc-400">
+        <p className="text-tertiary">
           Generate high-potential viral posts with AI assistance
         </p>
       </div>
@@ -96,7 +96,7 @@ export default function ViralPostCreatorPage() {
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Input Section */}
         <div className="lg:col-span-2 space-y-6">
-          <Card className="bg-zinc-900 border-zinc-800">
+          <Card className="bg-surface border-white/5">
             <CardHeader>
               <CardTitle className="text-white">Content Settings</CardTitle>
             </CardHeader>
@@ -109,7 +109,7 @@ export default function ViralPostCreatorPage() {
                   placeholder="e.g., DeFi summer 2.0, New feature launch, Market commentary..."
                   value={topic}
                   onChange={(e) => setTopic(e.target.value)}
-                  className="bg-zinc-950 border-zinc-800"
+                  className="bg-base border-white/5"
                 />
               </div>
 
@@ -118,7 +118,7 @@ export default function ViralPostCreatorPage() {
                 <div className="space-y-2">
                   <Label>Tone</Label>
                   <Select value={tone} onValueChange={setTone}>
-                    <SelectTrigger className="bg-zinc-950 border-zinc-800">
+                    <SelectTrigger className="bg-base border-white/5">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -134,7 +134,7 @@ export default function ViralPostCreatorPage() {
                 <div className="space-y-2">
                   <Label>Goal</Label>
                   <Select value={goal} onValueChange={setGoal}>
-                    <SelectTrigger className="bg-zinc-950 border-zinc-800">
+                    <SelectTrigger className="bg-base border-white/5">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -151,7 +151,7 @@ export default function ViralPostCreatorPage() {
 
               {/* Generate Button */}
               <Button
-                className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500"
+                className="w-full bg-gradient-to-r from-violet-500 to-indigo-600 hover:from-violet-400 hover:to-indigo-500"
                 onClick={handleGenerate}
                 disabled={!topic || isGenerating}
               >
@@ -171,7 +171,7 @@ export default function ViralPostCreatorPage() {
           </Card>
 
           {/* Manual Content Input */}
-          <Card className="bg-zinc-900 border-zinc-800">
+          <Card className="bg-surface border-white/5">
             <CardHeader>
               <CardTitle className="text-white">Or Write Your Own</CardTitle>
             </CardHeader>
@@ -180,10 +180,10 @@ export default function ViralPostCreatorPage() {
                 placeholder="Write your post here to get quality analysis..."
                 value={manualContent}
                 onChange={(e) => setManualContent(e.target.value)}
-                className="min-h-[150px] bg-zinc-950 border-zinc-800"
+                className="min-h-[150px] bg-base border-white/5"
               />
               <div className="flex items-center justify-between">
-                <span className="text-sm text-zinc-500">
+                <span className="text-sm text-tertiary">
                   {manualContent.length} / 280 characters
                 </span>
                 <Button variant="outline" disabled={!manualContent}>
@@ -215,12 +215,12 @@ export default function ViralPostCreatorPage() {
           />
 
           {/* Tips Card */}
-          <Card className="bg-zinc-900 border-zinc-800">
+          <Card className="bg-surface border-white/5">
             <CardHeader>
               <CardTitle className="text-sm text-white">Pro Tips</CardTitle>
             </CardHeader>
             <CardContent>
-              <ul className="space-y-2 text-sm text-zinc-400">
+              <ul className="space-y-2 text-sm text-tertiary">
                 <li className="flex gap-2">
                   <span className="text-yellow-400">1.</span>
                   Start with a strong hook - first line is everything

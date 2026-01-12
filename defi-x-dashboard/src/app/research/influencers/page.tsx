@@ -129,7 +129,7 @@ const influencers: Influencer[] = [
 ];
 
 const tierConfig = {
-  nano: { label: 'Nano', range: '< 10K', color: 'bg-zinc-500/20 text-zinc-400' },
+  nano: { label: 'Nano', range: '< 10K', color: 'bg-white/5 text-tertiary' },
   micro: { label: 'Micro', range: '10K - 100K', color: 'bg-blue-500/20 text-blue-400' },
   macro: { label: 'Macro', range: '100K - 1M', color: 'bg-purple-500/20 text-purple-400' },
   mega: { label: 'Mega', range: '> 1M', color: 'bg-yellow-500/20 text-yellow-400' },
@@ -155,7 +155,7 @@ export default function InfluencerDatabasePage() {
       case 'neutral':
         return 'bg-yellow-500/20 text-yellow-400';
       default:
-        return 'bg-zinc-500/20 text-zinc-400';
+        return 'bg-white/5 text-tertiary';
     }
   };
 
@@ -181,9 +181,9 @@ export default function InfluencerDatabasePage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-white">Influencer Database</h1>
-          <p className="text-zinc-400">Discover and track CT influencers for collaborations</p>
+          <p className="text-tertiary">Discover and track CT influencers for collaborations</p>
         </div>
-        <Button className="bg-gradient-to-r from-blue-600 to-purple-600">
+        <Button className="bg-gradient-to-r from-violet-500 to-indigo-600">
           <Users className="mr-2 h-4 w-4" />
           Add Influencer
         </Button>
@@ -191,27 +191,27 @@ export default function InfluencerDatabasePage() {
 
       {/* Stats */}
       <div className="grid gap-4 md:grid-cols-4">
-        <Card className="bg-zinc-900 border-zinc-800">
+        <Card className="bg-surface border-white/5">
           <CardContent className="pt-4">
-            <p className="text-sm text-zinc-400">Total Tracked</p>
+            <p className="text-sm text-tertiary">Total Tracked</p>
             <p className="text-2xl font-bold text-white">{stats.total}</p>
           </CardContent>
         </Card>
-        <Card className="bg-zinc-900 border-zinc-800">
+        <Card className="bg-surface border-white/5">
           <CardContent className="pt-4">
-            <p className="text-sm text-zinc-400">Positive Sentiment</p>
+            <p className="text-sm text-tertiary">Positive Sentiment</p>
             <p className="text-2xl font-bold text-green-400">{stats.positive}</p>
           </CardContent>
         </Card>
-        <Card className="bg-zinc-900 border-zinc-800">
+        <Card className="bg-surface border-white/5">
           <CardContent className="pt-4">
-            <p className="text-sm text-zinc-400">Past Collaborations</p>
+            <p className="text-sm text-tertiary">Past Collaborations</p>
             <p className="text-2xl font-bold text-purple-400">{stats.withCollabs}</p>
           </CardContent>
         </Card>
-        <Card className="bg-zinc-900 border-zinc-800">
+        <Card className="bg-surface border-white/5">
           <CardContent className="pt-4">
-            <p className="text-sm text-zinc-400">Avg. Engagement</p>
+            <p className="text-sm text-tertiary">Avg. Engagement</p>
             <p className="text-2xl font-bold text-blue-400">{stats.avgEngagement}%</p>
           </CardContent>
         </Card>
@@ -220,16 +220,16 @@ export default function InfluencerDatabasePage() {
       {/* Filters */}
       <div className="flex gap-4">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-500" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-tertiary" />
           <Input
             placeholder="Search influencers..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10 bg-zinc-900 border-zinc-800"
+            className="pl-10 bg-surface border-white/5"
           />
         </div>
         <Select value={tierFilter} onValueChange={setTierFilter}>
-          <SelectTrigger className="w-40 bg-zinc-900 border-zinc-800">
+          <SelectTrigger className="w-40 bg-surface border-white/5">
             <SelectValue placeholder="Tier" />
           </SelectTrigger>
           <SelectContent>
@@ -241,7 +241,7 @@ export default function InfluencerDatabasePage() {
           </SelectContent>
         </Select>
         <Select value={sentimentFilter} onValueChange={setSentimentFilter}>
-          <SelectTrigger className="w-40 bg-zinc-900 border-zinc-800">
+          <SelectTrigger className="w-40 bg-surface border-white/5">
             <SelectValue placeholder="Sentiment" />
           </SelectTrigger>
           <SelectContent>
@@ -256,11 +256,11 @@ export default function InfluencerDatabasePage() {
       {/* Influencer List */}
       <div className="grid gap-4 md:grid-cols-2">
         {filteredInfluencers.map((influencer) => (
-          <Card key={influencer.id} className="bg-zinc-900 border-zinc-800">
+          <Card key={influencer.id} className="bg-surface border-white/5">
             <CardContent className="pt-4">
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center gap-3">
-                  <div className="h-12 w-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+                  <div className="h-12 w-12 rounded-full bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center">
                     <span className="text-white font-bold">{influencer.name[0]}</span>
                   </div>
                   <div>
@@ -270,7 +270,7 @@ export default function InfluencerDatabasePage() {
                         <CheckCircle className="h-4 w-4 text-green-400" />
                       )}
                     </div>
-                    <p className="text-sm text-zinc-500">{influencer.handle}</p>
+                    <p className="text-sm text-tertiary">{influencer.handle}</p>
                   </div>
                 </div>
                 <Badge className={tierConfig[influencer.tier].color}>
@@ -281,15 +281,15 @@ export default function InfluencerDatabasePage() {
               <div className="grid grid-cols-3 gap-4 mb-4">
                 <div className="text-center">
                   <p className="text-lg font-bold text-white">{formatNumber(influencer.followers)}</p>
-                  <p className="text-xs text-zinc-500">Followers</p>
+                  <p className="text-xs text-tertiary">Followers</p>
                 </div>
                 <div className="text-center">
                   <p className="text-lg font-bold text-white">{influencer.engagementRate}%</p>
-                  <p className="text-xs text-zinc-500">Engagement</p>
+                  <p className="text-xs text-tertiary">Engagement</p>
                 </div>
                 <div className="text-center">
                   <p className="text-lg font-bold text-white">{influencer.qualityScore}</p>
-                  <p className="text-xs text-zinc-500">Quality</p>
+                  <p className="text-xs text-tertiary">Quality</p>
                 </div>
               </div>
 
@@ -301,7 +301,7 @@ export default function InfluencerDatabasePage() {
                 ))}
               </div>
 
-              <div className="flex items-center justify-between pt-4 border-t border-zinc-800">
+              <div className="flex items-center justify-between pt-4 border-t border-white/5">
                 <Badge className={getSentimentColor(influencer.defiAppSentiment)}>
                   {influencer.defiAppSentiment} sentiment
                 </Badge>

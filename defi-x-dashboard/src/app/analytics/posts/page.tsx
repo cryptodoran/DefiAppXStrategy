@@ -49,7 +49,7 @@ const posts = [
   },
   {
     id: '2',
-    content: 'Just shipped a massive update to DeFi App. Your favorite features just got 10x better...',
+    content: 'Just shipped a massive update to Defi App. Your favorite features just got 10x better...',
     type: 'SINGLE',
     publishedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
     impressions: 156000,
@@ -66,7 +66,7 @@ const posts = [
   },
   {
     id: '3',
-    content: 'The DeFi summer 2.0 narrative is real. Here\'s why DeFi App is positioned to capture...',
+    content: 'The DeFi summer 2.0 narrative is real. Here\'s why Defi App is positioned to capture...',
     type: 'THREAD',
     publishedAt: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000),
     impressions: 89000,
@@ -137,11 +137,11 @@ export default function PostPerformancePage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-white">Post Performance</h1>
-          <p className="text-zinc-400">Detailed analytics on every post</p>
+          <p className="text-tertiary">Detailed analytics on every post</p>
         </div>
         <div className="flex items-center gap-3">
           <Select value={timeRange} onValueChange={setTimeRange}>
-            <SelectTrigger className="w-32 bg-zinc-900 border-zinc-800">
+            <SelectTrigger className="w-32 bg-surface border-white/5">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -151,7 +151,7 @@ export default function PostPerformancePage() {
             </SelectContent>
           </Select>
           <Select value={contentType} onValueChange={setContentType}>
-            <SelectTrigger className="w-32 bg-zinc-900 border-zinc-800">
+            <SelectTrigger className="w-32 bg-surface border-white/5">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -165,7 +165,7 @@ export default function PostPerformancePage() {
       </div>
 
       {/* Performance Chart */}
-      <Card className="bg-zinc-900 border-zinc-800">
+      <Card className="bg-surface border-white/5">
         <CardHeader>
           <CardTitle className="text-white">Performance Overview</CardTitle>
         </CardHeader>
@@ -197,25 +197,25 @@ export default function PostPerformancePage() {
 
       {/* Benchmarks */}
       <div className="grid gap-4 md:grid-cols-2">
-        <Card className="bg-zinc-900 border-zinc-800">
+        <Card className="bg-surface border-white/5">
           <CardContent className="pt-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-zinc-400">vs Your Average</p>
+                <p className="text-sm text-tertiary">vs Your Average</p>
                 <p className="text-2xl font-bold text-green-400">+47%</p>
-                <p className="text-xs text-zinc-500">impressions this week</p>
+                <p className="text-xs text-tertiary">impressions this week</p>
               </div>
               <ArrowUpRight className="h-8 w-8 text-green-400" />
             </div>
           </CardContent>
         </Card>
-        <Card className="bg-zinc-900 border-zinc-800">
+        <Card className="bg-surface border-white/5">
           <CardContent className="pt-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-zinc-400">vs CT DeFi Average</p>
+                <p className="text-sm text-tertiary">vs CT DeFi Average</p>
                 <p className="text-2xl font-bold text-green-400">+89%</p>
-                <p className="text-xs text-zinc-500">above benchmark</p>
+                <p className="text-xs text-tertiary">above benchmark</p>
               </div>
               <TrendingUp className="h-8 w-8 text-green-400" />
             </div>
@@ -224,7 +224,7 @@ export default function PostPerformancePage() {
       </div>
 
       {/* Posts List */}
-      <Card className="bg-zinc-900 border-zinc-800">
+      <Card className="bg-surface border-white/5">
         <CardHeader>
           <CardTitle className="text-white">Recent Posts</CardTitle>
         </CardHeader>
@@ -232,11 +232,11 @@ export default function PostPerformancePage() {
           {posts.map((post) => (
             <div
               key={post.id}
-              className="rounded-lg border border-zinc-800 bg-zinc-950 p-4"
+              className="rounded-lg border border-white/5 bg-base p-4"
             >
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1">
-                  <p className="text-sm text-zinc-300 line-clamp-2">
+                  <p className="text-sm text-secondary line-clamp-2">
                     {post.content}
                   </p>
                   <div className="flex flex-wrap gap-2 mt-2">
@@ -257,53 +257,53 @@ export default function PostPerformancePage() {
                   <p className={cn('text-lg font-bold', getScoreColor(post.qualityScore))}>
                     {post.qualityScore}
                   </p>
-                  <p className="text-xs text-zinc-500">Quality</p>
+                  <p className="text-xs text-tertiary">Quality</p>
                 </div>
               </div>
 
               {/* Metrics */}
-              <div className="grid grid-cols-5 gap-4 mt-4 pt-4 border-t border-zinc-800">
+              <div className="grid grid-cols-5 gap-4 mt-4 pt-4 border-t border-white/5">
                 <div className="text-center">
-                  <div className="flex items-center justify-center gap-1 text-zinc-400">
+                  <div className="flex items-center justify-center gap-1 text-tertiary">
                     <Eye className="h-4 w-4" />
                   </div>
                   <p className="text-sm font-medium text-white">
                     {formatNumber(post.impressions)}
                   </p>
-                  <p className="text-xs text-zinc-500">Impressions</p>
+                  <p className="text-xs text-tertiary">Impressions</p>
                 </div>
                 <div className="text-center">
-                  <div className="flex items-center justify-center gap-1 text-zinc-400">
+                  <div className="flex items-center justify-center gap-1 text-tertiary">
                     <Heart className="h-4 w-4" />
                   </div>
                   <p className="text-sm font-medium text-white">
                     {formatNumber(post.likes)}
                   </p>
-                  <p className="text-xs text-zinc-500">Likes</p>
+                  <p className="text-xs text-tertiary">Likes</p>
                 </div>
                 <div className="text-center">
-                  <div className="flex items-center justify-center gap-1 text-zinc-400">
+                  <div className="flex items-center justify-center gap-1 text-tertiary">
                     <Repeat2 className="h-4 w-4" />
                   </div>
                   <p className="text-sm font-medium text-white">
                     {formatNumber(post.retweets)}
                   </p>
-                  <p className="text-xs text-zinc-500">Retweets</p>
+                  <p className="text-xs text-tertiary">Retweets</p>
                 </div>
                 <div className="text-center">
-                  <div className="flex items-center justify-center gap-1 text-zinc-400">
+                  <div className="flex items-center justify-center gap-1 text-tertiary">
                     <MessageCircle className="h-4 w-4" />
                   </div>
                   <p className="text-sm font-medium text-white">
                     {formatNumber(post.replies)}
                   </p>
-                  <p className="text-xs text-zinc-500">Replies</p>
+                  <p className="text-xs text-tertiary">Replies</p>
                 </div>
                 <div className="text-center">
                   <p className="text-sm font-medium text-white">
                     {((post.engagements / post.impressions) * 100).toFixed(1)}%
                   </p>
-                  <p className="text-xs text-zinc-500">Eng. Rate</p>
+                  <p className="text-xs text-tertiary">Eng. Rate</p>
                 </div>
               </div>
             </div>

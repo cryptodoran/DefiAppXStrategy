@@ -54,7 +54,7 @@ export function AlgorithmPanel({ insights, healthScore }: AlgorithmPanelProps) {
   };
 
   return (
-    <Card className="bg-zinc-900 border-zinc-800">
+    <Card className="bg-surface border-white/5">
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2 text-white">
@@ -67,7 +67,7 @@ export function AlgorithmPanel({ insights, healthScore }: AlgorithmPanelProps) {
               getHealthBg(healthScore)
             )}
           >
-            <span className="text-sm text-zinc-400">Health Score</span>
+            <span className="text-sm text-tertiary">Health Score</span>
             <span className={cn('ml-2 text-lg font-bold', getHealthColor(healthScore))}>
               {healthScore}
             </span>
@@ -81,23 +81,23 @@ export function AlgorithmPanel({ insights, healthScore }: AlgorithmPanelProps) {
             return (
               <div
                 key={insight.id}
-                className="rounded-lg border border-zinc-800 bg-zinc-950 p-4"
+                className="rounded-lg border border-white/5 bg-base p-4"
               >
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-2">
-                    <div className="text-zinc-400">
+                    <div className="text-tertiary">
                       {getCategoryIcon(insight.category)}
                     </div>
                     <h4 className="font-medium text-white">{insight.factorName}</h4>
                   </div>
                   <Badge variant={confidence.variant}>{confidence.label}</Badge>
                 </div>
-                <p className="mt-2 text-sm text-zinc-400">
+                <p className="mt-2 text-sm text-tertiary">
                   {insight.currentUnderstanding}
                 </p>
                 {insight.impactRating !== null && (
                   <div className="mt-3 flex items-center gap-2">
-                    <span className="text-xs text-zinc-500">Impact:</span>
+                    <span className="text-xs text-tertiary">Impact:</span>
                     <div className="flex gap-0.5">
                       {[1, 2, 3, 4, 5].map((i) => (
                         <div
@@ -106,7 +106,7 @@ export function AlgorithmPanel({ insights, healthScore }: AlgorithmPanelProps) {
                             'h-1.5 w-4 rounded-full',
                             i <= (insight.impactRating || 0)
                               ? 'bg-yellow-400'
-                              : 'bg-zinc-700'
+                              : 'bg-white/10'
                           )}
                         />
                       ))}

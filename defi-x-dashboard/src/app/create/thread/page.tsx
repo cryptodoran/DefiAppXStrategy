@@ -38,7 +38,7 @@ interface ThreadPost {
 const mockThread: ThreadPost[] = [
   {
     id: '1',
-    content: "DeFi is about to enter its biggest bull run ever.\n\nBut 90% of people will miss it because they're looking in the wrong places.\n\nHere's what the smartest money is actually doing (and why DeFi App is positioned to win):\n\n🧵",
+    content: "DeFi is about to enter its biggest bull run ever.\n\nBut 90% of people will miss it because they're looking in the wrong places.\n\nHere's what the smartest money is actually doing (and why Defi App is positioned to win):\n\n🧵",
     isHook: true,
     isCTA: false,
     engagementHook: true,
@@ -52,21 +52,21 @@ const mockThread: ThreadPost[] = [
   },
   {
     id: '3',
-    content: "Here's the pattern smart money follows:\n\n1. Accumulate during fear\n2. Use the best tools\n3. Focus on protocols with real utility\n\nDeFi App checks all three boxes. Let me explain...",
+    content: "Here's the pattern smart money follows:\n\n1. Accumulate during fear\n2. Use the best tools\n3. Focus on protocols with real utility\n\nDefi App checks all three boxes. Let me explain...",
     isHook: false,
     isCTA: false,
     engagementHook: true,
   },
   {
     id: '4',
-    content: "The key differentiator?\n\nMost DeFi tools are built for degens.\n\nDeFi App is built for builders.\n\nThat's why institutional money is starting to pay attention.",
+    content: "The key differentiator?\n\nMost DeFi tools are built for degens.\n\nDefi App is built for builders.\n\nThat's why institutional money is starting to pay attention.",
     isHook: false,
     isCTA: false,
     engagementHook: false,
   },
   {
     id: '5',
-    content: "TL;DR:\n\n• DeFi 2.0 is coming\n• The winners will be protocols with real utility\n• DeFi App is positioned perfectly\n\nIf you're not using the right tools, you're already behind.\n\nLike + RT if this helped.\n\nFollow @DeFiApp for more alpha.",
+    content: "TL;DR:\n\n• DeFi 2.0 is coming\n• The winners will be protocols with real utility\n• Defi App is positioned perfectly\n\nIf you're not using the right tools, you're already behind.\n\nLike + RT if this helped.\n\nFollow @DeFiApp for more alpha.",
     isHook: false,
     isCTA: true,
     engagementHook: true,
@@ -133,7 +133,7 @@ export default function ThreadBuilderPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-white">Thread Builder</h1>
-          <p className="text-zinc-400">
+          <p className="text-tertiary">
             Create high-quality threads that the algorithm loves
           </p>
         </div>
@@ -153,7 +153,7 @@ export default function ThreadBuilderPage() {
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Input Section */}
         <div className="lg:col-span-1 space-y-6">
-          <Card className="bg-zinc-900 border-zinc-800">
+          <Card className="bg-surface border-white/5">
             <CardHeader>
               <CardTitle className="text-white">Thread Settings</CardTitle>
             </CardHeader>
@@ -166,7 +166,7 @@ export default function ThreadBuilderPage() {
                   placeholder="e.g., Why DeFi 2.0 will be massive..."
                   value={topic}
                   onChange={(e) => setTopic(e.target.value)}
-                  className="bg-zinc-950 border-zinc-800"
+                  className="bg-base border-white/5"
                 />
               </div>
 
@@ -179,7 +179,7 @@ export default function ThreadBuilderPage() {
                       placeholder={`Point ${index + 1}...`}
                       value={point}
                       onChange={(e) => updateKeyPoint(index, e.target.value)}
-                      className="bg-zinc-950 border-zinc-800"
+                      className="bg-base border-white/5"
                     />
                     {keyPoints.length > 1 && (
                       <Button
@@ -187,7 +187,7 @@ export default function ThreadBuilderPage() {
                         size="icon"
                         onClick={() => removeKeyPoint(index)}
                       >
-                        <Trash2 className="h-4 w-4 text-zinc-500" />
+                        <Trash2 className="h-4 w-4 text-tertiary" />
                       </Button>
                     )}
                   </div>
@@ -207,7 +207,7 @@ export default function ThreadBuilderPage() {
               <div className="space-y-2">
                 <Label>Thread Length</Label>
                 <Select value={targetLength} onValueChange={setTargetLength}>
-                  <SelectTrigger className="bg-zinc-950 border-zinc-800">
+                  <SelectTrigger className="bg-base border-white/5">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -222,7 +222,7 @@ export default function ThreadBuilderPage() {
 
               {/* Generate Button */}
               <Button
-                className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500"
+                className="w-full bg-gradient-to-r from-violet-500 to-indigo-600 hover:from-violet-400 hover:to-indigo-500"
                 onClick={handleGenerate}
                 disabled={!topic || isGenerating}
               >
@@ -242,12 +242,12 @@ export default function ThreadBuilderPage() {
           </Card>
 
           {/* Tips */}
-          <Card className="bg-zinc-900 border-zinc-800">
+          <Card className="bg-surface border-white/5">
             <CardHeader>
               <CardTitle className="text-sm text-white">Thread Tips</CardTitle>
             </CardHeader>
             <CardContent>
-              <ul className="space-y-2 text-sm text-zinc-400">
+              <ul className="space-y-2 text-sm text-tertiary">
                 <li className="flex gap-2">
                   <Zap className="h-4 w-4 text-yellow-400 shrink-0" />
                   Threads with 5+ tweets get algorithmic boost
@@ -272,24 +272,24 @@ export default function ThreadBuilderPage() {
         {/* Thread Editor */}
         <div className="lg:col-span-2">
           {thread.length === 0 && !isGenerating ? (
-            <Card className="bg-zinc-900 border-zinc-800">
+            <Card className="bg-surface border-white/5">
               <CardContent className="flex flex-col items-center justify-center py-16">
-                <div className="h-16 w-16 rounded-full bg-zinc-800 flex items-center justify-center mb-4">
-                  <Sparkles className="h-8 w-8 text-zinc-500" />
+                <div className="h-16 w-16 rounded-full bg-elevated flex items-center justify-center mb-4">
+                  <Sparkles className="h-8 w-8 text-tertiary" />
                 </div>
                 <h3 className="text-lg font-medium text-white mb-2">
                   No thread yet
                 </h3>
-                <p className="text-sm text-zinc-500 text-center max-w-md">
+                <p className="text-sm text-tertiary text-center max-w-md">
                   Enter a topic and key points, then click generate to create your thread
                 </p>
               </CardContent>
             </Card>
           ) : isGenerating ? (
-            <Card className="bg-zinc-900 border-zinc-800">
+            <Card className="bg-surface border-white/5">
               <CardContent className="flex flex-col items-center justify-center py-16">
-                <div className="h-12 w-12 animate-spin rounded-full border-2 border-zinc-700 border-t-blue-500" />
-                <p className="mt-4 text-zinc-400">Generating your thread...</p>
+                <div className="h-12 w-12 animate-spin rounded-full border-2 border-white/10 border-t-blue-500" />
+                <p className="mt-4 text-tertiary">Generating your thread...</p>
               </CardContent>
             </Card>
           ) : (
@@ -298,7 +298,7 @@ export default function ThreadBuilderPage() {
                 <Card
                   key={post.id}
                   className={cn(
-                    'bg-zinc-900 border-zinc-800 transition-all',
+                    'bg-surface border-white/5 transition-all',
                     editingId === post.id && 'ring-2 ring-blue-500'
                   )}
                 >
@@ -306,10 +306,10 @@ export default function ThreadBuilderPage() {
                     {/* Post Header */}
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center gap-2">
-                        <div className="flex h-6 w-6 items-center justify-center rounded-full bg-zinc-800">
-                          <GripVertical className="h-3 w-3 text-zinc-500" />
+                        <div className="flex h-6 w-6 items-center justify-center rounded-full bg-elevated">
+                          <GripVertical className="h-3 w-3 text-tertiary" />
                         </div>
-                        <span className="text-sm font-medium text-zinc-400">
+                        <span className="text-sm font-medium text-tertiary">
                           {index + 1} / {thread.length}
                         </span>
                         {post.isHook && (
@@ -362,29 +362,29 @@ export default function ThreadBuilderPage() {
                       <Textarea
                         value={post.content}
                         onChange={(e) => updateThreadPost(post.id, e.target.value)}
-                        className="min-h-[120px] bg-zinc-950 border-zinc-800"
+                        className="min-h-[120px] bg-base border-white/5"
                         autoFocus
                       />
                     ) : (
-                      <p className="text-sm text-zinc-300 whitespace-pre-wrap">
+                      <p className="text-sm text-secondary whitespace-pre-wrap">
                         {post.content}
                       </p>
                     )}
 
                     {/* Character count */}
-                    <div className="flex items-center justify-between mt-3 pt-3 border-t border-zinc-800">
+                    <div className="flex items-center justify-between mt-3 pt-3 border-t border-white/5">
                       <span
                         className={cn(
                           'text-xs',
                           post.content.length > 280
                             ? 'text-red-400'
-                            : 'text-zinc-500'
+                            : 'text-tertiary'
                         )}
                       >
                         {post.content.length} / 280
                       </span>
                       {previewMode && (
-                        <div className="text-xs text-zinc-500">
+                        <div className="text-xs text-tertiary">
                           Preview mode
                         </div>
                       )}

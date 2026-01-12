@@ -96,14 +96,14 @@ export default function ExposureBudgetPage() {
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold text-white">Exposure Budget Tracker</h1>
-        <p className="text-zinc-400">
+        <p className="text-tertiary">
           Track and optimize your daily exposure allocation
         </p>
       </div>
 
       {/* Main Budget Display */}
       <div className="grid gap-6 lg:grid-cols-3">
-        <Card className="lg:col-span-2 bg-zinc-900 border-zinc-800">
+        <Card className="lg:col-span-2 bg-surface border-white/5">
           <CardHeader>
             <CardTitle className="text-white flex items-center gap-2">
               <Zap className="h-5 w-5 text-yellow-400" />
@@ -116,16 +116,16 @@ export default function ExposureBudgetPage() {
                 <p className={cn('text-5xl font-bold', getUsageColor(usagePercentage))}>
                   {exposureData.daily.remaining}%
                 </p>
-                <p className="text-zinc-400 mt-1">remaining today</p>
+                <p className="text-tertiary mt-1">remaining today</p>
               </div>
               <div className="text-right">
                 <p className="text-2xl font-bold text-white">{exposureData.daily.used}%</p>
-                <p className="text-zinc-500">used</p>
+                <p className="text-tertiary">used</p>
               </div>
             </div>
 
             {/* Progress Bar */}
-            <div className="h-4 bg-zinc-800 rounded-full overflow-hidden">
+            <div className="h-4 bg-elevated rounded-full overflow-hidden">
               <div
                 className={cn('h-full rounded-full bg-gradient-to-r transition-all', getUsageBg(usagePercentage))}
                 style={{ width: `${usagePercentage}%` }}
@@ -134,27 +134,27 @@ export default function ExposureBudgetPage() {
 
             {/* Breakdown */}
             <div className="grid grid-cols-3 gap-4 mt-6">
-              <div className="text-center p-4 bg-zinc-950 rounded-lg">
+              <div className="text-center p-4 bg-base rounded-lg">
                 <FileText className="h-5 w-5 text-blue-400 mx-auto mb-2" />
                 <p className="text-xl font-bold text-white">{exposureData.breakdown.mainPosts}%</p>
-                <p className="text-xs text-zinc-500">Main Posts</p>
+                <p className="text-xs text-tertiary">Main Posts</p>
               </div>
-              <div className="text-center p-4 bg-zinc-950 rounded-lg">
+              <div className="text-center p-4 bg-base rounded-lg">
                 <MessageCircle className="h-5 w-5 text-green-400 mx-auto mb-2" />
                 <p className="text-xl font-bold text-white">{exposureData.breakdown.replies}%</p>
-                <p className="text-xs text-zinc-500">Replies</p>
+                <p className="text-xs text-tertiary">Replies</p>
               </div>
-              <div className="text-center p-4 bg-zinc-950 rounded-lg">
+              <div className="text-center p-4 bg-base rounded-lg">
                 <Quote className="h-5 w-5 text-purple-400 mx-auto mb-2" />
                 <p className="text-xl font-bold text-white">{exposureData.breakdown.quotes}%</p>
-                <p className="text-xs text-zinc-500">Quote Tweets</p>
+                <p className="text-xs text-tertiary">Quote Tweets</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
         {/* Recommendations */}
-        <Card className="bg-zinc-900 border-zinc-800">
+        <Card className="bg-surface border-white/5">
           <CardHeader>
             <CardTitle className="text-white">Recommendations</CardTitle>
           </CardHeader>
@@ -173,7 +173,7 @@ export default function ExposureBudgetPage() {
                   {rec.type === 'warning' && <AlertTriangle className="h-4 w-4 text-yellow-400 shrink-0 mt-0.5" />}
                   {rec.type === 'tip' && <Info className="h-4 w-4 text-blue-400 shrink-0 mt-0.5" />}
                   {rec.type === 'insight' && <TrendingUp className="h-4 w-4 text-green-400 shrink-0 mt-0.5" />}
-                  <p className="text-sm text-zinc-300">{rec.message}</p>
+                  <p className="text-sm text-secondary">{rec.message}</p>
                 </div>
               </div>
             ))}
@@ -184,7 +184,7 @@ export default function ExposureBudgetPage() {
       {/* Charts */}
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Hourly Usage */}
-        <Card className="bg-zinc-900 border-zinc-800">
+        <Card className="bg-surface border-white/5">
           <CardHeader>
             <CardTitle className="text-white">Today's Usage Over Time</CardTitle>
           </CardHeader>
@@ -215,7 +215,7 @@ export default function ExposureBudgetPage() {
         </Card>
 
         {/* Weekly Trend */}
-        <Card className="bg-zinc-900 border-zinc-800">
+        <Card className="bg-surface border-white/5">
           <CardHeader>
             <CardTitle className="text-white">Weekly Usage Pattern</CardTitle>
           </CardHeader>
@@ -235,7 +235,7 @@ export default function ExposureBudgetPage() {
       </div>
 
       {/* Activity Log */}
-      <Card className="bg-zinc-900 border-zinc-800">
+      <Card className="bg-surface border-white/5">
         <CardHeader>
           <CardTitle className="text-white flex items-center gap-2">
             <Clock className="h-5 w-5" />
@@ -247,12 +247,12 @@ export default function ExposureBudgetPage() {
             {exposureData.activityLog.map((activity, index) => (
               <div
                 key={index}
-                className="flex items-center justify-between p-3 bg-zinc-950 rounded-lg"
+                className="flex items-center justify-between p-3 bg-base rounded-lg"
               >
                 <div className="flex items-center gap-4">
-                  <span className="text-sm text-zinc-500 w-20">{activity.time}</span>
+                  <span className="text-sm text-tertiary w-20">{activity.time}</span>
                   <Badge variant="outline">{activity.action}</Badge>
-                  <span className="text-sm text-zinc-400 truncate max-w-md">
+                  <span className="text-sm text-tertiary truncate max-w-md">
                     {activity.content}
                   </span>
                 </div>

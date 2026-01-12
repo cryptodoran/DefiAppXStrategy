@@ -46,7 +46,7 @@ const mockQTOptions: QTOption[] = [
   {
     id: '1',
     type: 'agree',
-    content: '100% this.\n\nWe built DeFi App with this exact philosophy. Sustainable utility > temporary APYs.\n\nThe protocols still standing after the bear market all have one thing in common: they solved real problems.',
+    content: '100% this.\n\nWe built Defi App with this exact philosophy. Sustainable utility > temporary APYs.\n\nThe protocols still standing after the bear market all have one thing in common: they solved real problems.',
     predictedEngagement: 85,
     reasoning: 'Agrees while adding brand perspective. High engagement from original tweet audience.',
   },
@@ -133,7 +133,7 @@ export default function QTOptimizerPage() {
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold text-white">Quote Tweet Optimizer</h1>
-        <p className="text-zinc-400">
+        <p className="text-tertiary">
           Create optimal quote tweets to maximize your daily QT allocation
         </p>
       </div>
@@ -141,7 +141,7 @@ export default function QTOptimizerPage() {
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Input Section */}
         <div className="space-y-6">
-          <Card className="bg-zinc-900 border-zinc-800">
+          <Card className="bg-surface border-white/5">
             <CardHeader>
               <CardTitle className="text-white">Tweet to Quote</CardTitle>
             </CardHeader>
@@ -152,12 +152,12 @@ export default function QTOptimizerPage() {
                   placeholder="https://twitter.com/user/status/..."
                   value={tweetUrl}
                   onChange={(e) => setTweetUrl(e.target.value)}
-                  className="bg-zinc-950 border-zinc-800"
+                  className="bg-base border-white/5"
                 />
               </div>
 
               <Button
-                className="w-full bg-gradient-to-r from-blue-600 to-purple-600"
+                className="w-full bg-gradient-to-r from-violet-500 to-indigo-600"
                 onClick={handleAnalyze}
                 disabled={!tweetUrl || isAnalyzing}
               >
@@ -178,17 +178,17 @@ export default function QTOptimizerPage() {
 
           {/* Original Tweet Preview */}
           {originalTweet && (
-            <Card className="bg-zinc-900 border-zinc-800">
+            <Card className="bg-surface border-white/5">
               <CardHeader>
                 <CardTitle className="text-white text-sm">Original Tweet</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
                   <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600" />
+                    <div className="h-10 w-10 rounded-full bg-gradient-to-br from-violet-500 to-indigo-600" />
                     <div>
                       <p className="font-medium text-white">{originalTweet.authorName}</p>
-                      <p className="text-sm text-zinc-500">{originalTweet.author}</p>
+                      <p className="text-sm text-tertiary">{originalTweet.author}</p>
                     </div>
                     {originalTweet.isHighValue && (
                       <Badge className="ml-auto bg-yellow-500/20 text-yellow-400">
@@ -196,8 +196,8 @@ export default function QTOptimizerPage() {
                       </Badge>
                     )}
                   </div>
-                  <p className="text-sm text-zinc-300">{originalTweet.content}</p>
-                  <div className="flex items-center gap-4 text-xs text-zinc-500">
+                  <p className="text-sm text-secondary">{originalTweet.content}</p>
+                  <div className="flex items-center gap-4 text-xs text-tertiary">
                     <span>{formatNumber(originalTweet.likes)} likes</span>
                     <span>{formatNumber(originalTweet.retweets)} RTs</span>
                     <span>{formatNumber(originalTweet.followers)} followers</span>
@@ -208,11 +208,11 @@ export default function QTOptimizerPage() {
           )}
 
           {/* Tips */}
-          <Card className="bg-zinc-900 border-zinc-800">
+          <Card className="bg-surface border-white/5">
             <CardHeader>
               <CardTitle className="text-sm text-white">QT Best Practices</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-2 text-sm text-zinc-400">
+            <CardContent className="space-y-2 text-sm text-tertiary">
               <p>• QTs get more reach than RTs</p>
               <p>• Add substantive commentary</p>
               <p>• Only 1 QT per day recommended</p>
@@ -224,20 +224,20 @@ export default function QTOptimizerPage() {
         {/* QT Options */}
         <div className="lg:col-span-2 space-y-4">
           {options.length === 0 && !isAnalyzing ? (
-            <Card className="bg-zinc-900 border-zinc-800">
+            <Card className="bg-surface border-white/5">
               <CardContent className="py-16 text-center">
-                <Quote className="h-12 w-12 text-zinc-600 mx-auto mb-4" />
+                <Quote className="h-12 w-12 text-tertiary mx-auto mb-4" />
                 <h3 className="text-lg font-medium text-white mb-2">No tweet analyzed yet</h3>
-                <p className="text-sm text-zinc-500">
+                <p className="text-sm text-tertiary">
                   Enter a tweet URL to generate optimal QT options
                 </p>
               </CardContent>
             </Card>
           ) : isAnalyzing ? (
-            <Card className="bg-zinc-900 border-zinc-800">
+            <Card className="bg-surface border-white/5">
               <CardContent className="py-16 text-center">
-                <div className="h-12 w-12 animate-spin rounded-full border-2 border-zinc-700 border-t-blue-500 mx-auto" />
-                <p className="mt-4 text-zinc-400">Analyzing tweet and generating options...</p>
+                <div className="h-12 w-12 animate-spin rounded-full border-2 border-white/10 border-t-blue-500 mx-auto" />
+                <p className="mt-4 text-tertiary">Analyzing tweet and generating options...</p>
               </CardContent>
             </Card>
           ) : (
@@ -260,7 +260,7 @@ export default function QTOptimizerPage() {
                 <Card
                   key={option.id}
                   className={cn(
-                    'bg-zinc-900 border-zinc-800 cursor-pointer transition-all',
+                    'bg-surface border-white/5 cursor-pointer transition-all',
                     selectedOption?.id === option.id && 'ring-2 ring-blue-500'
                   )}
                   onClick={() => setSelectedOption(option)}
@@ -280,7 +280,7 @@ export default function QTOptimizerPage() {
                           <p className="text-lg font-bold text-green-400">
                             {option.predictedEngagement}
                           </p>
-                          <p className="text-xs text-zinc-500">predicted</p>
+                          <p className="text-xs text-tertiary">predicted</p>
                         </div>
                         <Button
                           variant="ghost"
@@ -299,12 +299,12 @@ export default function QTOptimizerPage() {
                       </div>
                     </div>
 
-                    <p className="text-sm text-zinc-300 whitespace-pre-line mb-3">
+                    <p className="text-sm text-secondary whitespace-pre-line mb-3">
                       {option.content}
                     </p>
 
-                    <div className="pt-3 border-t border-zinc-800">
-                      <p className="text-xs text-zinc-500">
+                    <div className="pt-3 border-t border-white/5">
+                      <p className="text-xs text-tertiary">
                         <TrendingUp className="h-3 w-3 inline mr-1" />
                         {option.reasoning}
                       </p>

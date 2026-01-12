@@ -37,7 +37,7 @@ export function RecentPosts({ posts }: RecentPostsProps) {
   };
 
   return (
-    <Card className="bg-zinc-900 border-zinc-800">
+    <Card className="bg-surface border-white/5">
       <CardHeader>
         <CardTitle className="text-white">Recent Posts</CardTitle>
       </CardHeader>
@@ -46,10 +46,10 @@ export function RecentPosts({ posts }: RecentPostsProps) {
           {posts.map((post) => (
             <div
               key={post.id}
-              className="rounded-lg border border-zinc-800 bg-zinc-950 p-4"
+              className="rounded-lg border border-white/5 bg-base p-4"
             >
               <div className="flex items-start justify-between gap-4">
-                <p className="line-clamp-2 text-sm text-zinc-300">
+                <p className="line-clamp-2 text-sm text-secondary">
                   {post.content}
                 </p>
                 {post.isViral && (
@@ -61,7 +61,7 @@ export function RecentPosts({ posts }: RecentPostsProps) {
               </div>
 
               <div className="mt-3 flex items-center justify-between">
-                <div className="flex items-center gap-4 text-xs text-zinc-500">
+                <div className="flex items-center gap-4 text-xs text-tertiary">
                   <span className="flex items-center gap-1">
                     <Eye className="h-3.5 w-3.5" />
                     {formatNumber(post.impressions)}
@@ -84,7 +84,7 @@ export function RecentPosts({ posts }: RecentPostsProps) {
                   <span className={cn('text-xs font-medium', getQualityColor(post.qualityScore))}>
                     Quality: {post.qualityScore}
                   </span>
-                  <span className="text-xs text-zinc-600">
+                  <span className="text-xs text-tertiary">
                     {formatDistanceToNow(post.publishedAt, { addSuffix: true })}
                   </span>
                 </div>

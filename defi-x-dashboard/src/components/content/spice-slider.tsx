@@ -27,7 +27,7 @@ export function SpiceSlider({ value, onChange }: SpiceSliderProps) {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <label className="text-sm font-medium text-zinc-300">
+        <label className="text-sm font-medium text-secondary">
           Spice Level
         </label>
         <div className="flex items-center gap-2">
@@ -46,7 +46,7 @@ export function SpiceSlider({ value, onChange }: SpiceSliderProps) {
           max={10}
           value={value}
           onChange={(e) => onChange(parseInt(e.target.value))}
-          className="w-full h-2 bg-zinc-800 rounded-full appearance-none cursor-pointer
+          className="w-full h-2 bg-elevated rounded-full appearance-none cursor-pointer
             [&::-webkit-slider-thumb]:appearance-none
             [&::-webkit-slider-thumb]:w-5
             [&::-webkit-slider-thumb]:h-5
@@ -55,7 +55,7 @@ export function SpiceSlider({ value, onChange }: SpiceSliderProps) {
             [&::-webkit-slider-thumb]:shadow-lg
             [&::-webkit-slider-thumb]:cursor-pointer
             [&::-webkit-slider-thumb]:border-2
-            [&::-webkit-slider-thumb]:border-zinc-600"
+            [&::-webkit-slider-thumb]:border-white/10"
         />
         {/* Colored track overlay */}
         <div
@@ -77,7 +77,7 @@ export function SpiceSlider({ value, onChange }: SpiceSliderProps) {
               'w-6 h-6 rounded-full text-xs font-medium transition-all',
               value === level
                 ? cn(spiceLevels[level - 1].color, 'text-white')
-                : 'bg-zinc-800 text-zinc-500 hover:bg-zinc-700'
+                : 'bg-elevated text-tertiary hover:bg-white/10'
             )}
           >
             {level}
@@ -86,7 +86,7 @@ export function SpiceSlider({ value, onChange }: SpiceSliderProps) {
       </div>
 
       {/* Description */}
-      <p className="text-sm text-zinc-500">
+      <p className="text-sm text-tertiary">
         {currentLevel.description}
       </p>
     </div>

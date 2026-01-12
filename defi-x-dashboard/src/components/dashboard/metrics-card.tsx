@@ -61,16 +61,16 @@ export function MetricsCard({
     if (trend === 'down' || (change !== undefined && change < 0)) {
       return 'text-red-400';
     }
-    return 'text-zinc-400';
+    return 'text-tertiary';
   };
 
   return (
-    <Card className={cn('bg-zinc-900 border-zinc-800', className)}>
+    <Card className={cn('bg-surface border-white/5', className)}>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium text-zinc-400">
+        <CardTitle className="text-sm font-medium text-tertiary">
           {title}
         </CardTitle>
-        {icon && <div className="text-zinc-400">{icon}</div>}
+        {icon && <div className="text-tertiary">{icon}</div>}
       </CardHeader>
       <CardContent>
         <div className="text-2xl font-bold text-white">{formatValue(value)}</div>
@@ -82,7 +82,7 @@ export function MetricsCard({
               {change.toFixed(1)}%
             </span>
             {changeLabel && (
-              <span className="text-zinc-500 ml-1">{changeLabel}</span>
+              <span className="text-tertiary ml-1">{changeLabel}</span>
             )}
           </div>
         )}

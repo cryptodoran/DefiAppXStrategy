@@ -147,7 +147,7 @@ export default function RealTimeEngagementPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-white">Real-Time Engagement Feed</h1>
-          <p className="text-zinc-400">Live engagement stream as it happens</p>
+          <p className="text-tertiary">Live engagement stream as it happens</p>
         </div>
         <div className="flex items-center gap-3">
           <Button
@@ -168,7 +168,7 @@ export default function RealTimeEngagementPage() {
             )}
           </Button>
           <Select value={filter} onValueChange={setFilter}>
-            <SelectTrigger className="w-40 bg-zinc-900 border-zinc-800">
+            <SelectTrigger className="w-40 bg-surface border-white/5">
               <Filter className="mr-2 h-4 w-4" />
               <SelectValue />
             </SelectTrigger>
@@ -186,46 +186,46 @@ export default function RealTimeEngagementPage() {
 
       {/* Stats */}
       <div className="grid gap-4 md:grid-cols-6">
-        <Card className="bg-zinc-900 border-zinc-800">
+        <Card className="bg-surface border-white/5">
           <CardContent className="pt-4 text-center">
             <p className="text-2xl font-bold text-white">{stats.total}</p>
-            <p className="text-xs text-zinc-500">Total</p>
+            <p className="text-xs text-tertiary">Total</p>
           </CardContent>
         </Card>
-        <Card className="bg-zinc-900 border-zinc-800">
+        <Card className="bg-surface border-white/5">
           <CardContent className="pt-4 text-center">
             <p className="text-2xl font-bold text-red-400">{stats.likes}</p>
-            <p className="text-xs text-zinc-500">Likes</p>
+            <p className="text-xs text-tertiary">Likes</p>
           </CardContent>
         </Card>
-        <Card className="bg-zinc-900 border-zinc-800">
+        <Card className="bg-surface border-white/5">
           <CardContent className="pt-4 text-center">
             <p className="text-2xl font-bold text-green-400">{stats.retweets}</p>
-            <p className="text-xs text-zinc-500">Retweets</p>
+            <p className="text-xs text-tertiary">Retweets</p>
           </CardContent>
         </Card>
-        <Card className="bg-zinc-900 border-zinc-800">
+        <Card className="bg-surface border-white/5">
           <CardContent className="pt-4 text-center">
             <p className="text-2xl font-bold text-blue-400">{stats.replies}</p>
-            <p className="text-xs text-zinc-500">Replies</p>
+            <p className="text-xs text-tertiary">Replies</p>
           </CardContent>
         </Card>
-        <Card className="bg-zinc-900 border-zinc-800">
+        <Card className="bg-surface border-white/5">
           <CardContent className="pt-4 text-center">
             <p className="text-2xl font-bold text-purple-400">{stats.quotes}</p>
-            <p className="text-xs text-zinc-500">Quotes</p>
+            <p className="text-xs text-tertiary">Quotes</p>
           </CardContent>
         </Card>
-        <Card className="bg-zinc-900 border-zinc-800">
+        <Card className="bg-surface border-white/5">
           <CardContent className="pt-4 text-center">
             <p className="text-2xl font-bold text-yellow-400">{stats.highValue}</p>
-            <p className="text-xs text-zinc-500">High Value</p>
+            <p className="text-xs text-tertiary">High Value</p>
           </CardContent>
         </Card>
       </div>
 
       {/* Feed */}
-      <Card className="bg-zinc-900 border-zinc-800">
+      <Card className="bg-surface border-white/5">
         <CardHeader>
           <CardTitle className="text-white flex items-center gap-2">
             <Bell className="h-5 w-5" />
@@ -247,7 +247,7 @@ export default function RealTimeEngagementPage() {
                   'flex items-center gap-4 p-3 rounded-lg transition-all',
                   engagement.isHighValue
                     ? 'bg-yellow-500/10 border border-yellow-500/20'
-                    : 'bg-zinc-950'
+                    : 'bg-base'
                 )}
               >
                 {/* Engagement Type Icon */}
@@ -263,12 +263,12 @@ export default function RealTimeEngagementPage() {
                     {engagement.isHighValue && (
                       <Star className="h-4 w-4 text-yellow-400" />
                     )}
-                    <span className="text-zinc-500 text-sm">{engagement.userHandle}</span>
+                    <span className="text-tertiary text-sm">{engagement.userHandle}</span>
                     <Badge variant="outline" className="text-xs">
                       {formatFollowers(engagement.userFollowers)} followers
                     </Badge>
                   </div>
-                  <p className="text-sm text-zinc-400 truncate mt-1">
+                  <p className="text-sm text-tertiary truncate mt-1">
                     {engagement.type === 'like' && 'liked'}
                     {engagement.type === 'retweet' && 'retweeted'}
                     {engagement.type === 'reply' && 'replied to'}
@@ -277,7 +277,7 @@ export default function RealTimeEngagementPage() {
                 </div>
 
                 {/* Timestamp */}
-                <div className="text-xs text-zinc-500 shrink-0">
+                <div className="text-xs text-tertiary shrink-0">
                   {engagement.timestamp.toLocaleTimeString()}
                 </div>
               </div>

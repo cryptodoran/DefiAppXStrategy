@@ -40,7 +40,7 @@ const narratives: Narrative[] = [
     suggestedContent: [
       'Thread: Why this DeFi cycle is different',
       'Comparison: DeFi 1.0 vs 2.0 economics',
-      'DeFi App as infrastructure for the new wave',
+      'Defi App as infrastructure for the new wave',
     ],
     volume: 45000,
     volumeChange: 67,
@@ -53,7 +53,7 @@ const narratives: Narrative[] = [
     keyAccounts: ['@l2beat', '@arbitrum', '@optimismFND'],
     defiAppFit: 'strong',
     suggestedContent: [
-      'L2 performance comparison using DeFi App',
+      'L2 performance comparison using Defi App',
       'Gas savings analysis across chains',
       'Multi-chain DeFi strategy guide',
     ],
@@ -70,7 +70,7 @@ const narratives: Narrative[] = [
     suggestedContent: [
       'RWA primer for DeFi natives',
       'How RWA changes DeFi risk profiles',
-      'DeFi App RWA integration roadmap',
+      'Defi App RWA integration roadmap',
     ],
     volume: 23000,
     volumeChange: 156,
@@ -124,7 +124,7 @@ const lifecycleConfig = {
   growing: { icon: TrendingUp, color: 'text-blue-400', bg: 'bg-blue-500/20' },
   dominant: { icon: Zap, color: 'text-yellow-400', bg: 'bg-yellow-500/20' },
   fading: { icon: TrendingDown, color: 'text-orange-400', bg: 'bg-orange-500/20' },
-  dead: { icon: Minus, color: 'text-zinc-400', bg: 'bg-zinc-500/20' },
+  dead: { icon: Minus, color: 'text-tertiary', bg: 'bg-white/5' },
 };
 
 const fitConfig = {
@@ -149,38 +149,38 @@ export default function NarrativesPage() {
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold text-white">CT Narratives</h1>
-        <p className="text-zinc-400">
-          Track prevailing narratives and find opportunities to position DeFi App
+        <p className="text-tertiary">
+          Track prevailing narratives and find opportunities to position Defi App
         </p>
       </div>
 
       {/* Stats */}
       <div className="grid gap-4 md:grid-cols-4">
-        <Card className="bg-zinc-900 border-zinc-800">
+        <Card className="bg-surface border-white/5">
           <CardContent className="pt-4">
-            <p className="text-sm text-zinc-400">Active Narratives</p>
+            <p className="text-sm text-tertiary">Active Narratives</p>
             <p className="text-2xl font-bold text-white">{narratives.length}</p>
           </CardContent>
         </Card>
-        <Card className="bg-zinc-900 border-zinc-800">
+        <Card className="bg-surface border-white/5">
           <CardContent className="pt-4">
-            <p className="text-sm text-zinc-400">Strong Fit</p>
+            <p className="text-sm text-tertiary">Strong Fit</p>
             <p className="text-2xl font-bold text-green-400">
               {narratives.filter((n) => n.defiAppFit === 'strong').length}
             </p>
           </CardContent>
         </Card>
-        <Card className="bg-zinc-900 border-zinc-800">
+        <Card className="bg-surface border-white/5">
           <CardContent className="pt-4">
-            <p className="text-sm text-zinc-400">Emerging</p>
+            <p className="text-sm text-tertiary">Emerging</p>
             <p className="text-2xl font-bold text-blue-400">
               {narratives.filter((n) => n.lifecycle === 'emerging').length}
             </p>
           </CardContent>
         </Card>
-        <Card className="bg-zinc-900 border-zinc-800">
+        <Card className="bg-surface border-white/5">
           <CardContent className="pt-4">
-            <p className="text-sm text-zinc-400">Total Volume</p>
+            <p className="text-sm text-tertiary">Total Volume</p>
             <p className="text-2xl font-bold text-purple-400">
               {formatNumber(narratives.reduce((acc, n) => acc + n.volume, 0))}
             </p>
@@ -195,7 +195,7 @@ export default function NarrativesPage() {
           const LifecycleIcon = lifecycle.icon;
 
           return (
-            <Card key={narrative.id} className="bg-zinc-900 border-zinc-800">
+            <Card key={narrative.id} className="bg-surface border-white/5">
               <CardContent className="pt-4">
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex items-center gap-3">
@@ -225,14 +225,14 @@ export default function NarrativesPage() {
                   </div>
                 </div>
 
-                <p className="text-sm text-zinc-400 mb-4">{narrative.description}</p>
+                <p className="text-sm text-tertiary mb-4">{narrative.description}</p>
 
                 <div className="grid md:grid-cols-2 gap-4">
                   {/* Key Accounts */}
-                  <div className="p-3 bg-zinc-950 rounded-lg">
+                  <div className="p-3 bg-base rounded-lg">
                     <div className="flex items-center gap-2 mb-2">
-                      <Users className="h-4 w-4 text-zinc-400" />
-                      <span className="text-xs text-zinc-500">Key Accounts</span>
+                      <Users className="h-4 w-4 text-tertiary" />
+                      <span className="text-xs text-tertiary">Key Accounts</span>
                     </div>
                     <div className="flex flex-wrap gap-1">
                       {narrative.keyAccounts.map((account, i) => (
@@ -244,14 +244,14 @@ export default function NarrativesPage() {
                   </div>
 
                   {/* Suggested Content */}
-                  <div className="p-3 bg-zinc-950 rounded-lg">
+                  <div className="p-3 bg-base rounded-lg">
                     <div className="flex items-center gap-2 mb-2">
-                      <MessageSquare className="h-4 w-4 text-zinc-400" />
-                      <span className="text-xs text-zinc-500">Content Ideas</span>
+                      <MessageSquare className="h-4 w-4 text-tertiary" />
+                      <span className="text-xs text-tertiary">Content Ideas</span>
                     </div>
                     <ul className="space-y-1">
                       {narrative.suggestedContent.slice(0, 2).map((content, i) => (
-                        <li key={i} className="text-xs text-zinc-300 flex items-center gap-2">
+                        <li key={i} className="text-xs text-secondary flex items-center gap-2">
                           <Target className="h-3 w-3 text-blue-400" />
                           {content}
                         </li>
@@ -260,8 +260,8 @@ export default function NarrativesPage() {
                   </div>
                 </div>
 
-                <div className="flex justify-end mt-4 pt-4 border-t border-zinc-800">
-                  <Button size="sm" className="bg-gradient-to-r from-blue-600 to-purple-600">
+                <div className="flex justify-end mt-4 pt-4 border-t border-white/5">
+                  <Button size="sm" className="bg-gradient-to-r from-violet-500 to-indigo-600">
                     <Sparkles className="mr-2 h-4 w-4" />
                     Generate Content
                   </Button>

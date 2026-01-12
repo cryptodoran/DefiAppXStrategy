@@ -1,0 +1,164 @@
+{
+  "projectName": "Defi App X Dashboard - Comprehensive UI/UX Overhaul",
+  "version": "2.0",
+  "agency": "Premium UI/UX Audit & Remediation",
+  "description": "Complete UI/UX audit resolving duplicate components, inconsistent styling, and branding issues",
+
+  "brandGuidelines": {
+    "name": "Defi App",
+    "fullName": "Defi App X",
+    "tagline": "X Strategy Dashboard for CT Domination",
+    "note": "Always use 'Defi App' (capital D, lowercase efi) - this is a proper noun"
+  },
+
+  "criticalIssues": [
+    {
+      "id": "CRIT-001",
+      "issue": "Duplicate Sidebar Implementations",
+      "severity": "CRITICAL",
+      "description": "Two competing sidebar components create double navigation on the left side",
+      "rootCause": "layout.tsx imports old Sidebar while page.tsx uses AppLayout with its own sidebar",
+      "files": [
+        "src/app/layout.tsx",
+        "src/components/layout/sidebar.tsx",
+        "src/components/layout/app-layout.tsx"
+      ],
+      "resolution": "Remove old Sidebar and Header from root layout, use only AppLayout"
+    },
+    {
+      "id": "CRIT-002",
+      "issue": "Inconsistent Color Systems",
+      "severity": "HIGH",
+      "description": "Mix of zinc color scale and premium design tokens",
+      "rootCause": "Legacy components use bg-zinc-*, newer use bg-base/surface/elevated",
+      "files": [
+        "src/components/layout/sidebar.tsx",
+        "src/components/layout/header.tsx",
+        "src/app/layout.tsx"
+      ],
+      "resolution": "Standardize on premium design token system"
+    },
+    {
+      "id": "CRIT-003",
+      "issue": "Branding Inconsistency",
+      "severity": "HIGH",
+      "description": "'DeFi App' appears with inconsistent capitalization across 40+ files",
+      "correctForm": "Defi App",
+      "incorrectForms": ["DeFi App", "DeFi App X", "defi app"],
+      "resolution": "Global find/replace to 'Defi App' everywhere"
+    }
+  ],
+
+  "designSystem": {
+    "colors": {
+      "background": {
+        "base": "bg-base (--color-bg-base)",
+        "surface": "bg-surface (--color-bg-surface)",
+        "elevated": "bg-elevated (--color-bg-elevated)"
+      },
+      "text": {
+        "primary": "text-primary",
+        "secondary": "text-secondary",
+        "tertiary": "text-tertiary"
+      },
+      "accent": {
+        "primary": "from-violet-500 to-indigo-600",
+        "hover": "violet-400"
+      },
+      "borders": {
+        "subtle": "border-white/5",
+        "medium": "border-white/8",
+        "strong": "border-white/10"
+      }
+    },
+    "spacing": {
+      "containerPadding": "p-6",
+      "sectionGap": "space-y-6",
+      "cardPadding": "p-4",
+      "navItemPadding": "px-3 py-2.5"
+    },
+    "typography": {
+      "headingLarge": "text-lg font-semibold text-primary",
+      "headingMedium": "font-semibold text-primary",
+      "body": "text-sm text-secondary",
+      "caption": "text-xs text-tertiary"
+    }
+  },
+
+  "executionPlan": [
+    {
+      "phase": 1,
+      "name": "Remove Duplicate Layout Components",
+      "priority": "CRITICAL",
+      "tasks": [
+        "Update layout.tsx to remove old Sidebar and Header imports",
+        "Simplify layout.tsx to only wrap with Providers",
+        "Ensure AppLayout is the single source of layout structure",
+        "Delete or deprecate unused sidebar.tsx and header.tsx"
+      ]
+    },
+    {
+      "phase": 2,
+      "name": "Global Branding Fix",
+      "priority": "HIGH",
+      "tasks": [
+        "Replace all 'DeFi App X' with 'Defi App'",
+        "Replace all 'DeFi App' with 'Defi App'",
+        "Update page titles and meta descriptions",
+        "Update component display text",
+        "Update mock data references"
+      ]
+    },
+    {
+      "phase": 3,
+      "name": "Color System Consolidation",
+      "priority": "HIGH",
+      "tasks": [
+        "Remove all zinc-* color references",
+        "Standardize on design token colors",
+        "Update any remaining hard-coded colors"
+      ]
+    },
+    {
+      "phase": 4,
+      "name": "Gradient Standardization",
+      "priority": "MEDIUM",
+      "tasks": [
+        "Standardize logo gradient to violet-500 -> indigo-600",
+        "Remove blue-500 -> purple-600 variants"
+      ]
+    },
+    {
+      "phase": 5,
+      "name": "Cleanup & Verification",
+      "priority": "MEDIUM",
+      "tasks": [
+        "Remove unused component files",
+        "Verify build succeeds",
+        "Visual regression check",
+        "Deploy to Vercel"
+      ]
+    }
+  ],
+
+  "filesToModify": [
+    "src/app/layout.tsx",
+    "src/app/page.tsx",
+    "src/components/layout/app-layout.tsx",
+    "src/components/layout/sidebar.tsx (DELETE)",
+    "src/components/layout/header.tsx (DELETE)",
+    "src/components/content-studio/content-creator.tsx",
+    "src/app/settings/page.tsx",
+    "src/app/analytics/followers/page.tsx",
+    "src/app/analytics/posts/page.tsx",
+    "ALL FILES with 'DeFi' text"
+  ],
+
+  "successCriteria": [
+    "Single sidebar visible on left side",
+    "Consistent 'Defi App' branding everywhere",
+    "No zinc-* colors in active components",
+    "Build passes without errors",
+    "Visual consistency across all pages"
+  ]
+}

@@ -152,9 +152,9 @@ export default function ContentCalendarPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-white">Content Calendar</h1>
-          <p className="text-zinc-400">Plan and schedule your content strategy</p>
+          <p className="text-tertiary">Plan and schedule your content strategy</p>
         </div>
-        <Button className="bg-gradient-to-r from-blue-600 to-purple-600">
+        <Button className="bg-gradient-to-r from-violet-500 to-indigo-600">
           <Plus className="mr-2 h-4 w-4" />
           Schedule Post
         </Button>
@@ -162,17 +162,17 @@ export default function ContentCalendarPage() {
 
       {/* Stats Row */}
       <div className="grid gap-4 md:grid-cols-5">
-        <Card className="bg-zinc-900 border-zinc-800">
+        <Card className="bg-surface border-white/5">
           <CardContent className="pt-4">
-            <p className="text-sm text-zinc-400">Scheduled</p>
+            <p className="text-sm text-tertiary">Scheduled</p>
             <p className="text-2xl font-bold text-white">
               {mockPosts.filter((p) => p.status === 'scheduled').length}
             </p>
           </CardContent>
         </Card>
-        <Card className="bg-zinc-900 border-zinc-800">
+        <Card className="bg-surface border-white/5">
           <CardContent className="pt-4">
-            <p className="text-sm text-zinc-400">This Week</p>
+            <p className="text-sm text-tertiary">This Week</p>
             <p className="text-2xl font-bold text-blue-400">
               {mockPosts.filter((p) => {
                 const start = weekDates[0];
@@ -182,25 +182,25 @@ export default function ContentCalendarPage() {
             </p>
           </CardContent>
         </Card>
-        <Card className="bg-zinc-900 border-zinc-800">
+        <Card className="bg-surface border-white/5">
           <CardContent className="pt-4">
-            <p className="text-sm text-zinc-400">Optimal Times</p>
+            <p className="text-sm text-tertiary">Optimal Times</p>
             <p className="text-2xl font-bold text-green-400">
               {mockPosts.filter((p) => p.isOptimalTime).length}
             </p>
           </CardContent>
         </Card>
-        <Card className="bg-zinc-900 border-zinc-800">
+        <Card className="bg-surface border-white/5">
           <CardContent className="pt-4">
-            <p className="text-sm text-zinc-400">Avg Quality</p>
+            <p className="text-sm text-tertiary">Avg Quality</p>
             <p className="text-2xl font-bold text-purple-400">
               {Math.round(mockPosts.reduce((acc, p) => acc + p.qualityScore, 0) / mockPosts.length)}
             </p>
           </CardContent>
         </Card>
-        <Card className="bg-zinc-900 border-zinc-800">
+        <Card className="bg-surface border-white/5">
           <CardContent className="pt-4">
-            <p className="text-sm text-zinc-400">Conflicts</p>
+            <p className="text-sm text-tertiary">Conflicts</p>
             <p className={cn('text-2xl font-bold', conflictPosts.length > 0 ? 'text-red-400' : 'text-green-400')}>
               {conflictPosts.length}
             </p>
@@ -211,7 +211,7 @@ export default function ContentCalendarPage() {
       <div className="grid gap-6 lg:grid-cols-4">
         {/* Calendar */}
         <div className="lg:col-span-3">
-          <Card className="bg-zinc-900 border-zinc-800">
+          <Card className="bg-surface border-white/5">
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle className="text-white flex items-center gap-2">
@@ -236,7 +236,7 @@ export default function ContentCalendarPage() {
               <div className="grid grid-cols-7 gap-2">
                 {/* Day Headers */}
                 {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
-                  <div key={day} className="text-center text-sm font-medium text-zinc-500 py-2">
+                  <div key={day} className="text-center text-sm font-medium text-tertiary py-2">
                     {day}
                   </div>
                 ))}
@@ -252,13 +252,13 @@ export default function ContentCalendarPage() {
                       className={cn(
                         'min-h-[150px] p-2 rounded-lg border',
                         isToday
-                          ? 'bg-blue-500/10 border-blue-500/30'
-                          : 'bg-zinc-950 border-zinc-800'
+                          ? 'bg-blue-500/10 border-violet-500/30'
+                          : 'bg-base border-white/5'
                       )}
                     >
                       <div className={cn(
                         'text-sm font-medium mb-2',
-                        isToday ? 'text-blue-400' : 'text-zinc-400'
+                        isToday ? 'text-blue-400' : 'text-tertiary'
                       )}>
                         {date.getDate()}
                       </div>
@@ -280,7 +280,7 @@ export default function ContentCalendarPage() {
                           </div>
                         ))}
                         {posts.length > 3 && (
-                          <div className="text-xs text-zinc-500 pl-1">
+                          <div className="text-xs text-tertiary pl-1">
                             +{posts.length - 3} more
                           </div>
                         )}
@@ -296,7 +296,7 @@ export default function ContentCalendarPage() {
         {/* Sidebar */}
         <div className="space-y-6">
           {/* Content Distribution */}
-          <Card className="bg-zinc-900 border-zinc-800">
+          <Card className="bg-surface border-white/5">
             <CardHeader>
               <CardTitle className="text-sm text-white">Content Mix</CardTitle>
             </CardHeader>
@@ -304,28 +304,28 @@ export default function ContentCalendarPage() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <div className="h-3 w-3 rounded-full bg-blue-500" />
-                  <span className="text-sm text-zinc-400">Single Posts</span>
+                  <span className="text-sm text-tertiary">Single Posts</span>
                 </div>
                 <span className="text-sm font-medium text-white">{contentTypeDistribution.single}</span>
               </div>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <div className="h-3 w-3 rounded-full bg-purple-500" />
-                  <span className="text-sm text-zinc-400">Threads</span>
+                  <span className="text-sm text-tertiary">Threads</span>
                 </div>
                 <span className="text-sm font-medium text-white">{contentTypeDistribution.thread}</span>
               </div>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <div className="h-3 w-3 rounded-full bg-orange-500" />
-                  <span className="text-sm text-zinc-400">Quote Tweets</span>
+                  <span className="text-sm text-tertiary">Quote Tweets</span>
                 </div>
                 <span className="text-sm font-medium text-white">{contentTypeDistribution.qt}</span>
               </div>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <div className="h-3 w-3 rounded-full bg-green-500" />
-                  <span className="text-sm text-zinc-400">Articles</span>
+                  <span className="text-sm text-tertiary">Articles</span>
                 </div>
                 <span className="text-sm font-medium text-white">{contentTypeDistribution.article}</span>
               </div>
@@ -333,7 +333,7 @@ export default function ContentCalendarPage() {
           </Card>
 
           {/* Optimal Times */}
-          <Card className="bg-zinc-900 border-zinc-800">
+          <Card className="bg-surface border-white/5">
             <CardHeader>
               <CardTitle className="text-sm text-white flex items-center gap-2">
                 <Clock className="h-4 w-4" />
@@ -343,11 +343,11 @@ export default function ContentCalendarPage() {
             <CardContent className="space-y-3">
               {optimalTimeSlots.map((slot) => (
                 <div key={slot.time} className="flex items-center justify-between">
-                  <span className="text-sm text-zinc-400">{slot.time}</span>
+                  <span className="text-sm text-tertiary">{slot.time}</span>
                   <Badge className={cn(
                     slot.score >= 90 ? 'bg-green-500/20 text-green-400' :
                     slot.score >= 75 ? 'bg-yellow-500/20 text-yellow-400' :
-                    'bg-zinc-500/20 text-zinc-400'
+                    'bg-white/5 text-tertiary'
                   )}>
                     {slot.score}%
                   </Badge>
@@ -366,7 +366,7 @@ export default function ContentCalendarPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-sm text-zinc-400">
+                <p className="text-sm text-tertiary">
                   {conflictPosts.length} posts are scheduled too close together.
                   Consider spacing them out for better reach.
                 </p>

@@ -147,13 +147,13 @@ export default function SpicyFrameworkPage() {
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold text-white">Spice Level Framework</h1>
-        <p className="text-zinc-400">
+        <p className="text-tertiary">
           Calibrate your content's controversy level for optimal engagement
         </p>
       </div>
 
       <Tabs defaultValue="framework" className="space-y-6">
-        <TabsList className="bg-zinc-900">
+        <TabsList className="bg-surface">
           <TabsTrigger value="framework">Framework</TabsTrigger>
           <TabsTrigger value="analyzer">Content Analyzer</TabsTrigger>
           <TabsTrigger value="performance">Performance Data</TabsTrigger>
@@ -161,14 +161,14 @@ export default function SpicyFrameworkPage() {
 
         <TabsContent value="framework" className="space-y-6">
           {/* Spice Level Selector */}
-          <Card className="bg-zinc-900 border-zinc-800">
+          <Card className="bg-surface border-white/5">
             <CardHeader>
               <CardTitle className="text-white">Spice Level Guide</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-6">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-zinc-400">Select target spice level:</span>
+                  <span className="text-sm text-tertiary">Select target spice level:</span>
                   <span className="text-2xl">
                     {currentLevel.emoji} {currentLevel.name}
                   </span>
@@ -181,7 +181,7 @@ export default function SpicyFrameworkPage() {
                   step={1}
                   className="py-4"
                 />
-                <div className="flex justify-between text-xs text-zinc-500">
+                <div className="flex justify-between text-xs text-tertiary">
                   <span>🌱 Mild</span>
                   <span>🌶️ Warm</span>
                   <span>🔥 Medium</span>
@@ -193,13 +193,13 @@ export default function SpicyFrameworkPage() {
           </Card>
 
           {/* Current Level Details */}
-          <Card className="bg-zinc-900 border-zinc-800">
+          <Card className="bg-surface border-white/5">
             <CardContent className="pt-6">
               <div className="flex items-center gap-3 mb-4">
                 <span className="text-4xl">{currentLevel.emoji}</span>
                 <div>
                   <h3 className="text-xl font-bold text-white">{currentLevel.name}</h3>
-                  <p className="text-zinc-400">{currentLevel.description}</p>
+                  <p className="text-tertiary">{currentLevel.description}</p>
                 </div>
                 {currentLevel.approvalRequired && (
                   <Badge className="bg-yellow-500/20 text-yellow-400 ml-auto">
@@ -210,14 +210,14 @@ export default function SpicyFrameworkPage() {
               </div>
 
               <div className="grid md:grid-cols-3 gap-4">
-                <div className="p-4 bg-zinc-950 rounded-lg">
-                  <h4 className="text-sm text-zinc-400 mb-3 flex items-center gap-2">
+                <div className="p-4 bg-base rounded-lg">
+                  <h4 className="text-sm text-tertiary mb-3 flex items-center gap-2">
                     <MessageSquare className="h-4 w-4" />
                     Examples
                   </h4>
                   <ul className="space-y-2">
                     {currentLevel.examples.map((ex, i) => (
-                      <li key={i} className="text-sm text-zinc-300 flex items-start gap-2">
+                      <li key={i} className="text-sm text-secondary flex items-start gap-2">
                         <span className="text-blue-400">•</span>
                         {ex}
                       </li>
@@ -225,14 +225,14 @@ export default function SpicyFrameworkPage() {
                   </ul>
                 </div>
 
-                <div className="p-4 bg-zinc-950 rounded-lg">
-                  <h4 className="text-sm text-zinc-400 mb-3 flex items-center gap-2">
+                <div className="p-4 bg-base rounded-lg">
+                  <h4 className="text-sm text-tertiary mb-3 flex items-center gap-2">
                     <AlertTriangle className="h-4 w-4" />
                     Risk Factors
                   </h4>
                   <ul className="space-y-2">
                     {currentLevel.riskFactors.map((risk, i) => (
-                      <li key={i} className="text-sm text-zinc-300 flex items-start gap-2">
+                      <li key={i} className="text-sm text-secondary flex items-start gap-2">
                         <span className="text-yellow-400">•</span>
                         {risk}
                       </li>
@@ -240,14 +240,14 @@ export default function SpicyFrameworkPage() {
                   </ul>
                 </div>
 
-                <div className="p-4 bg-zinc-950 rounded-lg">
-                  <h4 className="text-sm text-zinc-400 mb-3 flex items-center gap-2">
+                <div className="p-4 bg-base rounded-lg">
+                  <h4 className="text-sm text-tertiary mb-3 flex items-center gap-2">
                     <Target className="h-4 w-4" />
                     Best For
                   </h4>
                   <ul className="space-y-2">
                     {currentLevel.bestFor.map((use, i) => (
-                      <li key={i} className="text-sm text-zinc-300 flex items-start gap-2">
+                      <li key={i} className="text-sm text-secondary flex items-start gap-2">
                         <span className="text-green-400">•</span>
                         {use}
                       </li>
@@ -264,7 +264,7 @@ export default function SpicyFrameworkPage() {
               <Card
                 key={level.level}
                 className={cn(
-                  'bg-zinc-900 border-zinc-800 cursor-pointer transition-all',
+                  'bg-surface border-white/5 cursor-pointer transition-all',
                   targetSpice[0] >= level.level &&
                     targetSpice[0] < (spiceLevels[spiceLevels.indexOf(level) + 1]?.level || 11) &&
                     'ring-2 ring-blue-500'
@@ -274,7 +274,7 @@ export default function SpicyFrameworkPage() {
                 <CardContent className="pt-4 text-center">
                   <span className="text-3xl">{level.emoji}</span>
                   <p className="font-medium text-white mt-2">{level.name}</p>
-                  <p className="text-xs text-zinc-500 mt-1">Level {level.level}-{level.level + 1}</p>
+                  <p className="text-xs text-tertiary mt-1">Level {level.level}-{level.level + 1}</p>
                   {level.approvalRequired && (
                     <Badge className="mt-2 bg-yellow-500/20 text-yellow-400 text-xs">
                       Needs Approval
@@ -289,7 +289,7 @@ export default function SpicyFrameworkPage() {
         <TabsContent value="analyzer" className="space-y-6">
           <div className="grid gap-6 lg:grid-cols-2">
             {/* Input */}
-            <Card className="bg-zinc-900 border-zinc-800">
+            <Card className="bg-surface border-white/5">
               <CardHeader>
                 <CardTitle className="text-white">Analyze Your Content</CardTitle>
               </CardHeader>
@@ -298,7 +298,7 @@ export default function SpicyFrameworkPage() {
                   placeholder="Paste your draft content here to analyze its spice level..."
                   value={content}
                   onChange={(e) => setContent(e.target.value)}
-                  className="min-h-[200px] bg-zinc-950 border-zinc-800"
+                  className="min-h-[200px] bg-base border-white/5"
                 />
                 <Button
                   onClick={() => setIsAnalyzing(true)}
@@ -312,28 +312,28 @@ export default function SpicyFrameworkPage() {
             </Card>
 
             {/* Analysis Results */}
-            <Card className="bg-zinc-900 border-zinc-800">
+            <Card className="bg-surface border-white/5">
               <CardHeader>
                 <CardTitle className="text-white">Analysis Results</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="p-4 bg-zinc-950 rounded-lg text-center">
+                  <div className="p-4 bg-base rounded-lg text-center">
                     <p className="text-3xl font-bold text-white">{contentAnalysis.currentSpice}</p>
-                    <p className="text-xs text-zinc-500">Spice Level</p>
+                    <p className="text-xs text-tertiary">Spice Level</p>
                     <p className="text-sm text-orange-400 mt-1">🌶️🌶️ Warm</p>
                   </div>
-                  <div className="p-4 bg-zinc-950 rounded-lg text-center">
+                  <div className="p-4 bg-base rounded-lg text-center">
                     <p className="text-3xl font-bold text-white">{contentAnalysis.engagementPotential}%</p>
-                    <p className="text-xs text-zinc-500">Engagement Potential</p>
+                    <p className="text-xs text-tertiary">Engagement Potential</p>
                   </div>
-                  <div className="p-4 bg-zinc-950 rounded-lg text-center">
+                  <div className="p-4 bg-base rounded-lg text-center">
                     <p className="text-3xl font-bold text-white">{contentAnalysis.controversyScore}%</p>
-                    <p className="text-xs text-zinc-500">Controversy Score</p>
+                    <p className="text-xs text-tertiary">Controversy Score</p>
                   </div>
-                  <div className="p-4 bg-zinc-950 rounded-lg text-center">
+                  <div className="p-4 bg-base rounded-lg text-center">
                     <p className="text-3xl font-bold text-white">{contentAnalysis.brandAlignment}%</p>
-                    <p className="text-xs text-zinc-500">Brand Alignment</p>
+                    <p className="text-xs text-tertiary">Brand Alignment</p>
                   </div>
                 </div>
 
@@ -345,7 +345,7 @@ export default function SpicyFrameworkPage() {
                   </h4>
                   <ul className="space-y-1">
                     {contentAnalysis.riskFlags.map((flag, i) => (
-                      <li key={i} className="text-sm text-zinc-300">
+                      <li key={i} className="text-sm text-secondary">
                         • {flag}
                       </li>
                     ))}
@@ -360,7 +360,7 @@ export default function SpicyFrameworkPage() {
                   </h4>
                   <ul className="space-y-1">
                     {contentAnalysis.suggestions.map((suggestion, i) => (
-                      <li key={i} className="text-sm text-zinc-300">
+                      <li key={i} className="text-sm text-secondary">
                         • {suggestion}
                       </li>
                     ))}
@@ -372,7 +372,7 @@ export default function SpicyFrameworkPage() {
         </TabsContent>
 
         <TabsContent value="performance" className="space-y-6">
-          <Card className="bg-zinc-900 border-zinc-800">
+          <Card className="bg-surface border-white/5">
             <CardHeader>
               <CardTitle className="text-white flex items-center gap-2">
                 <TrendingUp className="h-5 w-5" />
@@ -384,38 +384,38 @@ export default function SpicyFrameworkPage() {
                 {historicalPerformance.map((data, index) => (
                   <div
                     key={index}
-                    className="flex items-center justify-between p-4 bg-zinc-950 rounded-lg"
+                    className="flex items-center justify-between p-4 bg-base rounded-lg"
                   >
                     <div className="flex items-center gap-4">
                       <div className="w-20">
-                        <Badge className="bg-zinc-800 text-zinc-300">
+                        <Badge className="bg-elevated text-secondary">
                           Level {data.spiceLevel}
                         </Badge>
                       </div>
                       <div>
                         <p className="text-white">{data.posts} posts</p>
-                        <p className="text-xs text-zinc-500">Sample size</p>
+                        <p className="text-xs text-tertiary">Sample size</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-8">
                       <div className="text-center">
                         <p className="text-lg font-bold text-green-400">{data.avgEngagement}%</p>
-                        <p className="text-xs text-zinc-500">Avg Engagement</p>
+                        <p className="text-xs text-tertiary">Avg Engagement</p>
                       </div>
                       <div className="text-center">
                         <p className="text-lg font-bold text-blue-400">
                           {(data.avgReach / 1000).toFixed(0)}K
                         </p>
-                        <p className="text-xs text-zinc-500">Avg Reach</p>
+                        <p className="text-xs text-tertiary">Avg Reach</p>
                       </div>
                     </div>
                   </div>
                 ))}
               </div>
 
-              <div className="mt-6 p-4 bg-gradient-to-r from-blue-600/20 to-purple-600/20 rounded-lg">
+              <div className="mt-6 p-4 bg-gradient-to-r from-violet-500/20 to-indigo-500/20 rounded-lg">
                 <h4 className="font-medium text-white mb-2">Key Insight</h4>
-                <p className="text-sm text-zinc-300">
+                <p className="text-sm text-secondary">
                   Posts at spice level 7-8 show 3.7x higher engagement than mild content (1-2),
                   but make up only 7% of total posts. Consider increasing spicier content while
                   maintaining brand safety guidelines.
@@ -430,7 +430,7 @@ export default function SpicyFrameworkPage() {
               <CardContent className="pt-4">
                 <CheckCircle className="h-8 w-8 text-green-400 mb-3" />
                 <h4 className="font-medium text-white mb-2">Safe Zone (1-4)</h4>
-                <p className="text-sm text-zinc-400">
+                <p className="text-sm text-tertiary">
                   Great for daily content, building trust, and establishing expertise.
                   Use for most of your content mix.
                 </p>
@@ -440,7 +440,7 @@ export default function SpicyFrameworkPage() {
               <CardContent className="pt-4">
                 <Zap className="h-8 w-8 text-yellow-400 mb-3" />
                 <h4 className="font-medium text-white mb-2">Growth Zone (5-7)</h4>
-                <p className="text-sm text-zinc-400">
+                <p className="text-sm text-tertiary">
                   Optimal for driving engagement and establishing thought leadership.
                   Use 2-3x per week.
                 </p>
@@ -450,7 +450,7 @@ export default function SpicyFrameworkPage() {
               <CardContent className="pt-4">
                 <Flame className="h-8 w-8 text-red-400 mb-3" />
                 <h4 className="font-medium text-white mb-2">Viral Zone (8-10)</h4>
-                <p className="text-sm text-zinc-400">
+                <p className="text-sm text-tertiary">
                   Maximum viral potential but highest risk. Reserve for strategic moments.
                   Use sparingly (1-2x per month).
                 </p>

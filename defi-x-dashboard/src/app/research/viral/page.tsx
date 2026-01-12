@@ -188,36 +188,36 @@ export default function ViralResearchPage() {
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold text-white">Viral Content Research</h1>
-        <p className="text-zinc-400">
+        <p className="text-tertiary">
           Analyze viral patterns and reverse-engineer successful CT content
         </p>
       </div>
 
       {/* Stats */}
       <div className="grid gap-4 md:grid-cols-4">
-        <Card className="bg-zinc-900 border-zinc-800">
+        <Card className="bg-surface border-white/5">
           <CardContent className="pt-4">
-            <p className="text-sm text-zinc-400">Posts Analyzed</p>
+            <p className="text-sm text-tertiary">Posts Analyzed</p>
             <p className="text-2xl font-bold text-white">{viralPosts.length}</p>
           </CardContent>
         </Card>
-        <Card className="bg-zinc-900 border-zinc-800">
+        <Card className="bg-surface border-white/5">
           <CardContent className="pt-4">
-            <p className="text-sm text-zinc-400">Avg Viral Score</p>
+            <p className="text-sm text-tertiary">Avg Viral Score</p>
             <p className="text-2xl font-bold text-green-400">
               {Math.round(viralPosts.reduce((acc, p) => acc + p.viralScore, 0) / viralPosts.length)}
             </p>
           </CardContent>
         </Card>
-        <Card className="bg-zinc-900 border-zinc-800">
+        <Card className="bg-surface border-white/5">
           <CardContent className="pt-4">
-            <p className="text-sm text-zinc-400">Patterns Found</p>
+            <p className="text-sm text-tertiary">Patterns Found</p>
             <p className="text-2xl font-bold text-blue-400">{viralPatterns.length}</p>
           </CardContent>
         </Card>
-        <Card className="bg-zinc-900 border-zinc-800">
+        <Card className="bg-surface border-white/5">
           <CardContent className="pt-4">
-            <p className="text-sm text-zinc-400">High Applicability</p>
+            <p className="text-sm text-tertiary">High Applicability</p>
             <p className="text-2xl font-bold text-purple-400">
               {viralPatterns.filter((p) => p.applicability === 'high').length}
             </p>
@@ -233,7 +233,7 @@ export default function ViralResearchPage() {
             const TypeIcon = postTypeConfig[post.postType].icon;
 
             return (
-              <Card key={post.id} className="bg-zinc-900 border-zinc-800">
+              <Card key={post.id} className="bg-surface border-white/5">
                 <CardContent className="pt-4">
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex items-center gap-2">
@@ -249,31 +249,31 @@ export default function ViralResearchPage() {
                     </Badge>
                   </div>
 
-                  <p className="text-sm text-zinc-300 mb-4 p-3 bg-zinc-950 rounded-lg">
+                  <p className="text-sm text-secondary mb-4 p-3 bg-base rounded-lg">
                     "{post.content}"
                   </p>
 
                   <div className="grid grid-cols-4 gap-2 mb-4">
-                    <div className="text-center p-2 bg-zinc-950 rounded-lg">
+                    <div className="text-center p-2 bg-base rounded-lg">
                       <Heart className="h-4 w-4 text-red-400 mx-auto mb-1" />
                       <p className="text-sm font-bold text-white">{formatNumber(post.likes)}</p>
                     </div>
-                    <div className="text-center p-2 bg-zinc-950 rounded-lg">
+                    <div className="text-center p-2 bg-base rounded-lg">
                       <Repeat className="h-4 w-4 text-green-400 mx-auto mb-1" />
                       <p className="text-sm font-bold text-white">{formatNumber(post.retweets)}</p>
                     </div>
-                    <div className="text-center p-2 bg-zinc-950 rounded-lg">
+                    <div className="text-center p-2 bg-base rounded-lg">
                       <MessageSquare className="h-4 w-4 text-blue-400 mx-auto mb-1" />
                       <p className="text-sm font-bold text-white">{formatNumber(post.replies)}</p>
                     </div>
-                    <div className="text-center p-2 bg-zinc-950 rounded-lg">
+                    <div className="text-center p-2 bg-base rounded-lg">
                       <Eye className="h-4 w-4 text-purple-400 mx-auto mb-1" />
                       <p className="text-sm font-bold text-white">{formatNumber(post.impressions)}</p>
                     </div>
                   </div>
 
                   <div className="space-y-2 mb-4">
-                    <p className="text-xs text-zinc-500">Why it worked:</p>
+                    <p className="text-xs text-tertiary">Why it worked:</p>
                     <div className="flex flex-wrap gap-1">
                       {post.viralFactors.map((factor, i) => (
                         <Badge key={i} className="bg-blue-500/20 text-blue-400 text-xs">
@@ -285,16 +285,16 @@ export default function ViralResearchPage() {
 
                   <div className="grid grid-cols-2 gap-4 text-sm">
                     <div>
-                      <p className="text-xs text-zinc-500">Timing</p>
-                      <p className="text-zinc-300">{post.timing}</p>
+                      <p className="text-xs text-tertiary">Timing</p>
+                      <p className="text-secondary">{post.timing}</p>
                     </div>
                     <div>
-                      <p className="text-xs text-zinc-500">Audience</p>
-                      <p className="text-zinc-300">{post.audienceResonance}</p>
+                      <p className="text-xs text-tertiary">Audience</p>
+                      <p className="text-secondary">{post.audienceResonance}</p>
                     </div>
                   </div>
 
-                  <div className="flex justify-end mt-4 pt-4 border-t border-zinc-800">
+                  <div className="flex justify-end mt-4 pt-4 border-t border-white/5">
                     <Button size="sm" variant="outline">
                       <Copy className="mr-2 h-4 w-4" />
                       Adapt Pattern
@@ -309,7 +309,7 @@ export default function ViralResearchPage() {
         {/* Sidebar */}
         <div className="space-y-6">
           {/* Viral Patterns */}
-          <Card className="bg-zinc-900 border-zinc-800">
+          <Card className="bg-surface border-white/5">
             <CardHeader>
               <CardTitle className="text-sm text-white flex items-center gap-2">
                 <TrendingUp className="h-4 w-4" />
@@ -318,7 +318,7 @@ export default function ViralResearchPage() {
             </CardHeader>
             <CardContent className="space-y-4">
               {viralPatterns.map((pattern, index) => (
-                <div key={index} className="p-3 bg-zinc-950 rounded-lg">
+                <div key={index} className="p-3 bg-base rounded-lg">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-sm text-white">{pattern.pattern}</span>
                     <Badge
@@ -327,19 +327,19 @@ export default function ViralResearchPage() {
                           ? 'bg-green-500/20 text-green-400'
                           : pattern.applicability === 'medium'
                           ? 'bg-yellow-500/20 text-yellow-400'
-                          : 'bg-zinc-500/20 text-zinc-400'
+                          : 'bg-white/5 text-tertiary'
                       )}
                     >
                       {pattern.applicability}
                     </Badge>
                   </div>
-                  <div className="flex items-center gap-4 text-xs text-zinc-500 mb-2">
+                  <div className="flex items-center gap-4 text-xs text-tertiary mb-2">
                     <span>{pattern.frequency}% frequency</span>
                     <span>{pattern.avgEngagement}% avg eng</span>
                   </div>
                   <div className="space-y-1">
                     {pattern.examples.slice(0, 2).map((ex, i) => (
-                      <p key={i} className="text-xs text-zinc-400">
+                      <p key={i} className="text-xs text-tertiary">
                         • {ex}
                       </p>
                     ))}
@@ -350,7 +350,7 @@ export default function ViralResearchPage() {
           </Card>
 
           {/* Optimal Timing */}
-          <Card className="bg-zinc-900 border-zinc-800">
+          <Card className="bg-surface border-white/5">
             <CardHeader>
               <CardTitle className="text-sm text-white flex items-center gap-2">
                 <Clock className="h-4 w-4" />
@@ -361,11 +361,11 @@ export default function ViralResearchPage() {
               {optimalTimings.map((timing, index) => (
                 <div
                   key={index}
-                  className="flex items-center justify-between p-2 bg-zinc-950 rounded-lg"
+                  className="flex items-center justify-between p-2 bg-base rounded-lg"
                 >
                   <div>
                     <p className="text-sm text-white">{timing.event}</p>
-                    <p className="text-xs text-zinc-500">{timing.opportunity}</p>
+                    <p className="text-xs text-tertiary">{timing.opportunity}</p>
                   </div>
                   <Badge
                     className={cn(
@@ -373,7 +373,7 @@ export default function ViralResearchPage() {
                         ? 'bg-red-500/20 text-red-400'
                         : timing.urgency === 'medium'
                         ? 'bg-yellow-500/20 text-yellow-400'
-                        : 'bg-zinc-500/20 text-zinc-400'
+                        : 'bg-white/5 text-tertiary'
                     )}
                   >
                     {timing.urgency}
@@ -384,13 +384,13 @@ export default function ViralResearchPage() {
           </Card>
 
           {/* Quick Generate */}
-          <Card className="bg-gradient-to-r from-blue-600/20 to-purple-600/20 border-blue-500/30">
+          <Card className="bg-gradient-to-r from-violet-500/20 to-indigo-500/20 border-violet-500/30">
             <CardContent className="pt-4">
               <h3 className="font-medium text-white mb-2">Generate Viral Content</h3>
-              <p className="text-sm text-zinc-400 mb-4">
+              <p className="text-sm text-tertiary mb-4">
                 Use analyzed patterns to create high-potential content
               </p>
-              <Button className="w-full bg-gradient-to-r from-blue-600 to-purple-600">
+              <Button className="w-full bg-gradient-to-r from-violet-500 to-indigo-600">
                 <Sparkles className="mr-2 h-4 w-4" />
                 Generate Now
               </Button>

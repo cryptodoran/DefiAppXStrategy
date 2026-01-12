@@ -64,7 +64,7 @@ export function GeneratedVariations({
         <Card
           key={variation.id}
           className={cn(
-            'bg-zinc-900 border-zinc-800 cursor-pointer transition-all',
+            'bg-surface border-white/5 cursor-pointer transition-all',
             selectedId === variation.id && 'ring-2 ring-blue-500 border-blue-500'
           )}
           onClick={() => onSelect(variation)}
@@ -73,7 +73,7 @@ export function GeneratedVariations({
             {/* Header */}
             <div className="flex items-start justify-between mb-3">
               <div className="flex items-center gap-2">
-                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-zinc-800 text-xs font-medium text-zinc-400">
+                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-elevated text-xs font-medium text-tertiary">
                   {index + 1}
                 </span>
                 <span className={cn('text-sm font-medium', getScoreColor(variation.predictedScore))}>
@@ -99,7 +99,7 @@ export function GeneratedVariations({
             </div>
 
             {/* Content */}
-            <p className="text-sm text-zinc-300 whitespace-pre-wrap">
+            <p className="text-sm text-secondary whitespace-pre-wrap">
               {variation.content}
             </p>
 
@@ -118,7 +118,7 @@ export function GeneratedVariations({
             </div>
 
             {/* Hook Rating */}
-            <div className="flex items-center gap-2 mt-3 text-xs text-zinc-500">
+            <div className="flex items-center gap-2 mt-3 text-xs text-tertiary">
               <span>Hook strength:</span>
               <div className="flex gap-0.5">
                 {[1, 2, 3, 4, 5].map((i) => (
@@ -126,7 +126,7 @@ export function GeneratedVariations({
                     key={i}
                     className={cn(
                       'h-1.5 w-3 rounded-full',
-                      i <= variation.hookRating ? 'bg-yellow-400' : 'bg-zinc-700'
+                      i <= variation.hookRating ? 'bg-yellow-400' : 'bg-white/10'
                     )}
                   />
                 ))}
@@ -135,7 +135,7 @@ export function GeneratedVariations({
 
             {/* Quick Refinements */}
             {selectedId === variation.id && (
-              <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t border-zinc-800">
+              <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t border-white/5">
                 {refinementOptions.map((option) => {
                   const Icon = option.icon;
                   return (

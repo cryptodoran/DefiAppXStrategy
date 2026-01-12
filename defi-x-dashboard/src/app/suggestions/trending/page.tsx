@@ -44,7 +44,7 @@ const trendingTopics: TrendingTopic[] = [
     riskLevel: 'medium',
     suggestedAngles: [
       'Analysis of impact on DeFi protocols',
-      'What this means for DeFi App users',
+      'What this means for Defi App users',
       'Hot take: Is this bullish or bearish?',
     ],
     timeToAct: 'Next 2 hours',
@@ -60,7 +60,7 @@ const trendingTopics: TrendingTopic[] = [
     riskLevel: 'low',
     suggestedAngles: [
       'Compare L2 gas costs',
-      'DeFi App performance across L2s',
+      'Defi App performance across L2s',
       'Educational thread on L2 scaling',
     ],
     timeToAct: 'Next 4 hours',
@@ -77,7 +77,7 @@ const trendingTopics: TrendingTopic[] = [
     suggestedAngles: [
       'Why this time is different',
       'Top protocols positioned for the rally',
-      'DeFi App as infrastructure play',
+      'Defi App as infrastructure play',
     ],
     timeToAct: 'Ongoing',
   },
@@ -92,7 +92,7 @@ const trendingTopics: TrendingTopic[] = [
     riskLevel: 'high',
     suggestedAngles: [
       'Security analysis (be careful)',
-      'How DeFi App prevents this',
+      'How Defi App prevents this',
       'Educational: Smart contract security',
     ],
     timeToAct: 'Caution advised',
@@ -124,7 +124,7 @@ const trendingTopics: TrendingTopic[] = [
     suggestedAngles: [
       'RWA integration possibilities',
       'The future of tokenized assets',
-      'DeFi App RWA roadmap tease',
+      'Defi App RWA roadmap tease',
     ],
     timeToAct: 'Next 6 hours',
   },
@@ -185,7 +185,7 @@ export default function TrendingTopicsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-white">Trending Topics</h1>
-          <p className="text-zinc-400">
+          <p className="text-tertiary">
             Real-time trending topics in DeFi/Crypto with engagement opportunities
           </p>
         </div>
@@ -197,31 +197,31 @@ export default function TrendingTopicsPage() {
 
       {/* Stats */}
       <div className="grid gap-4 md:grid-cols-4">
-        <Card className="bg-zinc-900 border-zinc-800">
+        <Card className="bg-surface border-white/5">
           <CardContent className="pt-4">
-            <p className="text-sm text-zinc-400">Active Trends</p>
+            <p className="text-sm text-tertiary">Active Trends</p>
             <p className="text-2xl font-bold text-white">{topics.length}</p>
           </CardContent>
         </Card>
-        <Card className="bg-zinc-900 border-zinc-800">
+        <Card className="bg-surface border-white/5">
           <CardContent className="pt-4">
-            <p className="text-sm text-zinc-400">Emerging</p>
+            <p className="text-sm text-tertiary">Emerging</p>
             <p className="text-2xl font-bold text-green-400">
               {topics.filter((t) => t.lifecycle === 'emerging').length}
             </p>
           </CardContent>
         </Card>
-        <Card className="bg-zinc-900 border-zinc-800">
+        <Card className="bg-surface border-white/5">
           <CardContent className="pt-4">
-            <p className="text-sm text-zinc-400">High Relevance</p>
+            <p className="text-sm text-tertiary">High Relevance</p>
             <p className="text-2xl font-bold text-blue-400">
               {topics.filter((t) => t.relevanceScore >= 80).length}
             </p>
           </CardContent>
         </Card>
-        <Card className="bg-zinc-900 border-zinc-800">
+        <Card className="bg-surface border-white/5">
           <CardContent className="pt-4">
-            <p className="text-sm text-zinc-400">Low Risk Opportunities</p>
+            <p className="text-sm text-tertiary">Low Risk Opportunities</p>
             <p className="text-2xl font-bold text-purple-400">
               {topics.filter((t) => t.riskLevel === 'low' && t.relevanceScore >= 70).length}
             </p>
@@ -232,7 +232,7 @@ export default function TrendingTopicsPage() {
       {/* Topics Grid */}
       <div className="grid gap-4 lg:grid-cols-2">
         {sortedTopics.map((topic) => (
-          <Card key={topic.id} className="bg-zinc-900 border-zinc-800">
+          <Card key={topic.id} className="bg-surface border-white/5">
             <CardContent className="pt-4">
               {/* Header */}
               <div className="flex items-start justify-between mb-4">
@@ -253,7 +253,7 @@ export default function TrendingTopicsPage() {
               {/* Metrics */}
               <div className="grid grid-cols-3 gap-4 mb-4">
                 <div>
-                  <p className="text-xs text-zinc-500">Volume</p>
+                  <p className="text-xs text-tertiary">Volume</p>
                   <p className="text-lg font-bold text-white">{formatVolume(topic.volume)}</p>
                   <p className={cn(
                     'text-xs',
@@ -263,12 +263,12 @@ export default function TrendingTopicsPage() {
                   </p>
                 </div>
                 <div>
-                  <p className="text-xs text-zinc-500">Relevance</p>
+                  <p className="text-xs text-tertiary">Relevance</p>
                   <p className="text-lg font-bold text-blue-400">{topic.relevanceScore}</p>
-                  <p className="text-xs text-zinc-500">for DeFi App</p>
+                  <p className="text-xs text-tertiary">for Defi App</p>
                 </div>
                 <div>
-                  <p className="text-xs text-zinc-500">Risk Level</p>
+                  <p className="text-xs text-tertiary">Risk Level</p>
                   <Badge className={getRiskColor(topic.riskLevel)}>
                     {topic.riskLevel}
                   </Badge>
@@ -276,22 +276,22 @@ export default function TrendingTopicsPage() {
               </div>
 
               {/* Time to Act */}
-              <div className="flex items-center gap-2 mb-4 p-2 bg-zinc-950 rounded-lg">
+              <div className="flex items-center gap-2 mb-4 p-2 bg-base rounded-lg">
                 <Clock className="h-4 w-4 text-yellow-400" />
-                <span className="text-sm text-zinc-400">Time to act:</span>
+                <span className="text-sm text-tertiary">Time to act:</span>
                 <span className="text-sm font-medium text-yellow-400">{topic.timeToAct}</span>
               </div>
 
               {/* Suggested Angles */}
               <div>
-                <p className="text-xs text-zinc-500 mb-2">Suggested Angles:</p>
+                <p className="text-xs text-tertiary mb-2">Suggested Angles:</p>
                 <div className="space-y-2">
                   {topic.suggestedAngles.map((angle, index) => (
                     <div
                       key={index}
-                      className="flex items-center justify-between p-2 bg-zinc-950 rounded-lg group"
+                      className="flex items-center justify-between p-2 bg-base rounded-lg group"
                     >
-                      <span className="text-sm text-zinc-300">{angle}</span>
+                      <span className="text-sm text-secondary">{angle}</span>
                       <Button
                         variant="ghost"
                         size="sm"
@@ -305,7 +305,7 @@ export default function TrendingTopicsPage() {
               </div>
 
               {/* Action Button */}
-              <Button className="w-full mt-4 bg-gradient-to-r from-blue-600 to-purple-600">
+              <Button className="w-full mt-4 bg-gradient-to-r from-violet-500 to-indigo-600">
                 <Zap className="mr-2 h-4 w-4" />
                 Generate Content
               </Button>

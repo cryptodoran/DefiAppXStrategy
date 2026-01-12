@@ -149,7 +149,7 @@ export default function PathTo1Page() {
       case 'completed':
         return <Badge className="bg-green-500/20 text-green-400">Completed</Badge>;
       default:
-        return <Badge className="bg-zinc-500/20 text-zinc-400">Not Started</Badge>;
+        return <Badge className="bg-white/5 text-tertiary">Not Started</Badge>;
     }
   };
 
@@ -162,7 +162,7 @@ export default function PathTo1Page() {
       case 'Medium':
         return 'text-yellow-400';
       default:
-        return 'text-zinc-400';
+        return 'text-tertiary';
     }
   };
 
@@ -174,50 +174,50 @@ export default function PathTo1Page() {
           <Trophy className="h-6 w-6 text-yellow-400" />
           Path to #1
         </h1>
-        <p className="text-zinc-400">
+        <p className="text-tertiary">
           Strategic roadmap to become the #1 DeFi account on Crypto Twitter
         </p>
       </div>
 
       {/* Current Position */}
       <div className="grid gap-4 md:grid-cols-4">
-        <Card className="bg-zinc-900 border-zinc-800">
+        <Card className="bg-surface border-white/5">
           <CardContent className="pt-4">
-            <p className="text-sm text-zinc-400">Current Ranking</p>
+            <p className="text-sm text-tertiary">Current Ranking</p>
             <div className="flex items-baseline gap-1">
               <span className="text-3xl font-bold text-white">#{currentRanking.position}</span>
-              <span className="text-zinc-500">/ {currentRanking.totalDeFiAccounts}</span>
+              <span className="text-tertiary">/ {currentRanking.totalDeFiAccounts}</span>
             </div>
           </CardContent>
         </Card>
-        <Card className="bg-zinc-900 border-zinc-800">
+        <Card className="bg-surface border-white/5">
           <CardContent className="pt-4">
-            <p className="text-sm text-zinc-400">Current Followers</p>
+            <p className="text-sm text-tertiary">Current Followers</p>
             <p className="text-3xl font-bold text-white">
               {currentRanking.followerCount.toLocaleString()}
             </p>
           </CardContent>
         </Card>
-        <Card className="bg-zinc-900 border-zinc-800">
+        <Card className="bg-surface border-white/5">
           <CardContent className="pt-4">
-            <p className="text-sm text-zinc-400">Gap to #1</p>
+            <p className="text-sm text-tertiary">Gap to #1</p>
             <p className="text-3xl font-bold text-red-400">
               {currentRanking.gap.toLocaleString()}
             </p>
-            <p className="text-xs text-zinc-500">{currentRanking.leadingAccount}</p>
+            <p className="text-xs text-tertiary">{currentRanking.leadingAccount}</p>
           </CardContent>
         </Card>
-        <Card className="bg-zinc-900 border-zinc-800">
+        <Card className="bg-surface border-white/5">
           <CardContent className="pt-4">
-            <p className="text-sm text-zinc-400">Required Growth Rate</p>
+            <p className="text-sm text-tertiary">Required Growth Rate</p>
             <p className="text-3xl font-bold text-yellow-400">{requiredGrowthRate}%</p>
-            <p className="text-xs text-zinc-500">per month to reach #1 in 6mo</p>
+            <p className="text-xs text-tertiary">per month to reach #1 in 6mo</p>
           </CardContent>
         </Card>
       </div>
 
       {/* Milestones */}
-      <Card className="bg-zinc-900 border-zinc-800">
+      <Card className="bg-surface border-white/5">
         <CardHeader>
           <CardTitle className="text-white flex items-center gap-2">
             <Target className="h-5 w-5" />
@@ -226,7 +226,7 @@ export default function PathTo1Page() {
         </CardHeader>
         <CardContent>
           <div className="relative">
-            <div className="absolute left-0 top-4 h-0.5 w-full bg-zinc-800" />
+            <div className="absolute left-0 top-4 h-0.5 w-full bg-elevated" />
             <div
               className="absolute left-0 top-4 h-0.5 bg-gradient-to-r from-green-500 to-blue-500"
               style={{ width: `${(currentRanking.followerCount / 1000000) * 100}%` }}
@@ -239,18 +239,18 @@ export default function PathTo1Page() {
                       'h-8 w-8 rounded-full border-2 flex items-center justify-center z-10',
                       currentRanking.followerCount >= milestone.followers
                         ? 'bg-green-500 border-green-500'
-                        : 'bg-zinc-900 border-zinc-700'
+                        : 'bg-surface border-white/10'
                     )}
                   >
                     {currentRanking.followerCount >= milestone.followers ? (
                       <CheckCircle className="h-4 w-4 text-white" />
                     ) : (
-                      <Circle className="h-4 w-4 text-zinc-500" />
+                      <Circle className="h-4 w-4 text-tertiary" />
                     )}
                   </div>
                   <span className="mt-2 text-sm font-medium text-white">{milestone.label}</span>
                   {!milestone.achieved && (
-                    <span className="text-xs text-zinc-500">~{milestone.daysAway}d</span>
+                    <span className="text-xs text-tertiary">~{milestone.daysAway}d</span>
                   )}
                 </div>
               ))}
@@ -262,7 +262,7 @@ export default function PathTo1Page() {
       {/* Strategic Recommendations */}
       <div className="grid gap-6 lg:grid-cols-2">
         {strategies.map((strategy) => (
-          <Card key={strategy.category} className="bg-zinc-900 border-zinc-800">
+          <Card key={strategy.category} className="bg-surface border-white/5">
             <CardHeader>
               <CardTitle className="text-white">{strategy.category} Strategy</CardTitle>
             </CardHeader>
@@ -270,15 +270,15 @@ export default function PathTo1Page() {
               {strategy.recommendations.map((rec, index) => (
                 <div
                   key={index}
-                  className="flex items-start justify-between p-3 rounded-lg bg-zinc-950"
+                  className="flex items-start justify-between p-3 rounded-lg bg-base"
                 >
                   <div className="flex-1">
-                    <p className="text-sm text-zinc-300">{rec.action}</p>
+                    <p className="text-sm text-secondary">{rec.action}</p>
                     <div className="flex items-center gap-3 mt-2 text-xs">
                       <span className={getImpactColor(rec.impact)}>
                         Impact: {rec.impact}
                       </span>
-                      <span className="text-zinc-500">Effort: {rec.effort}</span>
+                      <span className="text-tertiary">Effort: {rec.effort}</span>
                     </div>
                   </div>
                   {getStatusBadge(rec.status)}
@@ -290,7 +290,7 @@ export default function PathTo1Page() {
       </div>
 
       {/* Weekly Progress */}
-      <Card className="bg-zinc-900 border-zinc-800">
+      <Card className="bg-surface border-white/5">
         <CardHeader>
           <CardTitle className="text-white flex items-center gap-2">
             <TrendingUp className="h-5 w-5" />
@@ -301,10 +301,10 @@ export default function PathTo1Page() {
           <div className="space-y-4">
             {weeklyProgress.map((week, index) => (
               <div key={week.week} className="flex items-center gap-4">
-                <span className="text-sm text-zinc-400 w-20">{week.week}</span>
-                <div className="flex-1 h-2 bg-zinc-800 rounded-full overflow-hidden">
+                <span className="text-sm text-tertiary w-20">{week.week}</span>
+                <div className="flex-1 h-2 bg-elevated rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-gradient-to-r from-blue-500 to-purple-500 rounded-full"
+                    className="h-full bg-gradient-to-r from-violet-500 to-indigo-500 rounded-full"
                     style={{ width: `${(week.followers / 100000) * 100}%` }}
                   />
                 </div>
@@ -326,16 +326,16 @@ export default function PathTo1Page() {
       </Card>
 
       {/* Action Button */}
-      <Card className="bg-gradient-to-r from-blue-900/50 to-purple-900/50 border-zinc-800">
+      <Card className="bg-gradient-to-r from-violet-900/50 to-indigo-900/50 border-white/5">
         <CardContent className="py-6">
           <div className="flex items-center justify-between">
             <div>
               <h3 className="text-lg font-medium text-white">Ready to accelerate growth?</h3>
-              <p className="text-sm text-zinc-400">
+              <p className="text-sm text-tertiary">
                 Generate a detailed weekly action plan based on these strategies
               </p>
             </div>
-            <Button className="bg-white text-black hover:bg-zinc-200">
+            <Button className="bg-white text-black hover:bg-white/90">
               Generate Action Plan
               <ArrowRight className="ml-2 h-4 w-4" />
             </Button>

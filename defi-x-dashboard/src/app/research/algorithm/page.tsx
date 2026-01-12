@@ -145,7 +145,7 @@ export default function AlgorithmIntelPage() {
       case 'decreasing':
         return <TrendingDown className="h-4 w-4 text-red-400" />;
       default:
-        return <div className="h-4 w-4 rounded-full bg-zinc-500" />;
+        return <div className="h-4 w-4 rounded-full bg-white/10" />;
     }
   };
 
@@ -159,7 +159,7 @@ export default function AlgorithmIntelPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-white">Algorithm Intelligence</h1>
-          <p className="text-zinc-400">
+          <p className="text-tertiary">
             Real-time insights into how the X algorithm works
           </p>
         </div>
@@ -171,36 +171,36 @@ export default function AlgorithmIntelPage() {
 
       {/* Overview Stats */}
       <div className="grid gap-4 md:grid-cols-4">
-        <Card className="bg-zinc-900 border-zinc-800">
+        <Card className="bg-surface border-white/5">
           <CardContent className="pt-4">
-            <p className="text-sm text-zinc-400">Tracked Factors</p>
+            <p className="text-sm text-tertiary">Tracked Factors</p>
             <p className="text-2xl font-bold text-white">{algorithmFactors.length}</p>
           </CardContent>
         </Card>
-        <Card className="bg-zinc-900 border-zinc-800">
+        <Card className="bg-surface border-white/5">
           <CardContent className="pt-4">
-            <p className="text-sm text-zinc-400">Verified Insights</p>
+            <p className="text-sm text-tertiary">Verified Insights</p>
             <p className="text-2xl font-bold text-green-400">
               {algorithmFactors.filter((f) => f.verified).length}
             </p>
           </CardContent>
         </Card>
-        <Card className="bg-zinc-900 border-zinc-800">
+        <Card className="bg-surface border-white/5">
           <CardContent className="pt-4">
-            <p className="text-sm text-zinc-400">Recent Changes</p>
+            <p className="text-sm text-tertiary">Recent Changes</p>
             <p className="text-2xl font-bold text-yellow-400">{recentChanges.length}</p>
           </CardContent>
         </Card>
-        <Card className="bg-zinc-900 border-zinc-800">
+        <Card className="bg-surface border-white/5">
           <CardContent className="pt-4">
-            <p className="text-sm text-zinc-400">Tracked Researchers</p>
+            <p className="text-sm text-tertiary">Tracked Researchers</p>
             <p className="text-2xl font-bold text-blue-400">{trackedResearchers.length}</p>
           </CardContent>
         </Card>
       </div>
 
       <Tabs defaultValue="factors" className="space-y-6">
-        <TabsList className="bg-zinc-900">
+        <TabsList className="bg-surface">
           <TabsTrigger value="factors">Algorithm Factors</TabsTrigger>
           <TabsTrigger value="changes">Recent Changes</TabsTrigger>
           <TabsTrigger value="researchers">Tracked Researchers</TabsTrigger>
@@ -233,14 +233,14 @@ export default function AlgorithmIntelPage() {
           {/* Factors List */}
           <div className="space-y-4">
             {filteredFactors.map((factor) => (
-              <Card key={factor.id} className="bg-zinc-900 border-zinc-800">
+              <Card key={factor.id} className="bg-surface border-white/5">
                 <CardContent className="pt-4">
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex items-center gap-3">
-                      <div className="text-zinc-400">{getCategoryIcon(factor.category)}</div>
+                      <div className="text-tertiary">{getCategoryIcon(factor.category)}</div>
                       <div>
                         <h3 className="font-medium text-white">{factor.factorName}</h3>
-                        <p className="text-xs text-zinc-500">
+                        <p className="text-xs text-tertiary">
                           {factor.category.replace(/_/g, ' ')}
                         </p>
                       </div>
@@ -253,9 +253,9 @@ export default function AlgorithmIntelPage() {
                     </div>
                   </div>
 
-                  <p className="text-sm text-zinc-300 mb-4">{factor.understanding}</p>
+                  <p className="text-sm text-secondary mb-4">{factor.understanding}</p>
 
-                  <div className="flex items-center justify-between text-xs text-zinc-500">
+                  <div className="flex items-center justify-between text-xs text-tertiary">
                     <div className="flex items-center gap-4">
                       <span>Confidence: {Math.round(factor.confidence * 100)}%</span>
                       <span className="flex items-center gap-1">
@@ -266,7 +266,7 @@ export default function AlgorithmIntelPage() {
                               key={i}
                               className={cn(
                                 'h-1.5 w-3 rounded-full',
-                                i <= factor.impact ? 'bg-yellow-400' : 'bg-zinc-700'
+                                i <= factor.impact ? 'bg-yellow-400' : 'bg-white/10'
                               )}
                             />
                           ))}
@@ -287,24 +287,24 @@ export default function AlgorithmIntelPage() {
 
         <TabsContent value="changes" className="space-y-4">
           {recentChanges.map((change, index) => (
-            <Card key={index} className="bg-zinc-900 border-zinc-800">
+            <Card key={index} className="bg-surface border-white/5">
               <CardContent className="pt-4">
                 <div className="flex items-start justify-between">
                   <div>
                     <h3 className="font-medium text-white">{change.title}</h3>
-                    <p className="text-sm text-zinc-400 mt-1">{change.description}</p>
+                    <p className="text-sm text-tertiary mt-1">{change.description}</p>
                   </div>
                   <Badge
                     className={cn(
                       change.impact === 'positive' && 'bg-green-500/20 text-green-400',
                       change.impact === 'negative' && 'bg-red-500/20 text-red-400',
-                      change.impact === 'neutral' && 'bg-zinc-500/20 text-zinc-400'
+                      change.impact === 'neutral' && 'bg-white/5 text-tertiary'
                     )}
                   >
                     {change.impact}
                   </Badge>
                 </div>
-                <p className="text-xs text-zinc-500 mt-3">
+                <p className="text-xs text-tertiary mt-3">
                   {Math.round((Date.now() - change.date.getTime()) / (24 * 60 * 60 * 1000))} days ago
                 </p>
               </CardContent>
@@ -314,14 +314,14 @@ export default function AlgorithmIntelPage() {
 
         <TabsContent value="researchers" className="space-y-4">
           {trackedResearchers.map((researcher, index) => (
-            <Card key={index} className="bg-zinc-900 border-zinc-800">
+            <Card key={index} className="bg-surface border-white/5">
               <CardContent className="pt-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600" />
+                    <div className="h-10 w-10 rounded-full bg-gradient-to-br from-violet-500 to-indigo-600" />
                     <div>
                       <h3 className="font-medium text-white">{researcher.handle}</h3>
-                      <p className="text-sm text-zinc-400">{researcher.focus}</p>
+                      <p className="text-sm text-tertiary">{researcher.focus}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-3">

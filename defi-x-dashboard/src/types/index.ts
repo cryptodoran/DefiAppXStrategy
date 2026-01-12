@@ -1,4 +1,4 @@
-// Core type definitions for DeFi App X Strategy Dashboard
+// Core type definitions for Defi App X Strategy Dashboard
 
 // Post types
 export type PostType = 'SINGLE' | 'THREAD' | 'QT' | 'ARTICLE' | 'MEME' | 'ANNOUNCEMENT';

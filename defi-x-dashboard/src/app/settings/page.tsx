@@ -57,13 +57,13 @@ export default function SettingsPage() {
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold text-white">Settings</h1>
-        <p className="text-zinc-400">
+        <p className="text-tertiary">
           Manage your account, integrations, and preferences
         </p>
       </div>
 
       <Tabs defaultValue="account" className="space-y-6">
-        <TabsList className="bg-zinc-900">
+        <TabsList className="bg-surface">
           <TabsTrigger value="account">Account</TabsTrigger>
           <TabsTrigger value="integrations">Integrations</TabsTrigger>
           <TabsTrigger value="notifications">Notifications</TabsTrigger>
@@ -72,7 +72,7 @@ export default function SettingsPage() {
 
         {/* Account Tab */}
         <TabsContent value="account" className="space-y-6">
-          <Card className="bg-zinc-900 border-zinc-800">
+          <Card className="bg-surface border-white/5">
             <CardHeader>
               <CardTitle className="text-white flex items-center gap-2">
                 <User className="h-5 w-5" />
@@ -82,30 +82,30 @@ export default function SettingsPage() {
             <CardContent className="space-y-4">
               <div className="grid md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <label className="text-sm text-zinc-400">Display Name</label>
+                  <label className="text-sm text-tertiary">Display Name</label>
                   <Input
-                    defaultValue="DeFi App"
-                    className="bg-zinc-950 border-zinc-800"
+                    defaultValue="Defi App"
+                    className="bg-base border-white/5"
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm text-zinc-400">X Handle</label>
+                  <label className="text-sm text-tertiary">X Handle</label>
                   <Input
                     defaultValue="@defi_app"
-                    className="bg-zinc-950 border-zinc-800"
+                    className="bg-base border-white/5"
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm text-zinc-400">Email</label>
+                  <label className="text-sm text-tertiary">Email</label>
                   <Input
                     defaultValue="team@defiapp.com"
-                    className="bg-zinc-950 border-zinc-800"
+                    className="bg-base border-white/5"
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm text-zinc-400">Timezone</label>
+                  <label className="text-sm text-tertiary">Timezone</label>
                   <Select defaultValue="utc">
-                    <SelectTrigger className="bg-zinc-950 border-zinc-800">
+                    <SelectTrigger className="bg-base border-white/5">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -124,7 +124,7 @@ export default function SettingsPage() {
             </CardContent>
           </Card>
 
-          <Card className="bg-zinc-900 border-zinc-800">
+          <Card className="bg-surface border-white/5">
             <CardHeader>
               <CardTitle className="text-white flex items-center gap-2">
                 <Shield className="h-5 w-5" />
@@ -132,27 +132,27 @@ export default function SettingsPage() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex items-center justify-between p-4 bg-zinc-950 rounded-lg">
+              <div className="flex items-center justify-between p-4 bg-base rounded-lg">
                 <div>
                   <p className="text-white">Two-Factor Authentication</p>
-                  <p className="text-sm text-zinc-500">Add an extra layer of security</p>
+                  <p className="text-sm text-tertiary">Add an extra layer of security</p>
                 </div>
                 <Badge className="bg-green-500/20 text-green-400">Enabled</Badge>
               </div>
-              <div className="flex items-center justify-between p-4 bg-zinc-950 rounded-lg">
+              <div className="flex items-center justify-between p-4 bg-base rounded-lg">
                 <div>
                   <p className="text-white">API Access</p>
-                  <p className="text-sm text-zinc-500">Manage API keys and tokens</p>
+                  <p className="text-sm text-tertiary">Manage API keys and tokens</p>
                 </div>
                 <Button variant="outline" size="sm">
                   <Key className="mr-2 h-4 w-4" />
                   Manage Keys
                 </Button>
               </div>
-              <div className="flex items-center justify-between p-4 bg-zinc-950 rounded-lg">
+              <div className="flex items-center justify-between p-4 bg-base rounded-lg">
                 <div>
                   <p className="text-white">Login Sessions</p>
-                  <p className="text-sm text-zinc-500">2 active sessions</p>
+                  <p className="text-sm text-tertiary">2 active sessions</p>
                 </div>
                 <Button variant="outline" size="sm">
                   View All
@@ -164,7 +164,7 @@ export default function SettingsPage() {
 
         {/* Integrations Tab */}
         <TabsContent value="integrations" className="space-y-6">
-          <Card className="bg-zinc-900 border-zinc-800">
+          <Card className="bg-surface border-white/5">
             <CardHeader>
               <CardTitle className="text-white flex items-center gap-2">
                 <Zap className="h-5 w-5" />
@@ -175,7 +175,7 @@ export default function SettingsPage() {
               {integrations.map((integration, index) => (
                 <div
                   key={index}
-                  className="flex items-center justify-between p-4 bg-zinc-950 rounded-lg"
+                  className="flex items-center justify-between p-4 bg-base rounded-lg"
                 >
                   <div className="flex items-center gap-4">
                     <div
@@ -185,7 +185,7 @@ export default function SettingsPage() {
                           ? 'bg-green-500/20'
                           : integration.status === 'error'
                           ? 'bg-red-500/20'
-                          : 'bg-zinc-800'
+                          : 'bg-elevated'
                       )}
                     >
                       {integration.status === 'active' ? (
@@ -193,12 +193,12 @@ export default function SettingsPage() {
                       ) : integration.status === 'error' ? (
                         <AlertCircle className="h-5 w-5 text-red-400" />
                       ) : (
-                        <Globe className="h-5 w-5 text-zinc-400" />
+                        <Globe className="h-5 w-5 text-tertiary" />
                       )}
                     </div>
                     <div>
                       <p className="text-white">{integration.name}</p>
-                      <p className="text-sm text-zinc-500">
+                      <p className="text-sm text-tertiary">
                         {integration.lastSync
                           ? `Last sync: ${integration.lastSync}`
                           : 'Not connected'}
@@ -212,7 +212,7 @@ export default function SettingsPage() {
                           ? 'bg-green-500/20 text-green-400'
                           : integration.status === 'error'
                           ? 'bg-red-500/20 text-red-400'
-                          : 'bg-zinc-500/20 text-zinc-400'
+                          : 'bg-white/5 text-tertiary'
                       )}
                     >
                       {integration.status}
@@ -230,18 +230,18 @@ export default function SettingsPage() {
             </CardContent>
           </Card>
 
-          <Card className="bg-zinc-900 border-zinc-800">
+          <Card className="bg-surface border-white/5">
             <CardHeader>
               <CardTitle className="text-white">API Configuration</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <label className="text-sm text-zinc-400">X API Key</label>
+                <label className="text-sm text-tertiary">X API Key</label>
                 <div className="flex gap-2">
                   <Input
                     type="password"
                     defaultValue="sk_live_xxxxxxxxxx"
-                    className="bg-zinc-950 border-zinc-800"
+                    className="bg-base border-white/5"
                   />
                   <Button variant="outline">
                     <ExternalLink className="h-4 w-4" />
@@ -249,12 +249,12 @@ export default function SettingsPage() {
                 </div>
               </div>
               <div className="space-y-2">
-                <label className="text-sm text-zinc-400">Claude API Key</label>
+                <label className="text-sm text-tertiary">Claude API Key</label>
                 <div className="flex gap-2">
                   <Input
                     type="password"
                     defaultValue="sk_ant_xxxxxxxxxx"
-                    className="bg-zinc-950 border-zinc-800"
+                    className="bg-base border-white/5"
                   />
                   <Button variant="outline">
                     <ExternalLink className="h-4 w-4" />
@@ -271,7 +271,7 @@ export default function SettingsPage() {
 
         {/* Notifications Tab */}
         <TabsContent value="notifications" className="space-y-6">
-          <Card className="bg-zinc-900 border-zinc-800">
+          <Card className="bg-surface border-white/5">
             <CardHeader>
               <CardTitle className="text-white flex items-center gap-2">
                 <Bell className="h-5 w-5" />
@@ -279,56 +279,56 @@ export default function SettingsPage() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex items-center justify-between p-4 bg-zinc-950 rounded-lg">
+              <div className="flex items-center justify-between p-4 bg-base rounded-lg">
                 <div>
                   <p className="text-white">Push Notifications</p>
-                  <p className="text-sm text-zinc-500">Receive alerts for important events</p>
+                  <p className="text-sm text-tertiary">Receive alerts for important events</p>
                 </div>
                 <Switch
                   checked={notificationsEnabled}
                   onCheckedChange={setNotificationsEnabled}
                 />
               </div>
-              <div className="flex items-center justify-between p-4 bg-zinc-950 rounded-lg">
+              <div className="flex items-center justify-between p-4 bg-base rounded-lg">
                 <div>
                   <p className="text-white">Engagement Alerts</p>
-                  <p className="text-sm text-zinc-500">When posts hit engagement milestones</p>
+                  <p className="text-sm text-tertiary">When posts hit engagement milestones</p>
                 </div>
                 <Switch defaultChecked />
               </div>
-              <div className="flex items-center justify-between p-4 bg-zinc-950 rounded-lg">
+              <div className="flex items-center justify-between p-4 bg-base rounded-lg">
                 <div>
                   <p className="text-white">Competitor Activity</p>
-                  <p className="text-sm text-zinc-500">When tracked competitors post viral content</p>
+                  <p className="text-sm text-tertiary">When tracked competitors post viral content</p>
                 </div>
                 <Switch defaultChecked />
               </div>
-              <div className="flex items-center justify-between p-4 bg-zinc-950 rounded-lg">
+              <div className="flex items-center justify-between p-4 bg-base rounded-lg">
                 <div>
                   <p className="text-white">Trend Alerts</p>
-                  <p className="text-sm text-zinc-500">When relevant topics start trending</p>
+                  <p className="text-sm text-tertiary">When relevant topics start trending</p>
                 </div>
                 <Switch defaultChecked />
               </div>
-              <div className="flex items-center justify-between p-4 bg-zinc-950 rounded-lg">
+              <div className="flex items-center justify-between p-4 bg-base rounded-lg">
                 <div>
                   <p className="text-white">Schedule Reminders</p>
-                  <p className="text-sm text-zinc-500">Before scheduled posts go live</p>
+                  <p className="text-sm text-tertiary">Before scheduled posts go live</p>
                 </div>
                 <Switch defaultChecked />
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-zinc-900 border-zinc-800">
+          <Card className="bg-surface border-white/5">
             <CardHeader>
               <CardTitle className="text-sm text-white">Email Digest</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <label className="text-sm text-zinc-400">Frequency</label>
+                <label className="text-sm text-tertiary">Frequency</label>
                 <Select defaultValue="daily">
-                  <SelectTrigger className="bg-zinc-950 border-zinc-800">
+                  <SelectTrigger className="bg-base border-white/5">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -345,7 +345,7 @@ export default function SettingsPage() {
 
         {/* Preferences Tab */}
         <TabsContent value="preferences" className="space-y-6">
-          <Card className="bg-zinc-900 border-zinc-800">
+          <Card className="bg-surface border-white/5">
             <CardHeader>
               <CardTitle className="text-white flex items-center gap-2">
                 <Palette className="h-5 w-5" />
@@ -353,27 +353,27 @@ export default function SettingsPage() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex items-center justify-between p-4 bg-zinc-950 rounded-lg">
+              <div className="flex items-center justify-between p-4 bg-base rounded-lg">
                 <div>
                   <p className="text-white">Dark Mode</p>
-                  <p className="text-sm text-zinc-500">Use dark theme throughout the app</p>
+                  <p className="text-sm text-tertiary">Use dark theme throughout the app</p>
                 </div>
                 <Switch
                   checked={darkMode}
                   onCheckedChange={setDarkMode}
                 />
               </div>
-              <div className="flex items-center justify-between p-4 bg-zinc-950 rounded-lg">
+              <div className="flex items-center justify-between p-4 bg-base rounded-lg">
                 <div>
                   <p className="text-white">Compact View</p>
-                  <p className="text-sm text-zinc-500">Show more content in less space</p>
+                  <p className="text-sm text-tertiary">Show more content in less space</p>
                 </div>
                 <Switch />
               </div>
               <div className="space-y-2">
-                <label className="text-sm text-zinc-400">Dashboard Layout</label>
+                <label className="text-sm text-tertiary">Dashboard Layout</label>
                 <Select defaultValue="default">
-                  <SelectTrigger className="bg-zinc-950 border-zinc-800">
+                  <SelectTrigger className="bg-base border-white/5">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -387,7 +387,7 @@ export default function SettingsPage() {
             </CardContent>
           </Card>
 
-          <Card className="bg-zinc-900 border-zinc-800">
+          <Card className="bg-surface border-white/5">
             <CardHeader>
               <CardTitle className="text-white flex items-center gap-2">
                 <Settings className="h-5 w-5" />
@@ -395,20 +395,20 @@ export default function SettingsPage() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex items-center justify-between p-4 bg-zinc-950 rounded-lg">
+              <div className="flex items-center justify-between p-4 bg-base rounded-lg">
                 <div>
                   <p className="text-white">Auto-Schedule Posts</p>
-                  <p className="text-sm text-zinc-500">Automatically schedule for optimal times</p>
+                  <p className="text-sm text-tertiary">Automatically schedule for optimal times</p>
                 </div>
                 <Switch
                   checked={autoSchedule}
                   onCheckedChange={setAutoSchedule}
                 />
               </div>
-              <div className="flex items-center justify-between p-4 bg-zinc-950 rounded-lg">
+              <div className="flex items-center justify-between p-4 bg-base rounded-lg">
                 <div>
                   <p className="text-white">Spice Level Warnings</p>
-                  <p className="text-sm text-zinc-500">Warn before posting high-spice content</p>
+                  <p className="text-sm text-tertiary">Warn before posting high-spice content</p>
                 </div>
                 <Switch
                   checked={spiceWarnings}
@@ -416,9 +416,9 @@ export default function SettingsPage() {
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-sm text-zinc-400">Default Spice Level</label>
+                <label className="text-sm text-tertiary">Default Spice Level</label>
                 <Select defaultValue="medium">
-                  <SelectTrigger className="bg-zinc-950 border-zinc-800">
+                  <SelectTrigger className="bg-base border-white/5">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -430,9 +430,9 @@ export default function SettingsPage() {
                 </Select>
               </div>
               <div className="space-y-2">
-                <label className="text-sm text-zinc-400">AI Model Preference</label>
+                <label className="text-sm text-tertiary">AI Model Preference</label>
                 <Select defaultValue="claude">
-                  <SelectTrigger className="bg-zinc-950 border-zinc-800">
+                  <SelectTrigger className="bg-base border-white/5">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -452,7 +452,7 @@ export default function SettingsPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-white">Reset All Settings</p>
-                  <p className="text-sm text-zinc-500">Restore default configuration</p>
+                  <p className="text-sm text-tertiary">Restore default configuration</p>
                 </div>
                 <Button variant="outline" className="border-red-500/50 text-red-400 hover:bg-red-500/10">
                   Reset
@@ -461,7 +461,7 @@ export default function SettingsPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-white">Delete Account</p>
-                  <p className="text-sm text-zinc-500">Permanently delete your account and data</p>
+                  <p className="text-sm text-tertiary">Permanently delete your account and data</p>
                 </div>
                 <Button variant="outline" className="border-red-500/50 text-red-400 hover:bg-red-500/10">
                   Delete

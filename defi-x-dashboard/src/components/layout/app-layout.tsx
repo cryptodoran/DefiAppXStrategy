@@ -125,7 +125,7 @@ export function AppLayout({ children, rightPanel }: AppLayoutProps) {
                   <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center">
                     <Zap className="h-4 w-4 text-white" />
                   </div>
-                  <span className="font-semibold text-primary">DeFi App X</span>
+                  <span className="font-semibold text-primary">Defi App</span>
                 </motion.div>
               )}
             </AnimatePresence>

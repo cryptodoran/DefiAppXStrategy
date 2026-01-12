@@ -131,7 +131,7 @@ export default function CompetitorIntelPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-white">Competitor Intelligence</h1>
-          <p className="text-zinc-400">Track and analyze competing DeFi accounts</p>
+          <p className="text-tertiary">Track and analyze competing DeFi accounts</p>
         </div>
         <Button variant="outline">
           <Plus className="mr-2 h-4 w-4" />
@@ -141,47 +141,47 @@ export default function CompetitorIntelPage() {
 
       {/* Search */}
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-500" />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-tertiary" />
         <Input
           placeholder="Search competitors..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="pl-10 bg-zinc-900 border-zinc-800"
+          className="pl-10 bg-surface border-white/5"
         />
       </div>
 
       {/* Stats Overview */}
       <div className="grid gap-4 md:grid-cols-4">
-        <Card className="bg-zinc-900 border-zinc-800">
+        <Card className="bg-surface border-white/5">
           <CardContent className="pt-4">
-            <p className="text-sm text-zinc-400">Tracked Accounts</p>
+            <p className="text-sm text-tertiary">Tracked Accounts</p>
             <p className="text-2xl font-bold text-white">{competitors.length}</p>
           </CardContent>
         </Card>
-        <Card className="bg-zinc-900 border-zinc-800">
+        <Card className="bg-surface border-white/5">
           <CardContent className="pt-4">
-            <p className="text-sm text-zinc-400">Avg. Growth Rate</p>
+            <p className="text-sm text-tertiary">Avg. Growth Rate</p>
             <p className="text-2xl font-bold text-green-400">
               {(competitors.reduce((acc, c) => acc + c.followersChange, 0) / competitors.length).toFixed(1)}%
             </p>
           </CardContent>
         </Card>
-        <Card className="bg-zinc-900 border-zinc-800">
+        <Card className="bg-surface border-white/5">
           <CardContent className="pt-4">
-            <p className="text-sm text-zinc-400">Your Growth</p>
+            <p className="text-sm text-tertiary">Your Growth</p>
             <p className="text-2xl font-bold text-blue-400">12.5%</p>
           </CardContent>
         </Card>
-        <Card className="bg-zinc-900 border-zinc-800">
+        <Card className="bg-surface border-white/5">
           <CardContent className="pt-4">
-            <p className="text-sm text-zinc-400">Content Gaps Found</p>
+            <p className="text-sm text-tertiary">Content Gaps Found</p>
             <p className="text-2xl font-bold text-yellow-400">{contentGaps.filter((g) => g.opportunity === 'high').length}</p>
           </CardContent>
         </Card>
       </div>
 
       <Tabs defaultValue="overview" className="space-y-6">
-        <TabsList className="bg-zinc-900">
+        <TabsList className="bg-surface">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="gaps">Content Gaps</TabsTrigger>
           <TabsTrigger value="alerts">Alerts</TabsTrigger>
@@ -190,11 +190,11 @@ export default function CompetitorIntelPage() {
         <TabsContent value="overview" className="space-y-4">
           {/* Competitor List */}
           {filteredCompetitors.map((competitor) => (
-            <Card key={competitor.id} className="bg-zinc-900 border-zinc-800">
+            <Card key={competitor.id} className="bg-surface border-white/5">
               <CardContent className="pt-4">
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-4">
-                    <div className="h-12 w-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+                    <div className="h-12 w-12 rounded-full bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center">
                       <span className="text-white font-bold">{competitor.name[0]}</span>
                     </div>
                     <div>
@@ -202,7 +202,7 @@ export default function CompetitorIntelPage() {
                         <h3 className="font-medium text-white">{competitor.name}</h3>
                         <Badge variant="outline">{competitor.type}</Badge>
                       </div>
-                      <p className="text-sm text-zinc-500">{competitor.handle}</p>
+                      <p className="text-sm text-tertiary">{competitor.handle}</p>
                     </div>
                   </div>
                   <Button variant="ghost" size="sm">
@@ -210,37 +210,37 @@ export default function CompetitorIntelPage() {
                   </Button>
                 </div>
 
-                <div className="grid grid-cols-5 gap-4 mt-4 pt-4 border-t border-zinc-800">
+                <div className="grid grid-cols-5 gap-4 mt-4 pt-4 border-t border-white/5">
                   <div className="text-center">
-                    <Users className="h-4 w-4 text-zinc-400 mx-auto mb-1" />
+                    <Users className="h-4 w-4 text-tertiary mx-auto mb-1" />
                     <p className="text-lg font-bold text-white">{formatNumber(competitor.followers)}</p>
-                    <p className="text-xs text-zinc-500">Followers</p>
+                    <p className="text-xs text-tertiary">Followers</p>
                   </div>
                   <div className="text-center">
                     <TrendingUp className="h-4 w-4 text-green-400 mx-auto mb-1" />
                     <p className="text-lg font-bold text-green-400">+{competitor.followersChange}%</p>
-                    <p className="text-xs text-zinc-500">Growth</p>
+                    <p className="text-xs text-tertiary">Growth</p>
                   </div>
                   <div className="text-center">
                     <Heart className="h-4 w-4 text-red-400 mx-auto mb-1" />
                     <p className="text-lg font-bold text-white">{competitor.engagement}%</p>
-                    <p className="text-xs text-zinc-500">Engagement</p>
+                    <p className="text-xs text-tertiary">Engagement</p>
                   </div>
                   <div className="text-center">
                     <BarChart3 className="h-4 w-4 text-blue-400 mx-auto mb-1" />
                     <p className="text-lg font-bold text-white">{competitor.postingFrequency}/day</p>
-                    <p className="text-xs text-zinc-500">Frequency</p>
+                    <p className="text-xs text-tertiary">Frequency</p>
                   </div>
                   <div className="text-center">
                     <Eye className="h-4 w-4 text-purple-400 mx-auto mb-1" />
                     <p className="text-lg font-bold text-white">{formatNumber(competitor.avgImpressions)}</p>
-                    <p className="text-xs text-zinc-500">Avg. Reach</p>
+                    <p className="text-xs text-tertiary">Avg. Reach</p>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4 mt-4 pt-4 border-t border-zinc-800">
+                <div className="grid grid-cols-2 gap-4 mt-4 pt-4 border-t border-white/5">
                   <div>
-                    <p className="text-xs text-zinc-500 mb-2">Strengths</p>
+                    <p className="text-xs text-tertiary mb-2">Strengths</p>
                     <div className="flex flex-wrap gap-1">
                       {competitor.strengths.map((s, i) => (
                         <Badge key={i} className="bg-green-500/20 text-green-400 text-xs">
@@ -250,7 +250,7 @@ export default function CompetitorIntelPage() {
                     </div>
                   </div>
                   <div>
-                    <p className="text-xs text-zinc-500 mb-2">Weaknesses</p>
+                    <p className="text-xs text-tertiary mb-2">Weaknesses</p>
                     <div className="flex flex-wrap gap-1">
                       {competitor.weaknesses.map((w, i) => (
                         <Badge key={i} className="bg-red-500/20 text-red-400 text-xs">
@@ -266,7 +266,7 @@ export default function CompetitorIntelPage() {
         </TabsContent>
 
         <TabsContent value="gaps" className="space-y-4">
-          <Card className="bg-zinc-900 border-zinc-800">
+          <Card className="bg-surface border-white/5">
             <CardHeader>
               <CardTitle className="text-white">Content Gap Analysis</CardTitle>
             </CardHeader>
@@ -275,11 +275,11 @@ export default function CompetitorIntelPage() {
                 {contentGaps.map((gap, index) => (
                   <div
                     key={index}
-                    className="flex items-center justify-between p-4 bg-zinc-950 rounded-lg"
+                    className="flex items-center justify-between p-4 bg-base rounded-lg"
                   >
                     <div>
                       <h4 className="font-medium text-white">{gap.topic}</h4>
-                      <p className="text-sm text-zinc-500">
+                      <p className="text-sm text-tertiary">
                         {gap.competitors} competitor{gap.competitors !== 1 ? 's' : ''} covering this
                       </p>
                     </div>
@@ -288,7 +288,7 @@ export default function CompetitorIntelPage() {
                         className={cn(
                           gap.opportunity === 'high' && 'bg-green-500/20 text-green-400',
                           gap.opportunity === 'medium' && 'bg-yellow-500/20 text-yellow-400',
-                          gap.opportunity === 'low' && 'bg-zinc-500/20 text-zinc-400'
+                          gap.opportunity === 'low' && 'bg-white/5 text-tertiary'
                         )}
                       >
                         {gap.opportunity} opportunity
@@ -303,7 +303,7 @@ export default function CompetitorIntelPage() {
         </TabsContent>
 
         <TabsContent value="alerts" className="space-y-4">
-          <Card className="bg-zinc-900 border-zinc-800">
+          <Card className="bg-surface border-white/5">
             <CardHeader>
               <CardTitle className="text-white">Recent Competitor Activity</CardTitle>
             </CardHeader>
@@ -313,7 +313,7 @@ export default function CompetitorIntelPage() {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="font-medium text-white">@uniswap launched viral campaign</p>
-                      <p className="text-sm text-zinc-400">New governance proposal thread gaining traction</p>
+                      <p className="text-sm text-tertiary">New governance proposal thread gaining traction</p>
                     </div>
                     <Badge>2h ago</Badge>
                   </div>
@@ -322,7 +322,7 @@ export default function CompetitorIntelPage() {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="font-medium text-white">@defillama passed 450K followers</p>
-                      <p className="text-sm text-zinc-400">Growth accelerating, up 8% this month</p>
+                      <p className="text-sm text-tertiary">Growth accelerating, up 8% this month</p>
                     </div>
                     <Badge>1d ago</Badge>
                   </div>
