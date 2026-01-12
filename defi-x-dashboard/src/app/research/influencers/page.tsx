@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -120,6 +120,8 @@ const tierConfig = {
   mega: { label: 'Mega', range: '> 1M', color: 'bg-yellow-500/20 text-yellow-400' },
 };
 
+const STORAGE_KEY = 'tracked-influencers';
+
 export default function InfluencerDatabasePage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [tierFilter, setTierFilter] = useState<string>('all');
@@ -128,6 +130,26 @@ export default function InfluencerDatabasePage() {
   const [trackedHandles, setTrackedHandles] = useState(DEFAULT_INFLUENCER_HANDLES);
   const { addToast } = useToast();
   const queryClient = useQueryClient();
+
+  // Load tracked handles from localStorage on mount
+  useEffect(() => {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setTrackedHandles(parsed);
+        }
+      } catch (e) {
+        console.error('Failed to parse stored influencers:', e);
+      }
+    }
+  }, []);
+
+  // Save tracked handles to localStorage when they change
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(trackedHandles));
+  }, [trackedHandles]);
 
   // Fetch influencer data with auto-refresh
   const { data: influencers, isLoading, error, refetch } = useQuery({

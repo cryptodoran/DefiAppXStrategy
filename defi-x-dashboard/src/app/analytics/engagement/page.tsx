@@ -1,293 +1,341 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 import {
   Heart,
   Repeat2,
   MessageCircle,
-  Quote,
-  Bell,
-  CheckCircle,
-  Star,
+  Eye,
   TrendingUp,
-  Filter,
-  Pause,
-  Play,
+  RefreshCw,
+  CheckCircle,
+  AlertCircle,
+  ExternalLink,
+  BarChart3,
 } from 'lucide-react';
 import { AppLayout } from '@/components/layout/app-layout';
 
-// US-002: Real-Time Engagement Feed
-
-interface Engagement {
+interface Tweet {
   id: string;
-  type: 'like' | 'retweet' | 'reply' | 'quote';
-  postContent: string;
-  userHandle: string;
-  userName: string;
-  userFollowers: number;
-  isVerified: boolean;
-  timestamp: Date;
-  isHighValue: boolean;
+  content: string;
+  likes: number;
+  retweets: number;
+  replies: number;
+  impressions?: number;
+  createdAt: string;
 }
 
-// Mock real-time engagements
-const generateMockEngagement = (): Engagement => {
-  const types: Engagement['type'][] = ['like', 'retweet', 'reply', 'quote'];
-  const handles = ['@whale_alert', '@defi_chad', '@crypto_trader', '@eth_maxi', '@sol_degen', '@btc_bull'];
-  const names = ['Whale Alert', 'DeFi Chad', 'Crypto Trader', 'ETH Maximalist', 'SOL Degen', 'BTC Bull'];
-  const posts = [
-    'DeFi isn\'t dead. It\'s evolving...',
-    'Just shipped a massive update...',
-    'Hot take: 90% of protocols will fail...',
-    'The DeFi summer 2.0 narrative is real...',
-  ];
-  const followers = [1200000, 450000, 89000, 234000, 12000, 567000];
+interface TwitterUserData {
+  id: string;
+  handle: string;
+  name: string;
+  followers: number;
+  tweets: number;
+  engagementRate: number;
+  tier: string;
+  recentTweets: Tweet[];
+  _mock?: boolean;
+}
 
-  const idx = Math.floor(Math.random() * handles.length);
-  const type = types[Math.floor(Math.random() * types.length)];
+// Fetch real engagement data from Twitter API
+async function fetchEngagementData(): Promise<TwitterUserData> {
+  const handle = process.env.NEXT_PUBLIC_TWITTER_OWN_HANDLE || 'defiapp';
+  const response = await fetch(`/api/twitter/user/${handle}`);
+  if (!response.ok) throw new Error('Failed to fetch engagement data');
+  return response.json();
+}
 
-  return {
-    id: `eng-${Date.now()}-${Math.random()}`,
-    type,
-    postContent: posts[Math.floor(Math.random() * posts.length)],
-    userHandle: handles[idx],
-    userName: names[idx],
-    userFollowers: followers[idx],
-    isVerified: Math.random() > 0.5,
-    timestamp: new Date(),
-    isHighValue: followers[idx] > 100000,
-  };
-};
+export default function EngagementAnalyticsPage() {
+  const { data, isLoading, error, refetch, isFetching } = useQuery({
+    queryKey: ['engagement-analytics'],
+    queryFn: fetchEngagementData,
+    staleTime: 2 * 60 * 1000, // 2 minutes
+    refetchInterval: 5 * 60 * 1000, // Auto-refresh every 5 minutes
+  });
 
-const initialEngagements: Engagement[] = Array.from({ length: 20 }, generateMockEngagement);
-
-export default function RealTimeEngagementPage() {
-  const [engagements, setEngagements] = useState<Engagement[]>(initialEngagements);
-  const [filter, setFilter] = useState<string>('all');
-  const [isPaused, setIsPaused] = useState(false);
-  const [viralAlert, setViralAlert] = useState<string | null>(null);
-
-  // Simulate real-time engagements
-  useEffect(() => {
-    if (isPaused) return;
-
-    const interval = setInterval(() => {
-      const newEngagement = generateMockEngagement();
-      setEngagements((prev) => [newEngagement, ...prev].slice(0, 100));
-
-      // Check for viral threshold
-      if (newEngagement.isHighValue && newEngagement.type === 'retweet') {
-        setViralAlert(`${newEngagement.userName} just retweeted! Potential viral moment.`);
-        setTimeout(() => setViralAlert(null), 5000);
-      }
-    }, 2000);
-
-    return () => clearInterval(interval);
-  }, [isPaused]);
-
-  const getEngagementIcon = (type: Engagement['type']) => {
-    switch (type) {
-      case 'like':
-        return <Heart className="h-4 w-4 text-red-400" />;
-      case 'retweet':
-        return <Repeat2 className="h-4 w-4 text-green-400" />;
-      case 'reply':
-        return <MessageCircle className="h-4 w-4 text-blue-400" />;
-      case 'quote':
-        return <Quote className="h-4 w-4 text-purple-400" />;
-    }
-  };
-
-  const formatFollowers = (num: number) => {
+  const formatNumber = (num: number) => {
     if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
     if (num >= 1000) return `${(num / 1000).toFixed(1)}K`;
     return num.toString();
   };
 
-  const filteredEngagements = filter === 'all'
-    ? engagements
-    : filter === 'high_value'
-    ? engagements.filter((e) => e.isHighValue)
-    : engagements.filter((e) => e.type === filter);
-
-  const stats = {
-    total: engagements.length,
-    likes: engagements.filter((e) => e.type === 'like').length,
-    retweets: engagements.filter((e) => e.type === 'retweet').length,
-    replies: engagements.filter((e) => e.type === 'reply').length,
-    quotes: engagements.filter((e) => e.type === 'quote').length,
-    highValue: engagements.filter((e) => e.isHighValue).length,
+  const formatDate = (dateStr: string) => {
+    const date = new Date(dateStr);
+    return date.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
   };
 
-  return (
-    <AppLayout>
-    <div className="space-y-6">
-      {/* Viral Alert */}
-      {viralAlert && (
-        <div className="fixed top-20 right-6 z-50 animate-in slide-in-from-right">
-          <Card className="bg-gradient-to-r from-orange-500 to-red-500 border-0">
-            <CardContent className="py-3 px-4 flex items-center gap-3">
-              <TrendingUp className="h-5 w-5 text-white" />
-              <span className="text-white font-medium">{viralAlert}</span>
+  const isLive = data && !data._mock;
+
+  // Calculate engagement stats from real tweets
+  const stats = data?.recentTweets?.reduce(
+    (acc, tweet) => ({
+      totalLikes: acc.totalLikes + tweet.likes,
+      totalRetweets: acc.totalRetweets + tweet.retweets,
+      totalReplies: acc.totalReplies + tweet.replies,
+      totalImpressions: acc.totalImpressions + (tweet.impressions || 0),
+      highEngagement: acc.highEngagement + (
+        (tweet.impressions && ((tweet.likes + tweet.retweets + tweet.replies) / tweet.impressions) > 0.02) ? 1 : 0
+      ),
+    }),
+    { totalLikes: 0, totalRetweets: 0, totalReplies: 0, totalImpressions: 0, highEngagement: 0 }
+  ) || { totalLikes: 0, totalRetweets: 0, totalReplies: 0, totalImpressions: 0, highEngagement: 0 };
+
+  const totalEngagements = stats.totalLikes + stats.totalRetweets + stats.totalReplies;
+  const overallEngagementRate = stats.totalImpressions > 0
+    ? ((totalEngagements / stats.totalImpressions) * 100).toFixed(2)
+    : '0.00';
+
+  // Sort tweets by engagement
+  const sortedTweets = [...(data?.recentTweets || [])].sort((a, b) => {
+    const engA = a.likes + a.retweets + a.replies;
+    const engB = b.likes + b.retweets + b.replies;
+    return engB - engA;
+  });
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <AppLayout>
+        <div className="space-y-6">
+          <div className="flex items-center gap-3">
+            <h1 className="text-2xl font-bold text-white">Engagement Analytics</h1>
+            <span className="text-xs text-tertiary flex items-center gap-1">
+              <RefreshCw className="h-3 w-3 animate-spin" />
+              Loading engagement data...
+            </span>
+          </div>
+          <div className="grid gap-4 md:grid-cols-3">
+            {[1, 2, 3].map((i) => (
+              <Card key={i} className="bg-surface border-white/5 animate-pulse">
+                <CardContent className="pt-4">
+                  <div className="h-20 bg-elevated rounded" />
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </AppLayout>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <AppLayout>
+        <div className="space-y-6">
+          <h1 className="text-2xl font-bold text-white">Engagement Analytics</h1>
+          <Card className="bg-red-500/10 border-red-500/20">
+            <CardContent className="py-8 text-center">
+              <AlertCircle className="h-8 w-8 text-red-400 mx-auto mb-2" />
+              <p className="text-red-400">Failed to load engagement data</p>
+              <Button variant="outline" className="mt-4" onClick={() => refetch()}>
+                Try Again
+              </Button>
             </CardContent>
           </Card>
         </div>
-      )}
+      </AppLayout>
+    );
+  }
 
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-white">Real-Time Engagement Feed</h1>
-          <p className="text-tertiary">Live engagement stream as it happens</p>
-        </div>
-        <div className="flex items-center gap-3">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setIsPaused(!isPaused)}
-          >
-            {isPaused ? (
-              <>
-                <Play className="mr-2 h-4 w-4" />
-                Resume
-              </>
-            ) : (
-              <>
-                <Pause className="mr-2 h-4 w-4" />
-                Pause
-              </>
-            )}
-          </Button>
-          <Select value={filter} onValueChange={setFilter}>
-            <SelectTrigger className="w-40 bg-surface border-white/5">
-              <Filter className="mr-2 h-4 w-4" />
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Engagements</SelectItem>
-              <SelectItem value="high_value">High Value Only</SelectItem>
-              <SelectItem value="like">Likes</SelectItem>
-              <SelectItem value="retweet">Retweets</SelectItem>
-              <SelectItem value="reply">Replies</SelectItem>
-              <SelectItem value="quote">Quotes</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-
-      {/* Stats */}
-      <div className="grid gap-4 md:grid-cols-6">
-        <Card className="bg-surface border-white/5">
-          <CardContent className="pt-4 text-center">
-            <p className="text-2xl font-bold text-white">{stats.total}</p>
-            <p className="text-xs text-tertiary">Total</p>
-          </CardContent>
-        </Card>
-        <Card className="bg-surface border-white/5">
-          <CardContent className="pt-4 text-center">
-            <p className="text-2xl font-bold text-red-400">{stats.likes}</p>
-            <p className="text-xs text-tertiary">Likes</p>
-          </CardContent>
-        </Card>
-        <Card className="bg-surface border-white/5">
-          <CardContent className="pt-4 text-center">
-            <p className="text-2xl font-bold text-green-400">{stats.retweets}</p>
-            <p className="text-xs text-tertiary">Retweets</p>
-          </CardContent>
-        </Card>
-        <Card className="bg-surface border-white/5">
-          <CardContent className="pt-4 text-center">
-            <p className="text-2xl font-bold text-blue-400">{stats.replies}</p>
-            <p className="text-xs text-tertiary">Replies</p>
-          </CardContent>
-        </Card>
-        <Card className="bg-surface border-white/5">
-          <CardContent className="pt-4 text-center">
-            <p className="text-2xl font-bold text-purple-400">{stats.quotes}</p>
-            <p className="text-xs text-tertiary">Quotes</p>
-          </CardContent>
-        </Card>
-        <Card className="bg-surface border-white/5">
-          <CardContent className="pt-4 text-center">
-            <p className="text-2xl font-bold text-yellow-400">{stats.highValue}</p>
-            <p className="text-xs text-tertiary">High Value</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Feed */}
-      <Card className="bg-surface border-white/5">
-        <CardHeader>
-          <CardTitle className="text-white flex items-center gap-2">
-            <Bell className="h-5 w-5" />
-            Live Feed
-            {!isPaused && (
-              <span className="flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-2 w-2 rounded-full bg-green-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
-              </span>
-            )}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-2 max-h-[600px] overflow-y-auto">
-            {filteredEngagements.map((engagement) => (
-              <div
-                key={engagement.id}
-                className={cn(
-                  'flex items-center gap-4 p-3 rounded-lg transition-all',
-                  engagement.isHighValue
-                    ? 'bg-yellow-500/10 border border-yellow-500/20'
-                    : 'bg-base'
-                )}
-              >
-                {/* Engagement Type Icon */}
-                <div className="shrink-0">{getEngagementIcon(engagement.type)}</div>
-
-                {/* User Info */}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <span className="font-medium text-white">{engagement.userName}</span>
-                    {engagement.isVerified && (
-                      <CheckCircle className="h-4 w-4 text-blue-400" />
-                    )}
-                    {engagement.isHighValue && (
-                      <Star className="h-4 w-4 text-yellow-400" />
-                    )}
-                    <span className="text-tertiary text-sm">{engagement.userHandle}</span>
-                    <Badge variant="outline" className="text-xs">
-                      {formatFollowers(engagement.userFollowers)} followers
-                    </Badge>
-                  </div>
-                  <p className="text-sm text-tertiary truncate mt-1">
-                    {engagement.type === 'like' && 'liked'}
-                    {engagement.type === 'retweet' && 'retweeted'}
-                    {engagement.type === 'reply' && 'replied to'}
-                    {engagement.type === 'quote' && 'quoted'}: "{engagement.postContent}"
-                  </p>
-                </div>
-
-                {/* Timestamp */}
-                <div className="text-xs text-tertiary shrink-0">
-                  {engagement.timestamp.toLocaleTimeString()}
-                </div>
-              </div>
-            ))}
+  return (
+    <AppLayout>
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="flex items-center gap-3">
+              <h1 className="text-2xl font-bold text-white">Engagement Analytics</h1>
+              {isLive ? (
+                <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-green-500/20 text-green-400 flex items-center gap-1">
+                  <CheckCircle className="h-3 w-3" />
+                  Live Data
+                </span>
+              ) : (
+                <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-yellow-500/20 text-yellow-400">
+                  Sample Data
+                </span>
+              )}
+            </div>
+            <p className="text-tertiary">Real engagement metrics from @{data?.handle?.replace('@', '')}</p>
           </div>
-        </CardContent>
-      </Card>
-    </div>
+          <Button variant="outline" onClick={() => refetch()} disabled={isFetching}>
+            <RefreshCw className={cn('mr-2 h-4 w-4', isFetching && 'animate-spin')} />
+            {isFetching ? 'Refreshing...' : 'Refresh'}
+          </Button>
+        </div>
+
+        {/* Summary Stats */}
+        <div className="grid gap-4 md:grid-cols-6">
+          <Card className="bg-surface border-white/5">
+            <CardContent className="pt-4 text-center">
+              <p className="text-2xl font-bold text-white">{formatNumber(totalEngagements)}</p>
+              <p className="text-xs text-tertiary">Total Engagements</p>
+            </CardContent>
+          </Card>
+          <Card className="bg-surface border-white/5">
+            <CardContent className="pt-4 text-center">
+              <p className="text-2xl font-bold text-red-400">{formatNumber(stats.totalLikes)}</p>
+              <p className="text-xs text-tertiary">Likes</p>
+            </CardContent>
+          </Card>
+          <Card className="bg-surface border-white/5">
+            <CardContent className="pt-4 text-center">
+              <p className="text-2xl font-bold text-green-400">{formatNumber(stats.totalRetweets)}</p>
+              <p className="text-xs text-tertiary">Retweets</p>
+            </CardContent>
+          </Card>
+          <Card className="bg-surface border-white/5">
+            <CardContent className="pt-4 text-center">
+              <p className="text-2xl font-bold text-blue-400">{formatNumber(stats.totalReplies)}</p>
+              <p className="text-xs text-tertiary">Replies</p>
+            </CardContent>
+          </Card>
+          <Card className="bg-surface border-white/5">
+            <CardContent className="pt-4 text-center">
+              <p className="text-2xl font-bold text-purple-400">{overallEngagementRate}%</p>
+              <p className="text-xs text-tertiary">Avg Eng. Rate</p>
+            </CardContent>
+          </Card>
+          <Card className="bg-surface border-white/5">
+            <CardContent className="pt-4 text-center">
+              <p className="text-2xl font-bold text-yellow-400">{stats.highEngagement}</p>
+              <p className="text-xs text-tertiary">High Performers</p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Engagement Breakdown by Post */}
+        <Card className="bg-surface border-white/5">
+          <CardHeader>
+            <CardTitle className="text-white flex items-center gap-2">
+              <BarChart3 className="h-5 w-5" />
+              Engagement by Post (Sorted by Total Engagement)
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {sortedTweets.map((tweet, index) => {
+                const totalEng = tweet.likes + tweet.retweets + tweet.replies;
+                const engRate = tweet.impressions
+                  ? ((totalEng / tweet.impressions) * 100).toFixed(2)
+                  : '0.00';
+                const isHighPerformer = tweet.impressions && (totalEng / tweet.impressions) > 0.02;
+
+                return (
+                  <div
+                    key={tweet.id}
+                    className={cn(
+                      'rounded-lg border p-4 transition-all',
+                      isHighPerformer
+                        ? 'bg-green-500/10 border-green-500/20'
+                        : 'bg-base border-white/5'
+                    )}
+                  >
+                    <div className="flex items-start justify-between gap-4 mb-3">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <Badge variant="outline" className="text-xs">
+                            #{index + 1}
+                          </Badge>
+                          {isHighPerformer && (
+                            <Badge className="bg-green-500/20 text-green-400 text-xs">
+                              <TrendingUp className="h-3 w-3 mr-1" />
+                              High Performer
+                            </Badge>
+                          )}
+                        </div>
+                        <p className="text-sm text-secondary line-clamp-2">
+                          {tweet.content}
+                        </p>
+                        <p className="text-xs text-tertiary mt-1">
+                          {formatDate(tweet.createdAt)}
+                        </p>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => window.open(`https://twitter.com/defiapp/status/${tweet.id}`, '_blank')}
+                      >
+                        <ExternalLink className="h-4 w-4" />
+                      </Button>
+                    </div>
+
+                    {/* Engagement Bars */}
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-1 w-20 text-xs text-tertiary">
+                          <Heart className="h-3 w-3 text-red-400" />
+                          <span>{formatNumber(tweet.likes)}</span>
+                        </div>
+                        <div className="flex-1 h-2 bg-elevated rounded-full overflow-hidden">
+                          <div
+                            className="h-full bg-red-400 rounded-full"
+                            style={{ width: `${Math.min(100, (tweet.likes / Math.max(...sortedTweets.map(t => t.likes))) * 100)}%` }}
+                          />
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-1 w-20 text-xs text-tertiary">
+                          <Repeat2 className="h-3 w-3 text-green-400" />
+                          <span>{formatNumber(tweet.retweets)}</span>
+                        </div>
+                        <div className="flex-1 h-2 bg-elevated rounded-full overflow-hidden">
+                          <div
+                            className="h-full bg-green-400 rounded-full"
+                            style={{ width: `${Math.min(100, (tweet.retweets / Math.max(...sortedTweets.map(t => t.retweets), 1)) * 100)}%` }}
+                          />
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-1 w-20 text-xs text-tertiary">
+                          <MessageCircle className="h-3 w-3 text-blue-400" />
+                          <span>{formatNumber(tweet.replies)}</span>
+                        </div>
+                        <div className="flex-1 h-2 bg-elevated rounded-full overflow-hidden">
+                          <div
+                            className="h-full bg-blue-400 rounded-full"
+                            style={{ width: `${Math.min(100, (tweet.replies / Math.max(...sortedTweets.map(t => t.replies), 1)) * 100)}%` }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Stats Row */}
+                    <div className="flex items-center gap-4 mt-3 pt-3 border-t border-white/5 text-xs">
+                      <div className="flex items-center gap-1 text-tertiary">
+                        <Eye className="h-3 w-3" />
+                        <span>{formatNumber(tweet.impressions || 0)} impressions</span>
+                      </div>
+                      <div className="text-tertiary">
+                        Total: <span className="text-white font-medium">{formatNumber(totalEng)}</span> engagements
+                      </div>
+                      <div className="text-tertiary">
+                        Rate: <span className={cn('font-medium', parseFloat(engRate) > 2 ? 'text-green-400' : 'text-white')}>{engRate}%</span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+
+              {sortedTweets.length === 0 && (
+                <div className="text-center py-8 text-tertiary">
+                  No engagement data available
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </AppLayout>
   );
 }

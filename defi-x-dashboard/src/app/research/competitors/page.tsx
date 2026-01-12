@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -154,6 +154,8 @@ const contentGaps = [
   { topic: 'Memes & humor', competitors: 1, opportunity: 'high' },
 ];
 
+const STORAGE_KEY = 'tracked-competitors';
+
 export default function CompetitorIntelPage() {
   const router = useRouter();
   const { addToast } = useToast();
@@ -161,6 +163,26 @@ export default function CompetitorIntelPage() {
   const [selectedCompetitor, setSelectedCompetitor] = useState<Competitor | null>(null);
   const [newHandle, setNewHandle] = useState('');
   const [trackedHandles, setTrackedHandles] = useState(DEFAULT_COMPETITOR_HANDLES);
+
+  // Load tracked handles from localStorage on mount
+  useEffect(() => {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setTrackedHandles(parsed);
+        }
+      } catch (e) {
+        console.error('Failed to parse stored competitors:', e);
+      }
+    }
+  }, []);
+
+  // Save tracked handles to localStorage when they change
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(trackedHandles));
+  }, [trackedHandles]);
 
   // Fetch competitor data with auto-refresh
   const { data: competitors, isLoading, error, refetch } = useQuery({
