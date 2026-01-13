@@ -69,11 +69,12 @@ const TYPE_COLORS: Record<string, string> = {
 };
 
 const IMAGE_STYLES = [
-  { id: 'claude-gradient', label: 'Claude Gradient', recommended: true, claude: true },
-  { id: 'claude-neon', label: 'Claude Neon', claude: true },
-  { id: 'claude-minimal', label: 'Claude Minimal', claude: true },
-  { id: 'claude-data', label: 'Claude Data', claude: true },
-  { id: 'claude-corporate', label: 'Claude Corporate', claude: true },
+  { id: 'claude-brand', label: 'Defi App Brand', recommended: true, claude: true },
+  { id: 'claude-gradient', label: 'Brand Gradient', claude: true },
+  { id: 'claude-neon', label: 'Brand Neon', claude: true },
+  { id: 'claude-minimal', label: 'Brand Minimal', claude: true },
+  { id: 'claude-data', label: 'Brand Data', claude: true },
+  { id: 'claude-corporate', label: 'Brand Corporate', claude: true },
   { id: 'gradient-abstract', label: 'AI Gradient' },
   { id: 'neon-tech', label: 'AI Neon' },
   { id: 'digital-art', label: 'AI Digital' },
@@ -87,7 +88,7 @@ export function MediaGenerator({ tweetContent, onPromptSelect, onImageGenerated,
   const [generatedImages, setGeneratedImages] = React.useState<GeneratedImage[]>([]);
   const [isGeneratingImage, setIsGeneratingImage] = React.useState(false);
   const [generatingIndex, setGeneratingIndex] = React.useState<number | null>(null);
-  const [selectedStyle, setSelectedStyle] = React.useState<string>('claude-gradient');
+  const [selectedStyle, setSelectedStyle] = React.useState<string>('claude-brand');
   const [showImageModal, setShowImageModal] = React.useState<GeneratedImage | null>(null);
   const [imageLoadStates, setImageLoadStates] = React.useState<ImageLoadState>({});
   const [referenceImage, setReferenceImage] = React.useState<string | null>(null);
@@ -509,7 +510,7 @@ export function MediaGenerator({ tweetContent, onPromptSelect, onImageGenerated,
             <p className="text-xs text-tertiary mb-2">design style:</p>
             <div className="mb-2">
               <p className="text-[10px] text-emerald-400 mb-1 flex items-center gap-1">
-                <Bot className="h-3 w-3" /> Claude Designs (recommended - professional quality)
+                <Bot className="h-3 w-3" /> Defi App Brand (on-brand designs with official colors)
               </p>
               <div className="flex flex-wrap gap-2 mb-3">
                 {IMAGE_STYLES.filter(s => 'claude' in s && s.claude).map((style) => (
@@ -519,13 +520,13 @@ export function MediaGenerator({ tweetContent, onPromptSelect, onImageGenerated,
                     className={cn(
                       'px-3 py-1.5 rounded-lg text-xs font-medium transition-colors relative',
                       selectedStyle === style.id
-                        ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                        ? 'bg-[#5b8cff]/20 text-[#5b8cff] border border-[#5b8cff]/30'
                         : 'bg-elevated text-tertiary hover:text-secondary border border-white/5'
                     )}
                   >
-                    {style.label.replace('Claude ', '')}
+                    {style.label.replace('Brand ', '').replace('Defi App ', '')}
                     {'recommended' in style && style.recommended && (
-                      <span className="absolute -top-1.5 -right-1.5 px-1 py-0.5 rounded text-[9px] bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                      <span className="absolute -top-1.5 -right-1.5 px-1 py-0.5 rounded text-[9px] bg-[#5b8cff]/20 text-[#5b8cff] border border-[#5b8cff]/30">
                         ★
                       </span>
                     )}
@@ -553,7 +554,7 @@ export function MediaGenerator({ tweetContent, onPromptSelect, onImageGenerated,
               </div>
             </div>
             <p className="text-[10px] text-tertiary mt-2 opacity-70">
-              Claude designs create professional HTML-based graphics. AI styles use image generation models.
+              Brand designs use official Defi App colors (#5b8cff accent, #0b0d10 background). AI styles use external image models.
             </p>
           </div>
 

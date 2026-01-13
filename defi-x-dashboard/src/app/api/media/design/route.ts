@@ -3,39 +3,85 @@ import Anthropic from '@anthropic-ai/sdk';
 
 // Claude-powered HTML/CSS design generator
 // Generates professional graphics as HTML that can be rendered to images
+// Uses official Defi App brand kit from https://brand.defi.app/
 
 interface DesignRequest {
   prompt: string;
-  style?: 'gradient' | 'neon' | 'minimal' | 'data' | 'corporate';
+  style?: 'brand' | 'gradient' | 'neon' | 'minimal' | 'data' | 'corporate';
   width?: number;
   height?: number;
 }
 
-const DESIGN_SYSTEM_PROMPT = `You are a professional graphic designer creating HTML/CSS designs for social media graphics.
+// Official Defi App Brand Kit
+const DEFI_APP_BRAND = {
+  colors: {
+    accent: '#5b8cff',           // Primary blue accent
+    accentGlow: 'rgba(91, 140, 255, 0.4)',
+    background: '#0b0d10',       // Deep dark background
+    surface: '#151922',          // Card/panel surface
+    surfaceLight: '#1a1f2a',     // Lighter surface for hover
+    border: 'rgba(255, 255, 255, 0.08)',
+    borderAccent: 'rgba(91, 140, 255, 0.3)',
+    textPrimary: '#e6e8ec',      // Primary text
+    textMuted: '#9aa0ad',        // Muted/secondary text
+    success: '#10b981',          // Green for positive
+    error: '#ef4444',            // Red for negative
+  },
+  fonts: {
+    // Manrope is the brand font, but we use system fonts for rendering
+    stack: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+  },
+  radius: '12px',
+  shadow: '0 4px 16px rgba(0, 0, 0, 0.4)',
+};
 
-CRITICAL RULES:
-1. Output ONLY the HTML code, nothing else - no explanations, no markdown code blocks
-2. The design must be self-contained with inline styles
+const DESIGN_SYSTEM_PROMPT = `You are the official graphic designer for Defi App, a crypto/DeFi company. You create HTML/CSS designs that MUST follow the Defi App brand guidelines.
+
+## DEFI APP BRAND KIT (MANDATORY)
+
+### Colors - USE THESE EXACT VALUES:
+- Primary Accent: ${DEFI_APP_BRAND.colors.accent} (blue) - Use for highlights, buttons, important elements
+- Accent Glow: ${DEFI_APP_BRAND.colors.accentGlow} - For subtle glow effects
+- Background: ${DEFI_APP_BRAND.colors.background} - Main background color
+- Surface: ${DEFI_APP_BRAND.colors.surface} - Cards, panels, elevated elements
+- Surface Light: ${DEFI_APP_BRAND.colors.surfaceLight} - Hover states, lighter panels
+- Border: ${DEFI_APP_BRAND.colors.border} - Subtle borders
+- Border Accent: ${DEFI_APP_BRAND.colors.borderAccent} - Highlighted borders
+- Text Primary: ${DEFI_APP_BRAND.colors.textPrimary} - Main text color
+- Text Muted: ${DEFI_APP_BRAND.colors.textMuted} - Secondary text
+- Success Green: ${DEFI_APP_BRAND.colors.success} - Positive indicators
+- Error Red: ${DEFI_APP_BRAND.colors.error} - Negative indicators
+
+### Typography:
+- Font: ${DEFI_APP_BRAND.fonts.stack}
+- Style: Clean, modern, professional
+- Weights: Use bold (700) for headlines, medium (500) for body
+
+### Design Elements:
+- Border Radius: ${DEFI_APP_BRAND.radius}
+- Shadow: ${DEFI_APP_BRAND.shadow}
+- Glass effects: Use backdrop-filter with the brand surface colors
+- Gradients: Subtle, using accent blue with darker blues (#1a3a8a, #0d2157)
+
+### Brand Voice:
+- Confident but not arrogant
+- Technical but accessible
+- Crypto-native aesthetic
+- Premium, fintech quality
+
+## CRITICAL RULES:
+1. Output ONLY the HTML code - no explanations, no markdown
+2. ALWAYS use the Defi App brand colors above
 3. Use modern CSS (gradients, box-shadows, backdrop-filter)
-4. Design dimensions should fit within the specified size
-5. FONTS: Use ONLY system fonts. NEVER use @import or external fonts. Use this font stack: font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-6. Make it visually striking and professional
-7. NO images, NO external resources - only CSS shapes, gradients, and text
-8. Include the main message/concept from the prompt prominently
-9. IMPORTANT: No @import statements, no url() for fonts, no external resources of any kind
+4. FONTS: Use ONLY system fonts. NEVER use @import or external fonts
+5. NO images, NO external resources - only CSS shapes, gradients, and text
+6. Include "Defi App" branding subtly when appropriate (small logo text or watermark)
+7. Make designs feel premium and crypto-native
 
-STYLE GUIDELINES BY TYPE:
-- gradient: Purple/blue/cyan gradients, smooth transitions, glassmorphism, subtle glow effects
-- neon: Dark backgrounds (#0a0a1a), neon borders, glow effects, cyberpunk aesthetic
-- minimal: Clean white/light backgrounds, single accent color, lots of whitespace, elegant typography
-- data: Dashboard aesthetic, metrics display, charts represented with CSS bars/circles
-- corporate: Professional blues/purples, clean layout, subtle shadows, business-ready
-
-OUTPUT FORMAT:
-Return a complete HTML document with embedded CSS. Example structure:
+## OUTPUT FORMAT:
 <!DOCTYPE html>
 <html>
-<head><style>/* all styles inline */</style></head>
+<head><style>/* all styles */</style></head>
 <body style="margin:0;padding:0;">
   <div style="width:XXpx;height:XXpx;">
     <!-- design content -->
@@ -65,12 +111,13 @@ export async function POST(request: NextRequest) {
 
     const client = new Anthropic({ apiKey: anthropicKey });
 
-    const styleGuide = {
-      gradient: 'Use purple (#8b5cf6) to blue (#3b82f6) to cyan (#06b6d4) gradients. Add glassmorphism effects with backdrop-filter. Subtle glowing borders.',
-      neon: 'Dark background (#0a0a1a or #0f0f23). Neon cyan (#00ffff) and magenta (#ff00ff) accents. Glowing borders with box-shadow. Grid patterns optional.',
-      minimal: 'Clean white or very light gray background. Single accent color (violet #8b5cf6). Lots of whitespace. Bold typography. Simple geometric shapes.',
-      data: 'Dashboard style. Dark or light background. Show metrics/stats prominently. Use CSS for simple bar charts or progress indicators. Professional data viz aesthetic.',
-      corporate: 'Professional blue (#1e40af) to purple (#7c3aed) palette. Clean layout. Subtle shadows. Business-ready design. Trust-inspiring.',
+    const styleGuide: Record<string, string> = {
+      brand: `STRICT Defi App brand style. Use ONLY the brand colors: accent ${DEFI_APP_BRAND.colors.accent}, background ${DEFI_APP_BRAND.colors.background}, surface ${DEFI_APP_BRAND.colors.surface}. Clean, premium fintech aesthetic. Subtle blue glow effects. Include small "Defi App" text as watermark in corner.`,
+      gradient: `Defi App branded gradient. Use ${DEFI_APP_BRAND.colors.accent} to darker blues (#1a3a8a, #0d2157). Background ${DEFI_APP_BRAND.colors.background}. Add glassmorphism with brand surface colors. Subtle blue glow borders.`,
+      neon: `Dark Defi App style. Background ${DEFI_APP_BRAND.colors.background}. Neon ${DEFI_APP_BRAND.colors.accent} accents with glow effects. Cyberpunk but on-brand. Grid patterns optional.`,
+      minimal: `Clean Defi App minimal. Dark background ${DEFI_APP_BRAND.colors.background}. Single accent ${DEFI_APP_BRAND.colors.accent}. Lots of whitespace. Bold typography. Simple geometric shapes.`,
+      data: `Defi App dashboard aesthetic. Background ${DEFI_APP_BRAND.colors.background}, surface ${DEFI_APP_BRAND.colors.surface}. Metrics with ${DEFI_APP_BRAND.colors.accent} highlights. CSS bar charts, progress indicators. Professional data viz.`,
+      corporate: `Professional Defi App corporate. ${DEFI_APP_BRAND.colors.accent} as primary. Clean layout on ${DEFI_APP_BRAND.colors.background}. Subtle shadows. Business-ready, trust-inspiring.`,
     };
 
     const response = await client.messages.create({
@@ -144,8 +191,9 @@ export async function GET() {
   return NextResponse.json({
     status: hasKey ? 'available' : 'unavailable',
     provider: 'claude-html',
-    description: 'Generates professional HTML/CSS designs that can be rendered to images',
-    supportedStyles: ['gradient', 'neon', 'minimal', 'data', 'corporate'],
-    _note: hasKey ? 'Ready to generate designs' : 'Add ANTHROPIC_API_KEY to enable',
+    description: 'Generates professional HTML/CSS designs using Defi App brand kit',
+    supportedStyles: ['brand', 'gradient', 'neon', 'minimal', 'data', 'corporate'],
+    brandColors: DEFI_APP_BRAND.colors,
+    _note: hasKey ? 'Ready to generate on-brand designs' : 'Add ANTHROPIC_API_KEY to enable',
   });
 }

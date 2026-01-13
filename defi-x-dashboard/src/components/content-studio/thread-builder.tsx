@@ -122,7 +122,7 @@ export function ThreadBuilder({ initialTopic, initialPosts }: ThreadBuilderProps
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           prompt: tweetContent,
-          style: 'gradient',
+          style: 'brand',
           width: 1024,
           height: 1024,
         }),
