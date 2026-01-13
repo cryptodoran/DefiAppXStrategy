@@ -731,12 +731,15 @@ export function MediaGenerator({ tweetContent, onPromptSelect, onImageGenerated,
                 <X className="h-5 w-5" />
               </button>
 
-              {/* Image */}
-              <div className="relative aspect-square">
+              {/* Image - fixed dimensions to prevent layout shift */}
+              <div className="relative aspect-square bg-black">
                 <img
                   src={showImageModal.imageUrl}
                   alt="Generated image"
-                  className="w-full h-full object-contain bg-black"
+                  className="w-full h-full object-contain"
+                  style={{ imageRendering: 'auto' }}
+                  loading="eager"
+                  decoding="sync"
                 />
               </div>
 

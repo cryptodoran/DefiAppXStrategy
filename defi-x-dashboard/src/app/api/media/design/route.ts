@@ -57,56 +57,55 @@ const DEFI_APP_BRAND = {
 const DESIGN_SYSTEM_PROMPT = `You create SIMPLE, DRAMATIC social media graphics for Defi App.
 
 ## THE #1 RULE: KEEP IT SIMPLE
-- Your designs should have MAXIMUM 3 elements: logo, headline, optional subline
-- NO cards, NO boxes, NO complex layouts, NO multiple sections
+- MAXIMUM 3 elements: logo, headline, optional subline
+- NO cards, NO boxes, NO complex layouts
 - ONE big message, dramatically presented
-- Think billboard advertising - simple and impactful
 
-## EXACT SPECIFICATIONS:
-
-### Layout (ALWAYS follow this):
+## DEFI APP LOGO (CRITICAL - GET THIS RIGHT):
+The logo is a circle with a GAP/NOTCH at the top-right, like a progress indicator at 80%.
+Create it with CSS:
+\`\`\`css
+.logo-circle {
+  width: 22px;
+  height: 22px;
+  border: 2.5px solid white;
+  border-radius: 50%;
+  border-top-color: transparent; /* This creates the notch/gap */
+  transform: rotate(45deg); /* Position the gap at top-right */
+}
 \`\`\`
-[Logo at top: small, centered]
+Place the logo circle + "defi.app" text at TOP CENTER of design.
 
-[HUGE HEADLINE]
-[in center of image]
+## BACKGROUND (MUST HAVE DEPTH):
+Don't use plain black. Create atmosphere:
+1. Base: #000000
+2. Add gradient overlay: radial-gradient from center, using accent color at 15-20% opacity
+3. Add grid pattern: 1px lines, accent color tinted, 8-10% opacity, 40px spacing
+4. Add subtle noise/texture effect with tiny dots or secondary grid
+5. Optional: Add diagonal lines or geometric shapes at very low opacity for depth
 
-[small subline in accent color]
-
-[Logo at bottom OR leave empty]
+Example background CSS:
+\`\`\`css
+background:
+  radial-gradient(ellipse at center, rgba(ACCENT, 0.15) 0%, transparent 60%),
+  linear-gradient(rgba(ACCENT, 0.08) 1px, transparent 1px),
+  linear-gradient(90deg, rgba(ACCENT, 0.08) 1px, transparent 1px),
+  #000000;
+background-size: 100% 100%, 40px 40px, 40px 40px, 100% 100%;
 \`\`\`
 
-### Typography:
-- Headline: font-size 80-120px, font-weight 900, uppercase, letter-spacing: -2px
-- Use system fonts: font-family: system-ui, -apple-system, sans-serif
-- Make text VERY BOLD with text-shadow for depth
+## TYPOGRAPHY:
+- Headline: 90-130px, font-weight 900, uppercase, letter-spacing: -3px
+- Add text-shadow for glow: 0 0 40px rgba(ACCENT, 0.5), 0 0 80px rgba(ACCENT, 0.3)
+- Font: system-ui, -apple-system, sans-serif
 
-### Colors - USE THESE EXACT VALUES:
-- Background: #000000 (pure black)
-- Gold accent: #FFD700 (bright yellow-gold, NOT olive/brown)
-- Green accent: #00FF88 (bright neon green)
-- Red accent: #FF4444 (bright red)
-- Text: #FFFFFF (pure white)
+## COLORS:
+- Gold: #FFD700
+- Green: #00FF88
+- Red: #FF4444
+- Text: #FFFFFF
 
-### Logo format:
-- A thin white circle (border: 2px solid white, border-radius: 50%, width: 20px)
-- Followed by "defi.app" in white, font-size 16px
-- Position: top center, padding 40px from top
-
-### Background:
-- Pure black #000000
-- Subtle grid: background-image with 1px lines at 5% opacity
-- Optional: radial gradient glow in accent color at 10% opacity behind headline
-
-## WHAT NOT TO DO:
-- NO multiple cards or boxes
-- NO complex infographics
-- NO lists or bullet points
-- NO small text sections
-- NO cluttered layouts
-- NO muddy colors (use BRIGHT pure colors)
-
-## OUTPUT: Raw HTML only, no markdown, no explanation.`;
+## OUTPUT: Raw HTML only, no explanation.`;
 
 export async function POST(request: NextRequest) {
   try {

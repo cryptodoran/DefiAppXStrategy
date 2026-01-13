@@ -849,11 +849,13 @@ export function ThreadBuilder({ initialTopic, initialPosts }: ThreadBuilderProps
               <X className="h-5 w-5" />
             </button>
 
-            <div className="relative aspect-square">
+            <div className="relative aspect-square bg-black">
               <img
                 src={generatedImage}
                 alt="Generated image"
-                className="w-full h-full object-contain bg-black"
+                className="w-full h-full object-contain"
+                loading="eager"
+                decoding="sync"
               />
             </div>
 
