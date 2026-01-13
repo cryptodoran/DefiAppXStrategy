@@ -1,6 +1,17 @@
 import { NextResponse } from 'next/server';
 import { TwitterApi } from 'twitter-api-v2';
 
+// In-memory cache for viral tweets to avoid rate limits
+// Twitter Basic tier only allows 60 search requests per 15 minutes
+interface CacheEntry {
+  data: ViralTweet[];
+  timestamp: number;
+  timeframe: string;
+}
+
+const tweetCache = new Map<string, CacheEntry>();
+const CACHE_DURATION_MS = 5 * 60 * 1000; // 5 minutes
+
 // Tracked crypto accounts for viral tweet discovery
 const TRACKED_ACCOUNTS = [
   // Founders & Leaders
@@ -109,6 +120,35 @@ export async function GET(request: Request) {
     const category = searchParams.get('category');
     const sortBy = searchParams.get('sortBy') || 'viralScore';
     const limit = Math.min(parseInt(searchParams.get('limit') || '20'), 50);
+    const threshold = VIRAL_THRESHOLDS[timeframe];
+
+    // Check cache first to avoid rate limits
+    const cacheKey = `${timeframe}-${category || 'all'}`;
+    const cached = tweetCache.get(cacheKey);
+    if (cached && Date.now() - cached.timestamp < CACHE_DURATION_MS) {
+      console.log(`[Twitter API] Using cached data for ${cacheKey}`);
+
+      // Apply sorting and limit to cached data
+      const sortFunctions: Record<string, (a: ViralTweet, b: ViralTweet) => number> = {
+        viralScore: (a, b) => b.viralScore - a.viralScore,
+        likes: (a, b) => b.metrics.likes - a.metrics.likes,
+        retweets: (a, b) => b.metrics.retweets - a.metrics.retweets,
+        velocity: (a, b) => b.velocity.likesPerHour - a.velocity.likesPerHour,
+        newest: (a, b) => new Date(b.postedAt).getTime() - new Date(a.postedAt).getTime(),
+      };
+
+      const sortedTweets = [...cached.data].sort(sortFunctions[sortBy] || sortFunctions.viralScore);
+
+      return NextResponse.json({
+        tweets: sortedTweets.slice(0, limit),
+        total: cached.data.length,
+        timeframe,
+        threshold,
+        sortBy,
+        _cached: true,
+        _cacheAge: Math.round((Date.now() - cached.timestamp) / 1000),
+      });
+    }
 
     // Check if Twitter API is configured
     if (!process.env.TWITTER_BEARER_TOKEN) {
@@ -124,7 +164,6 @@ export async function GET(request: Request) {
 
     const client = new TwitterApi(process.env.TWITTER_BEARER_TOKEN);
     const viralTweets: ViralTweet[] = [];
-    const threshold = VIRAL_THRESHOLDS[timeframe];
 
     // Calculate time range
     const now = new Date();
@@ -145,7 +184,14 @@ export async function GET(request: Request) {
       TRACKED_ACCOUNTS.slice(30, 45),
     ];
 
-    for (const batch of accountBatches) {
+    for (let i = 0; i < accountBatches.length; i++) {
+      const batch = accountBatches[i];
+
+      // Add delay between batches to avoid rate limiting
+      if (i > 0) {
+        await new Promise(resolve => setTimeout(resolve, 500));
+      }
+
       try {
         // Build query with OR logic - simple and reliable
         const searchQuery = `(${batch.map(h => `from:${h}`).join(' OR ')}) -is:retweet`;
@@ -284,7 +330,15 @@ export async function GET(request: Request) {
           });
         }
       } catch (batchError) {
-        console.warn(`Error fetching batch: ${(batchError as Error).message}`);
+        const errorMessage = (batchError as Error).message;
+        console.warn(`Error fetching batch: ${errorMessage}`);
+
+        // If rate limited (429), stop making more requests
+        if (errorMessage.includes('429')) {
+          console.warn('[Twitter API] Rate limited, stopping batch processing');
+          break;
+        }
+
         // Continue with next batch instead of failing entirely
         continue;
       }
@@ -301,6 +355,16 @@ export async function GET(request: Request) {
 
     viralTweets.sort(sortFunctions[sortBy] || sortFunctions.viralScore);
 
+    // Cache the results to avoid rate limiting
+    if (viralTweets.length > 0) {
+      tweetCache.set(cacheKey, {
+        data: viralTweets,
+        timestamp: Date.now(),
+        timeframe,
+      });
+      console.log(`[Twitter API] Cached ${viralTweets.length} tweets for ${cacheKey}`);
+    }
+
     // Return data - empty array if nothing found (but graceful)
     return NextResponse.json({
       tweets: viralTweets.slice(0, limit),
@@ -316,6 +380,27 @@ export async function GET(request: Request) {
     });
   } catch (error) {
     console.error('Viral tweets API error:', error);
+
+    // Try to return stale cached data if available (better than nothing)
+    const { searchParams } = new URL(request.url);
+    const timeframe = searchParams.get('timeframe') || '24h';
+    const category = searchParams.get('category');
+    const cacheKey = `${timeframe}-${category || 'all'}`;
+    const staleCache = tweetCache.get(cacheKey);
+
+    if (staleCache) {
+      console.log('[Twitter API] Returning stale cached data due to error');
+      return NextResponse.json({
+        tweets: staleCache.data.slice(0, 20),
+        total: staleCache.data.length,
+        timeframe,
+        _cached: true,
+        _stale: true,
+        _cacheAge: Math.round((Date.now() - staleCache.timestamp) / 1000),
+        _error: error instanceof Error ? error.message : 'Unknown error',
+      });
+    }
+
     return NextResponse.json(
       {
         error: error instanceof Error ? error.message : 'Failed to fetch viral tweets',
