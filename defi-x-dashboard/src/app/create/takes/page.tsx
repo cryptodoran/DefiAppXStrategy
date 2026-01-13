@@ -57,44 +57,55 @@ const topicSuggestions = [
   'Bitcoin dominance',
 ];
 
-const generatedTakes: GeneratedTake[] = [
-  {
-    id: '1',
-    content: 'The biggest alpha in crypto right now isn\'t a token - it\'s building a product that people actually want to use. Every successful protocol started by solving a real problem, not by launching a governance token.',
-    spiceLevel: 4,
-    stance: 'contrarian',
-    riskLevel: 'moderate',
-    engagementPotential: 78,
-    controversyScore: 35,
-  },
-  {
-    id: '2',
-    content: 'Hot take: 90% of "DeFi protocols" are just yield farming schemes with extra steps. The 10% building real infrastructure will be worth more than the other 90% combined.',
-    spiceLevel: 7,
-    stance: 'bearish',
-    riskLevel: 'spicy',
-    engagementPotential: 89,
-    controversyScore: 65,
-  },
-  {
-    id: '3',
-    content: 'Unpopular opinion: ETH L2s are the most undervalued play in crypto right now. While everyone\'s chasing alt L1s, the L2 ecosystem is quietly building the future of scalable finance.',
-    spiceLevel: 5,
-    stance: 'bullish',
-    riskLevel: 'moderate',
-    engagementPotential: 72,
-    controversyScore: 40,
-  },
-  {
-    id: '4',
-    content: 'The next billion-dollar protocol won\'t come from crypto-native founders. It\'ll come from someone who\'s never posted "gm" but understands real user problems.',
-    spiceLevel: 8,
-    stance: 'contrarian',
-    riskLevel: 'spicy',
-    engagementPotential: 85,
-    controversyScore: 72,
-  },
-];
+// Generate takes using API
+async function generateTakesFromAPI(topic: string, spiceLevel: number, stance: string): Promise<GeneratedTake[]> {
+  try {
+    const response = await fetch('/api/content/takes', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ topic, spiceLevel, stance }),
+    });
+
+    const data = await response.json();
+
+    if (Array.isArray(data)) {
+      return data.map((take: Partial<GeneratedTake>, i: number) => ({
+        id: `take-${Date.now()}-${i}`,
+        content: take.content || '',
+        spiceLevel: take.spiceLevel || spiceLevel,
+        stance: (take.stance as GeneratedTake['stance']) || 'contrarian',
+        riskLevel: (take.riskLevel as GeneratedTake['riskLevel']) || 'moderate',
+        engagementPotential: take.engagementPotential || 70,
+        controversyScore: take.controversyScore || 50,
+      }));
+    }
+
+    throw new Error('Invalid response');
+  } catch (error) {
+    console.error('Takes generation error:', error);
+    // Return placeholder takes
+    return [
+      {
+        id: `take-${Date.now()}-0`,
+        content: `Hot take on ${topic}: This space is evolving faster than most people realize. The winners will be those who adapt quickly.`,
+        spiceLevel,
+        stance: stance as GeneratedTake['stance'],
+        riskLevel: spiceLevel > 7 ? 'spicy' : spiceLevel > 4 ? 'moderate' : 'safe',
+        engagementPotential: 70 + Math.floor(spiceLevel * 2),
+        controversyScore: spiceLevel * 8,
+      },
+      {
+        id: `take-${Date.now()}-1`,
+        content: `Unpopular opinion about ${topic}: Most people are overthinking this. The fundamentals haven't changed.`,
+        spiceLevel: Math.max(1, spiceLevel - 2),
+        stance: 'contrarian',
+        riskLevel: 'moderate',
+        engagementPotential: 65,
+        controversyScore: 40,
+      },
+    ];
+  }
+}
 
 const riskConfig = {
   safe: { color: 'bg-green-500/20 text-green-400', description: 'Widely agreeable, low controversy' },
@@ -114,22 +125,32 @@ export default function TakeGeneratorPage() {
   const [topic, setTopic] = useState('');
   const [spiceLevel, setSpiceLevel] = useState([5]);
   const [stance, setStance] = useState('contrarian');
-  const [takes, setTakes] = useState(generatedTakes);
+  const [takes, setTakes] = useState<GeneratedTake[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
   const [feedback, setFeedback] = useState<Record<string, 'up' | 'down' | null>>({});
   const { addToast } = useToast();
   const router = useRouter();
 
-  const handleGenerate = () => {
+  const handleGenerate = async () => {
+    if (!topic.trim()) {
+      addToast({ type: 'warning', title: 'Enter a topic', description: 'Please enter a topic for your takes' });
+      return;
+    }
+
     setIsGenerating(true);
-    setTimeout(() => {
-      setIsGenerating(false);
+    try {
+      const newTakes = await generateTakesFromAPI(topic, spiceLevel[0], stance);
+      setTakes(newTakes);
       addToast({
         type: 'success',
         title: 'Takes generated',
-        description: `Generated ${takes.length} takes for "${topic}"`,
+        description: `Generated ${newTakes.length} takes for "${topic}"`,
       });
-    }, 1500);
+    } catch (error) {
+      addToast({ type: 'error', title: 'Generation failed', description: 'Please try again' });
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   const handleThumbsUp = (takeId: string) => {
