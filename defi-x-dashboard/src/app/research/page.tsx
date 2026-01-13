@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { AppLayout } from '@/components/layout/app-layout';
 import { AlgorithmIntel } from '@/components/research/algorithm-intel';
@@ -13,13 +14,22 @@ type ResearchTab = 'algorithm' | 'competitors' | 'influencers' | 'path-to-one';
 
 export default function ResearchPage() {
   const [activeTab, setActiveTab] = React.useState<ResearchTab>('algorithm');
+  const router = useRouter();
 
   const tabs = [
-    { id: 'algorithm', label: 'Algorithm Intel', icon: <Brain className="h-4 w-4" /> },
-    { id: 'competitors', label: 'War Room', icon: <Users className="h-4 w-4" /> },
-    { id: 'influencers', label: 'Influencers', icon: <TrendingUp className="h-4 w-4" /> },
-    { id: 'path-to-one', label: 'Path to #1', icon: <Trophy className="h-4 w-4" /> },
+    { id: 'algorithm', label: 'Algorithm Intel', icon: <Brain className="h-4 w-4" />, href: null },
+    { id: 'competitors', label: 'War Room', icon: <Users className="h-4 w-4" />, href: null },
+    { id: 'influencers', label: 'Influencers', icon: <TrendingUp className="h-4 w-4" />, href: '/research/influencers' },
+    { id: 'path-to-one', label: 'Path to #1', icon: <Trophy className="h-4 w-4" />, href: '/research/path-to-1' },
   ] as const;
+
+  const handleTabClick = (tab: typeof tabs[number]) => {
+    if (tab.href) {
+      router.push(tab.href);
+    } else {
+      setActiveTab(tab.id);
+    }
+  };
 
   return (
     <AppLayout rightPanel={<MarketContextPanel />}>
@@ -34,10 +44,10 @@ export default function ResearchPage() {
           {tabs.map((tab) => (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
+              onClick={() => handleTabClick(tab)}
               className={cn(
                 'flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors',
-                activeTab === tab.id
+                activeTab === tab.id && !tab.href
                   ? 'bg-elevated text-primary'
                   : 'text-tertiary hover:text-secondary'
               )}
@@ -51,20 +61,6 @@ export default function ResearchPage() {
         {/* Content */}
         {activeTab === 'algorithm' && <AlgorithmIntel />}
         {activeTab === 'competitors' && <CompetitorWarRoom />}
-        {activeTab === 'influencers' && (
-          <div className="text-center py-20 text-tertiary">
-            <TrendingUp className="h-12 w-12 mx-auto mb-4 opacity-50" />
-            <h2 className="text-xl font-semibold text-primary mb-2">Influencer Database</h2>
-            <p>Coming soon - Premium influencer analytics and tracking</p>
-          </div>
-        )}
-        {activeTab === 'path-to-one' && (
-          <div className="text-center py-20 text-tertiary">
-            <Trophy className="h-12 w-12 mx-auto mb-4 opacity-50" />
-            <h2 className="text-xl font-semibold text-primary mb-2">Path to #1</h2>
-            <p>Coming soon - Strategic roadmap to dominate CT</p>
-          </div>
-        )}
       </motion.div>
     </AppLayout>
   );
