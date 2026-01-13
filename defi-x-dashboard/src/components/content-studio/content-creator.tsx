@@ -25,6 +25,7 @@ import {
   RefreshCw,
 } from 'lucide-react';
 import { VoiceMatchIndicator } from '@/components/ui/voice-match-indicator';
+import { MediaGenerator } from '@/components/media/media-generator';
 
 interface ContentAnalysis {
   overallScore: number;
@@ -49,13 +50,6 @@ interface EnhanceResult {
   reasoning: string;
 }
 
-interface MediaSuggestion {
-  type: string;
-  description: string;
-  imagePrompt: string;
-  reasoning: string;
-}
-
 interface GeneratedVariation {
   content: string;
   voiceAlignment: number;
@@ -76,8 +70,6 @@ export function ContentCreator({ initialTopic }: ContentCreatorProps) {
   const [enhancingAction, setEnhancingAction] = React.useState<string | null>(null);
   const [variations, setVariations] = React.useState<GeneratedVariation[]>([]);
   const [isGeneratingVariations, setIsGeneratingVariations] = React.useState(false);
-  const [mediaSuggestions, setMediaSuggestions] = React.useState<MediaSuggestion[]>([]);
-  const [isGeneratingMedia, setIsGeneratingMedia] = React.useState(false);
   const { addToast } = useToast();
 
   // Pre-fill content with topic if provided - using @defiapp voice style
@@ -231,50 +223,6 @@ export function ContentCreator({ initialTopic }: ContentCreatorProps) {
       });
     } finally {
       setIsGeneratingVariations(false);
-    }
-  };
-
-  // Generate media suggestions
-  const handleGenerateMedia = async () => {
-    if (!content.trim()) {
-      addToast({
-        type: 'warning',
-        title: 'No content',
-        description: 'Write something first to get media suggestions',
-      });
-      return;
-    }
-
-    setIsGeneratingMedia(true);
-
-    try {
-      const response = await fetch('/api/content/enhance', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'media', content }),
-      });
-
-      const data = await response.json();
-
-      if (data.error && !data._demo) {
-        throw new Error(data.error);
-      }
-
-      setMediaSuggestions(data.result);
-
-      addToast({
-        type: 'success',
-        title: 'Media suggestions ready!',
-        description: 'AI suggested visuals for your post',
-      });
-    } catch (error) {
-      addToast({
-        type: 'error',
-        title: 'Generation failed',
-        description: String(error),
-      });
-    } finally {
-      setIsGeneratingMedia(false);
     }
   };
 
@@ -463,39 +411,18 @@ export function ContentCreator({ initialTopic }: ContentCreatorProps) {
           </PremiumCard>
         )}
 
-        {/* Media Suggestions */}
-        {mediaSuggestions.length > 0 && (
-          <PremiumCard>
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-semibold text-primary">Media Suggestions</h3>
-              <PremiumButton
-                size="sm"
-                variant="ghost"
-                leftIcon={<RefreshCw className="h-4 w-4" />}
-                onClick={handleGenerateMedia}
-                disabled={isGeneratingMedia}
-              >
-                Regenerate
-              </PremiumButton>
-            </div>
-            <div className="space-y-3">
-              {mediaSuggestions.map((suggestion, i) => (
-                <div key={i} className="p-3 rounded-lg bg-elevated border border-white/5">
-                  <div className="flex items-center gap-2 mb-2">
-                    <ImageIcon className="h-4 w-4 text-violet-400" />
-                    <span className="text-sm font-medium text-primary capitalize">{suggestion.type}</span>
-                  </div>
-                  <p className="text-sm text-secondary">{suggestion.description}</p>
-                  <p className="text-xs text-tertiary mt-2">{suggestion.reasoning}</p>
-                  {suggestion.imagePrompt && (
-                    <div className="mt-2 p-2 rounded bg-base text-xs text-tertiary">
-                      <span className="font-medium">Prompt: </span>{suggestion.imagePrompt}
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          </PremiumCard>
+        {/* Media Generation */}
+        {content.length >= 20 && (
+          <MediaGenerator
+            tweetContent={content}
+            onImageGenerated={(imageUrl) => {
+              addToast({
+                type: 'success',
+                title: 'image ready!',
+                description: 'your media is ready to use with this tweet',
+              });
+            }}
+          />
         )}
       </div>
 
@@ -612,15 +539,6 @@ export function ContentCreator({ initialTopic }: ContentCreatorProps) {
           >
             {isGeneratingVariations ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
             Generate 3 Variations
-          </button>
-
-          <button
-            onClick={handleGenerateMedia}
-            disabled={isGeneratingMedia}
-            className="w-full mt-2 p-2.5 rounded-lg bg-emerald-500/10 text-emerald-400 text-sm font-medium hover:bg-emerald-500/20 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
-          >
-            {isGeneratingMedia ? <Loader2 className="h-4 w-4 animate-spin" /> : <ImageIcon className="h-4 w-4" />}
-            Suggest Media
           </button>
         </PremiumCard>
       </div>
