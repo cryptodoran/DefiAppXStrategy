@@ -142,6 +142,90 @@ function categorizeTweet(content: string): string {
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
+
+    // Handle single tweet lookup by ID (for QT Studio)
+    const tweetId = searchParams.get('tweetId');
+    if (tweetId) {
+      // First check long-term cache
+      const cachedTweet = longTermCache.tweets.get(tweetId);
+      if (cachedTweet) {
+        return NextResponse.json({ tweet: cachedTweet, _cached: true });
+      }
+
+      // Check all timeframe caches
+      for (const [_, entry] of tweetCache) {
+        const found = entry.data.find(t => t.id === tweetId);
+        if (found) {
+          return NextResponse.json({ tweet: found, _cached: true });
+        }
+      }
+
+      // Tweet not in cache - try to fetch from Twitter API
+      if (process.env.TWITTER_BEARER_TOKEN) {
+        try {
+          const client = new TwitterApi(process.env.TWITTER_BEARER_TOKEN);
+          const tweet = await client.v2.singleTweet(tweetId, {
+            expansions: ['author_id', 'attachments.media_keys'],
+            'tweet.fields': ['created_at', 'public_metrics', 'entities'],
+            'user.fields': ['name', 'username', 'profile_image_url', 'verified', 'public_metrics'],
+            'media.fields': ['url', 'preview_image_url', 'type'],
+          });
+
+          if (tweet.data) {
+            const author = tweet.includes?.users?.[0];
+            const media = tweet.includes?.media;
+            const metrics = tweet.data.public_metrics || { like_count: 0, retweet_count: 0, reply_count: 0, quote_count: 0 };
+            const hoursOld = getHoursOld(tweet.data.created_at || new Date().toISOString());
+
+            const viralTweet: ViralTweet = {
+              id: tweet.data.id,
+              author: {
+                handle: author?.username || 'unknown',
+                name: author?.name || 'Unknown',
+                avatar: author?.profile_image_url?.replace('_normal', '') || '',
+                followers: author?.public_metrics?.followers_count || 0,
+                verified: author?.verified || false,
+              },
+              content: tweet.data.text,
+              media: media?.map(m => ({
+                type: m.type === 'video' ? 'video' : m.type === 'animated_gif' ? 'gif' : 'image' as 'image' | 'video' | 'gif',
+                url: m.url || '',
+                previewUrl: m.preview_image_url,
+              })),
+              metrics: {
+                likes: metrics.like_count,
+                retweets: metrics.retweet_count,
+                quotes: metrics.quote_count,
+                replies: metrics.reply_count,
+              },
+              velocity: {
+                likesPerHour: Math.round(metrics.like_count / Math.max(hoursOld, 1)),
+                retweetsPerHour: Math.round(metrics.retweet_count / Math.max(hoursOld, 1)),
+              },
+              postedAt: tweet.data.created_at || new Date().toISOString(),
+              tweetUrl: `https://twitter.com/${author?.username || 'unknown'}/status/${tweet.data.id}`,
+              viralScore: calculateViralScore(
+                { likes: metrics.like_count, retweets: metrics.retweet_count, replies: metrics.reply_count, quotes: metrics.quote_count },
+                hoursOld,
+                author?.public_metrics?.followers_count || 1000
+              ),
+              category: categorizeTweet(tweet.data.text),
+            };
+
+            // Add to long-term cache
+            longTermCache.tweets.set(tweetId, viralTweet);
+
+            return NextResponse.json({ tweet: viralTweet, _fetched: true });
+          }
+        } catch (apiError) {
+          console.error('[Twitter API] Error fetching single tweet:', apiError);
+        }
+      }
+
+      // Tweet not found
+      return NextResponse.json({ tweet: null, error: 'Tweet not found in cache' });
+    }
+
     const timeframe = (searchParams.get('timeframe') || '24h') as keyof typeof VIRAL_THRESHOLDS;
     const category = searchParams.get('category');
     const sortBy = searchParams.get('sortBy') || 'viralScore';
