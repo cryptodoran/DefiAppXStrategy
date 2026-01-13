@@ -93,8 +93,19 @@ export function MediaGenerator({ tweetContent, onPromptSelect, onImageGenerated,
   const [imageLoadStates, setImageLoadStates] = React.useState<ImageLoadState>({});
   const [referenceImage, setReferenceImage] = React.useState<string | null>(null);
   const [referenceImageFile, setReferenceImageFile] = React.useState<File | null>(null);
+  const [editedPrompts, setEditedPrompts] = React.useState<Record<number, string>>({});
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const { addToast } = useToast();
+
+  // Get the prompt for a suggestion (edited or original)
+  const getPrompt = (index: number, suggestion: MediaSuggestion) => {
+    return editedPrompts[index] ?? suggestion.imagePrompt;
+  };
+
+  // Update edited prompt
+  const updatePrompt = (index: number, value: string) => {
+    setEditedPrompts(prev => ({ ...prev, [index]: value }));
+  };
 
   // Handle reference image upload
   const handleReferenceImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -470,9 +481,20 @@ export function MediaGenerator({ tweetContent, onPromptSelect, onImageGenerated,
                       {suggestion.reasoning}
                     </p>
 
-                    {/* Prompt Preview */}
-                    <div className="mt-3 p-2 rounded bg-surface text-xs text-tertiary font-mono line-clamp-2">
-                      {suggestion.imagePrompt}
+                    {/* Editable Prompt */}
+                    <div className="mt-3">
+                      <label className="text-[10px] text-tertiary mb-1 block">image prompt (editable):</label>
+                      <textarea
+                        value={getPrompt(index, suggestion)}
+                        onChange={(e) => {
+                          e.stopPropagation();
+                          updatePrompt(index, e.target.value);
+                        }}
+                        onClick={(e) => e.stopPropagation()}
+                        className="w-full p-2 rounded bg-surface text-xs text-secondary font-mono resize-none border border-white/5 focus:border-violet-500/50 focus:outline-none"
+                        rows={3}
+                        placeholder="Edit the prompt before generating..."
+                      />
                     </div>
 
                     {/* Generate Image Button */}
@@ -489,7 +511,7 @@ export function MediaGenerator({ tweetContent, onPromptSelect, onImageGenerated,
                         }
                         onClick={(e) => {
                           e.stopPropagation();
-                          generateImage(suggestion.imagePrompt, index);
+                          generateImage(getPrompt(index, suggestion), index);
                         }}
                         disabled={isGeneratingImage}
                         className="flex-1"

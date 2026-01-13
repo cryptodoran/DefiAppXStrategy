@@ -124,7 +124,16 @@ export function QTStudio({ initialUrl: propUrl }: QTStudioProps) {
   const [isGeneratingImage, setIsGeneratingImage] = React.useState(false);
   const [generatedImage, setGeneratedImage] = React.useState<string | null>(null);
   const [showImageModal, setShowImageModal] = React.useState(false);
+  const [imagePrompt, setImagePrompt] = React.useState('');
+  const [showImagePromptInput, setShowImagePromptInput] = React.useState(false);
   const { addToast } = useToast();
+
+  // Update image prompt when qtContent changes (as default)
+  React.useEffect(() => {
+    if (!imagePrompt && qtContent) {
+      setImagePrompt(qtContent);
+    }
+  }, [qtContent, imagePrompt]);
 
   // Open on Twitter - creates a quote tweet with the content
   const openOnTwitter = () => {
@@ -153,12 +162,13 @@ export function QTStudio({ initialUrl: propUrl }: QTStudioProps) {
   };
 
   // Generate image for the quote tweet
-  const generateImage = async () => {
-    if (!qtContent.trim()) {
+  const generateImage = async (prompt?: string) => {
+    const promptToUse = prompt || imagePrompt || qtContent;
+    if (!promptToUse.trim()) {
       addToast({
         type: 'warning',
         title: 'No content',
-        description: 'Write your quote tweet first',
+        description: 'Write a prompt or quote tweet first',
       });
       return;
     }
@@ -169,7 +179,7 @@ export function QTStudio({ initialUrl: propUrl }: QTStudioProps) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          prompt: qtContent,
+          prompt: promptToUse,
           style: 'dark',
           width: 1024,
           height: 1024,
@@ -892,9 +902,12 @@ export function QTStudio({ initialUrl: propUrl }: QTStudioProps) {
                 Copy
               </button>
               <button
-                onClick={generateImage}
-                disabled={!qtContent.trim() || isGeneratingImage}
-                className="text-sm text-tertiary hover:text-violet-400 transition-colors flex items-center gap-1 disabled:opacity-50"
+                onClick={() => setShowImagePromptInput(!showImagePromptInput)}
+                disabled={isGeneratingImage}
+                className={cn(
+                  "text-sm transition-colors flex items-center gap-1 disabled:opacity-50",
+                  showImagePromptInput ? "text-violet-400" : "text-tertiary hover:text-violet-400"
+                )}
               >
                 {isGeneratingImage ? <Loader2 className="h-3 w-3 animate-spin" /> : <Image className="h-3 w-3" />}
                 Image
@@ -920,6 +933,37 @@ export function QTStudio({ initialUrl: propUrl }: QTStudioProps) {
               </PremiumButton>
             </div>
           </div>
+
+          {/* Image Prompt Input */}
+          {showImagePromptInput && (
+            <div className="mt-4 p-3 rounded-lg bg-elevated/50 border border-violet-500/20">
+              <label className="text-[10px] text-tertiary mb-1 block">image prompt (editable):</label>
+              <textarea
+                value={imagePrompt || qtContent}
+                onChange={(e) => setImagePrompt(e.target.value)}
+                className="w-full p-2 rounded bg-surface text-xs text-secondary resize-none border border-white/5 focus:border-violet-500/50 focus:outline-none"
+                rows={2}
+                placeholder="Describe the image to generate..."
+              />
+              <button
+                onClick={() => generateImage(imagePrompt || qtContent)}
+                disabled={isGeneratingImage || !(imagePrompt || qtContent).trim()}
+                className="mt-2 w-full py-1.5 px-3 rounded bg-violet-500/20 text-violet-400 text-xs font-medium hover:bg-violet-500/30 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+              >
+                {isGeneratingImage ? (
+                  <>
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                    Generating...
+                  </>
+                ) : (
+                  <>
+                    <Image className="h-3 w-3" />
+                    Generate Image
+                  </>
+                )}
+              </button>
+            </div>
+          )}
         </PremiumCard>
 
         {/* Best Practices */}

@@ -77,7 +77,16 @@ export function ThreadBuilder({ initialTopic, initialPosts }: ThreadBuilderProps
   const [generatedImage, setGeneratedImage] = React.useState<string | null>(null);
   const [showImageModal, setShowImageModal] = React.useState(false);
   const [imageForTweet, setImageForTweet] = React.useState<string | null>(null);
+  const [imagePrompts, setImagePrompts] = React.useState<Record<string, string>>({});
   const { addToast } = useToast();
+
+  // Get/set image prompt for a tweet
+  const getImagePrompt = (tweetId: string, defaultContent: string) => {
+    return imagePrompts[tweetId] ?? defaultContent;
+  };
+  const setImagePrompt = (tweetId: string, prompt: string) => {
+    setImagePrompts(prev => ({ ...prev, [tweetId]: prompt }));
+  };
 
   // Open first tweet on Twitter (threads can only be started via intent)
   const openOnTwitter = () => {
@@ -589,7 +598,9 @@ export function ThreadBuilder({ initialTopic, initialPosts }: ThreadBuilderProps
                 onRemove={() => removeTweet(tweet.id)}
                 onAddAfter={() => addTweet(tweet.id)}
                 onAiAssist={(action) => handleAiAssist(action, tweet.id)}
-                onGenerateImage={() => generateImage(tweet.content, tweet.id)}
+                onGenerateImage={(prompt) => generateImage(prompt, tweet.id)}
+                imagePrompt={getImagePrompt(tweet.id, tweet.content)}
+                onImagePromptChange={(prompt) => setImagePrompt(tweet.id, prompt)}
                 canRemove={tweets.length > 1}
                 isEnhancing={isEnhancing && enhancingTweetId === tweet.id}
                 enhancingAction={enhancingTweetId === tweet.id ? enhancingAction : null}
@@ -900,7 +911,9 @@ interface TweetCardProps {
   onRemove: () => void;
   onAddAfter: () => void;
   onAiAssist: (action: 'spicier' | 'context' | 'shorten' | 'hook' | 'cta') => void;
-  onGenerateImage: () => void;
+  onGenerateImage: (prompt: string) => void;
+  imagePrompt: string;
+  onImagePromptChange: (prompt: string) => void;
   canRemove: boolean;
   isEnhancing?: boolean;
   enhancingAction?: string | null;
@@ -921,11 +934,14 @@ function TweetCard({
   onAddAfter,
   onAiAssist,
   onGenerateImage,
+  imagePrompt,
+  onImagePromptChange,
   canRemove,
   isEnhancing,
   enhancingAction,
   isGeneratingImage,
 }: TweetCardProps) {
+  const [showPromptInput, setShowPromptInput] = React.useState(false);
   const controls = useDragControls();
   const isOverLimit = tweet.characterCount > 280;
   const isNearLimit = tweet.characterCount > 250;
@@ -1104,9 +1120,12 @@ function TweetCard({
                 </button>
                 <div className="w-px h-4 bg-white/10 mx-1" />
                 <button
-                  onClick={(e) => { e.stopPropagation(); onGenerateImage(); }}
+                  onClick={(e) => { e.stopPropagation(); setShowPromptInput(!showPromptInput); }}
                   disabled={isGeneratingImage}
-                  className="p-1.5 rounded bg-elevated/50 text-tertiary hover:text-pink-400 hover:bg-pink-500/10 transition-colors disabled:opacity-50"
+                  className={cn(
+                    "p-1.5 rounded bg-elevated/50 transition-colors disabled:opacity-50",
+                    showPromptInput ? "text-pink-400 bg-pink-500/10" : "text-tertiary hover:text-pink-400 hover:bg-pink-500/10"
+                  )}
                   title="Generate Image"
                 >
                   {isGeneratingImage ? (
@@ -1117,6 +1136,38 @@ function TweetCard({
                 </button>
               </div>
             </div>
+          </div>
+        )}
+
+        {/* Image Prompt Input */}
+        {showPromptInput && isSelected && (
+          <div className="mt-3 p-3 rounded-lg bg-elevated/50 border border-pink-500/20">
+            <label className="text-[10px] text-tertiary mb-1 block">image prompt (editable):</label>
+            <textarea
+              value={imagePrompt}
+              onChange={(e) => onImagePromptChange(e.target.value)}
+              onClick={(e) => e.stopPropagation()}
+              className="w-full p-2 rounded bg-surface text-xs text-secondary resize-none border border-white/5 focus:border-pink-500/50 focus:outline-none"
+              rows={2}
+              placeholder="Describe the image to generate..."
+            />
+            <button
+              onClick={(e) => { e.stopPropagation(); onGenerateImage(imagePrompt); }}
+              disabled={isGeneratingImage || !imagePrompt.trim()}
+              className="mt-2 w-full py-1.5 px-3 rounded bg-pink-500/20 text-pink-400 text-xs font-medium hover:bg-pink-500/30 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+            >
+              {isGeneratingImage ? (
+                <>
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                  Generating...
+                </>
+              ) : (
+                <>
+                  <Image className="h-3 w-3" />
+                  Generate Image
+                </>
+              )}
+            </button>
           </div>
         )}
 

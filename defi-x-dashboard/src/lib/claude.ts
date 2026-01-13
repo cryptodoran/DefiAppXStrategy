@@ -91,17 +91,49 @@ Brand Voice Guidelines:
     : '';
 
   const actionPrompts: Record<string, string> = {
-    spicier: `Make this tweet SPICIER and more provocative. Add controversy, strong opinions, and engagement hooks. Make it bold and attention-grabbing. Don't be generic - be specific and opinionated.`,
-    context: `Add relevant market context, data, or news to this tweet. Make it more informative while keeping it engaging. Include specific numbers or facts if relevant.`,
-    shorten: `Shorten this tweet while preserving the core message and impact. Make every word count. Remove filler. Keep it punchy.`,
-    hook: `Rewrite with a stronger opening hook. The first 10 words should grab attention and make people stop scrolling. Consider: questions, bold statements, surprising facts, or pattern interrupts.`,
-    cta: `Improve the Call-To-Action (CTA) in this tweet. Remove any generic endings like "thoughts?", "agree?", "what do you think?" and replace with a strong, actionable CTA that drives users to defi.app or gives them something specific to do. The CTA should feel natural, not salesy. Examples of good CTAs: "try it at defi.app", "compare rates yourself", "check your potential savings", "stop overpaying for swaps".`,
+    spicier: `IMPORTANT: Build upon and enhance the user's existing content - do NOT replace it with something completely different.
+Keep the same topic, key points, and intent. Make it SPICIER by:
+- Adding controversy or strong opinions to their existing points
+- Making their language more bold and attention-grabbing
+- Adding engagement hooks that relate to THEIR message
+The enhanced version should be recognizably based on what they wrote, just more provocative.`,
+    context: `IMPORTANT: Build upon the user's existing content - do NOT replace it with something completely different.
+Add relevant market context, data, or news that SUPPORTS their existing message. Keep their core points and:
+- Add specific numbers or facts that back up what they're saying
+- Include market context that makes their point more compelling
+- Enhance their message, don't change it`,
+    shorten: `IMPORTANT: Preserve the user's core message and key points - do NOT change what they're talking about.
+Shorten by:
+- Removing filler words and redundancy
+- Making their existing points more punchy
+- Keeping their voice and intent intact
+The shortened version should say the same thing, just more concisely.`,
+    hook: `IMPORTANT: Keep the user's topic and message - only improve the opening.
+Add a stronger hook that leads into THEIR existing content:
+- The hook should relate directly to what they wrote
+- Keep the rest of their content mostly intact
+- Just improve the first line to grab attention
+Don't write about something different - make THEIR message more attention-grabbing.`,
+    cta: `IMPORTANT: Keep the user's content and only improve the ending.
+Remove any generic endings like "thoughts?", "agree?", "what do you think?" and replace with a strong CTA.
+- Preserve their entire message
+- Only change/add the final call-to-action
+- The CTA should relate to what they wrote about
+Examples: "try it at defi.app", "compare rates yourself", "check your potential savings"`,
   };
 
   // Get product knowledge for context
   const productKnowledge = getProductContext();
 
-  const systemPrompt = `You are a crypto Twitter expert who writes viral content. You understand what makes tweets perform well on Crypto Twitter.
+  const systemPrompt = `You are a crypto Twitter expert who ENHANCES existing content. You understand what makes tweets perform well on Crypto Twitter.
+
+CRITICAL RULE - PRESERVE USER CONTENT:
+- The user has written content they want to improve, NOT replace
+- Your job is to ENHANCE what they wrote, not write something completely different
+- Keep their topic, key points, and intent intact
+- Build upon their ideas, don't substitute your own
+- The enhanced version should be recognizably based on their original
+
 ${voiceContext}
 
 ${productKnowledge}
