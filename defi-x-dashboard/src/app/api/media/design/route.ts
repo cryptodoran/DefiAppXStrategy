@@ -2,89 +2,129 @@ import { NextRequest, NextResponse } from 'next/server';
 import Anthropic from '@anthropic-ai/sdk';
 
 // Claude-powered HTML/CSS design generator
-// Generates professional graphics as HTML that can be rendered to images
-// Uses official Defi App brand kit from https://brand.defi.app/
+// Generates professional graphics matching Defi App's actual brand style
+// Based on real examples from Defi App Image Examples folder
 
 interface DesignRequest {
   prompt: string;
-  style?: 'brand' | 'gradient' | 'neon' | 'minimal' | 'data' | 'corporate';
+  style?: 'gold' | 'green' | 'red' | 'dark' | 'data';
   width?: number;
   height?: number;
 }
 
-// Official Defi App Brand Kit
+// Defi App Brand Kit - Based on actual graphics
 const DEFI_APP_BRAND = {
+  // Theme colors based on actual campaigns
+  themes: {
+    gold: {
+      accent: '#FFD700',
+      accentDark: '#B8860B',
+      gradient: 'linear-gradient(180deg, #1a1400 0%, #0a0800 50%, #000000 100%)',
+      glow: 'rgba(255, 215, 0, 0.4)',
+    },
+    green: {
+      accent: '#00FF66',
+      accentDark: '#00CC52',
+      gradient: 'linear-gradient(180deg, #001a0d 0%, #000d06 50%, #000000 100%)',
+      glow: 'rgba(0, 255, 102, 0.4)',
+    },
+    red: {
+      accent: '#FF3333',
+      accentDark: '#CC0000',
+      gradient: 'linear-gradient(180deg, #1a0000 0%, #0d0000 50%, #000000 100%)',
+      glow: 'rgba(255, 51, 51, 0.4)',
+    },
+    dark: {
+      accent: '#FFFFFF',
+      accentDark: '#CCCCCC',
+      gradient: 'linear-gradient(180deg, #0a0a0a 0%, #050505 50%, #000000 100%)',
+      glow: 'rgba(255, 255, 255, 0.2)',
+    },
+  },
   colors: {
-    accent: '#5b8cff',           // Primary blue accent
-    accentGlow: 'rgba(91, 140, 255, 0.4)',
-    background: '#0b0d10',       // Deep dark background
-    surface: '#151922',          // Card/panel surface
-    surfaceLight: '#1a1f2a',     // Lighter surface for hover
-    border: 'rgba(255, 255, 255, 0.08)',
-    borderAccent: 'rgba(91, 140, 255, 0.3)',
-    textPrimary: '#e6e8ec',      // Primary text
-    textMuted: '#9aa0ad',        // Muted/secondary text
-    success: '#10b981',          // Green for positive
-    error: '#ef4444',            // Red for negative
+    background: '#000000',
+    backgroundAlt: '#0a0a0a',
+    textPrimary: '#FFFFFF',
+    textMuted: '#888888',
+    gridLine: 'rgba(255, 255, 255, 0.05)',
   },
-  fonts: {
-    // Manrope is the brand font, but we use system fonts for rendering
-    stack: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+  logo: {
+    text: 'defi.app',
+    altText: 'Defi App',
   },
-  radius: '12px',
-  shadow: '0 4px 16px rgba(0, 0, 0, 0.4)',
 };
 
-const DESIGN_SYSTEM_PROMPT = `You are the official graphic designer for Defi App, a crypto/DeFi company. You create HTML/CSS designs that MUST follow the Defi App brand guidelines.
+const DESIGN_SYSTEM_PROMPT = `You are the official graphic designer for Defi App. You create HTML/CSS designs that EXACTLY match Defi App's actual brand style.
 
-## DEFI APP BRAND KIT (MANDATORY)
+## DEFI APP VISUAL IDENTITY (MANDATORY)
 
-### Colors - USE THESE EXACT VALUES:
-- Primary Accent: ${DEFI_APP_BRAND.colors.accent} (blue) - Use for highlights, buttons, important elements
-- Accent Glow: ${DEFI_APP_BRAND.colors.accentGlow} - For subtle glow effects
-- Background: ${DEFI_APP_BRAND.colors.background} - Main background color
-- Surface: ${DEFI_APP_BRAND.colors.surface} - Cards, panels, elevated elements
-- Surface Light: ${DEFI_APP_BRAND.colors.surfaceLight} - Hover states, lighter panels
-- Border: ${DEFI_APP_BRAND.colors.border} - Subtle borders
-- Border Accent: ${DEFI_APP_BRAND.colors.borderAccent} - Highlighted borders
-- Text Primary: ${DEFI_APP_BRAND.colors.textPrimary} - Main text color
-- Text Muted: ${DEFI_APP_BRAND.colors.textMuted} - Secondary text
-- Success Green: ${DEFI_APP_BRAND.colors.success} - Positive indicators
-- Error Red: ${DEFI_APP_BRAND.colors.error} - Negative indicators
+### Typography - THIS IS CRITICAL:
+- Headlines: EXTREMELY BOLD, CONDENSED, ALL CAPS
+- Use font-weight: 900 (Black) or 800 (Extra Bold)
+- Use font-stretch: condensed or letter-spacing: -0.02em to make it tight
+- Headlines are often ITALICIZED for impact (font-style: italic)
+- Font stack: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif (for condensed look)
+- Secondary text: Clean sans-serif, normal weight
 
-### Typography:
-- Font: ${DEFI_APP_BRAND.fonts.stack}
-- Style: Clean, modern, professional
-- Weights: Use bold (700) for headlines, medium (500) for body
+### Logo Placement:
+- ALWAYS include the Defi App logo
+- Logo format: A circle (○) followed by "defi.app" or "Defi App"
+- Position: Top center OR bottom center of the design
+- Logo should be white, clean, relatively small (not overpowering)
+- CSS for logo circle: A simple ring/circle outline
+
+### Background Style:
+- Pure black (#000000) or very dark gradient
+- ALWAYS include subtle grid pattern overlay (thin lines, very low opacity ~5%)
+- Grid creates a tech/matrix aesthetic
+- Optional: Subtle radial glow behind main content matching theme color
+
+### Color Themes (use based on content mood):
+- GOLD (#FFD700): For premium, trading, money-related content
+- GREEN (#00FF66): For launches, live announcements, positive news
+- RED (#FF3333): For competitions, battle/gaming themes, urgent content
+- DARK/WHITE: For neutral announcements
 
 ### Design Elements:
-- Border Radius: ${DEFI_APP_BRAND.radius}
-- Shadow: ${DEFI_APP_BRAND.shadow}
-- Glass effects: Use backdrop-filter with the brand surface colors
-- Gradients: Subtle, using accent blue with darker blues (#1a3a8a, #0d2157)
+- Large, dramatic typography as the focal point
+- Subtle reflections/gradients on text for 3D metallic effect
+- Angular/hexagonal shapes for buttons/CTAs
+- Starfield or particle dots in background (optional)
+- Thin border lines creating tech aesthetic
 
-### Brand Voice:
-- Confident but not arrogant
-- Technical but accessible
-- Crypto-native aesthetic
-- Premium, fintech quality
+### Layout Patterns:
+1. Logo at top center (small)
+2. HUGE headline in center (the main message)
+3. Subtext below headline (smaller, often in theme accent color)
+4. Optional CTA button (angular shape)
+5. Logo at bottom center (if not at top)
 
 ## CRITICAL RULES:
-1. Output ONLY the HTML code - no explanations, no markdown
-2. ALWAYS use the Defi App brand colors above
-3. Use modern CSS (gradients, box-shadows, backdrop-filter)
-4. FONTS: Use ONLY system fonts. NEVER use @import or external fonts
-5. NO images, NO external resources - only CSS shapes, gradients, and text
-6. Include "Defi App" branding subtly when appropriate (small logo text or watermark)
-7. Make designs feel premium and crypto-native
+1. Output ONLY raw HTML code - no explanations, no markdown
+2. Headlines must be BOLD CONDENSED ALL CAPS - this is the signature look
+3. ALWAYS include subtle grid pattern in background
+4. ALWAYS include defi.app logo (circle + text)
+5. NO external resources - use CSS only
+6. Make it look DRAMATIC and PREMIUM
+7. Font stack for headlines: Impact, 'Arial Black', sans-serif with font-weight:900
 
-## OUTPUT FORMAT:
+## HTML STRUCTURE:
 <!DOCTYPE html>
 <html>
-<head><style>/* all styles */</style></head>
+<head><style>
+.container { position: relative; background: #000; }
+.grid { position: absolute; inset: 0; opacity: 0.05;
+  background-image: linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px);
+  background-size: 40px 40px; }
+.logo { font-family: system-ui, sans-serif; color: white; }
+.headline { font-family: Impact, 'Arial Black', sans-serif; font-weight: 900;
+  text-transform: uppercase; color: white; font-style: italic; }
+</style></head>
 <body style="margin:0;padding:0;">
-  <div style="width:XXpx;height:XXpx;">
-    <!-- design content -->
+  <div class="container">
+    <div class="grid"></div>
+    <!-- content -->
   </div>
 </body>
 </html>`;
@@ -92,7 +132,7 @@ const DESIGN_SYSTEM_PROMPT = `You are the official graphic designer for Defi App
 export async function POST(request: NextRequest) {
   try {
     const body: DesignRequest = await request.json();
-    const { prompt, style = 'gradient', width = 1024, height = 1024 } = body;
+    const { prompt, style = 'dark', width = 1024, height = 1024 } = body;
 
     if (!prompt || prompt.trim().length < 5) {
       return NextResponse.json(
@@ -112,12 +152,11 @@ export async function POST(request: NextRequest) {
     const client = new Anthropic({ apiKey: anthropicKey });
 
     const styleGuide: Record<string, string> = {
-      brand: `STRICT Defi App brand style. Use ONLY the brand colors: accent ${DEFI_APP_BRAND.colors.accent}, background ${DEFI_APP_BRAND.colors.background}, surface ${DEFI_APP_BRAND.colors.surface}. Clean, premium fintech aesthetic. Subtle blue glow effects. Include small "Defi App" text as watermark in corner.`,
-      gradient: `Defi App branded gradient. Use ${DEFI_APP_BRAND.colors.accent} to darker blues (#1a3a8a, #0d2157). Background ${DEFI_APP_BRAND.colors.background}. Add glassmorphism with brand surface colors. Subtle blue glow borders.`,
-      neon: `Dark Defi App style. Background ${DEFI_APP_BRAND.colors.background}. Neon ${DEFI_APP_BRAND.colors.accent} accents with glow effects. Cyberpunk but on-brand. Grid patterns optional.`,
-      minimal: `Clean Defi App minimal. Dark background ${DEFI_APP_BRAND.colors.background}. Single accent ${DEFI_APP_BRAND.colors.accent}. Lots of whitespace. Bold typography. Simple geometric shapes.`,
-      data: `Defi App dashboard aesthetic. Background ${DEFI_APP_BRAND.colors.background}, surface ${DEFI_APP_BRAND.colors.surface}. Metrics with ${DEFI_APP_BRAND.colors.accent} highlights. CSS bar charts, progress indicators. Professional data viz.`,
-      corporate: `Professional Defi App corporate. ${DEFI_APP_BRAND.colors.accent} as primary. Clean layout on ${DEFI_APP_BRAND.colors.background}. Subtle shadows. Business-ready, trust-inspiring.`,
+      gold: `GOLD THEME for trading/money content. Use gold accent (#FFD700) for key text and glows. Black background with subtle grid. Headlines should be HUGE, BOLD, CONDENSED, ITALIC, ALL CAPS in white or gold. Include "defi.app" logo. Think: "MILLION DOLLAR TRADING CONTEST" style. Luxurious, premium feel with gold metallic hints.`,
+      green: `GREEN THEME for launches/live announcements. Use bright green (#00FF66) for accent text like "NOW LIVE" or "on Android". Black background with subtle grid and green radial glow. Headlines HUGE BOLD CONDENSED ITALIC ALL CAPS in white. Green for emphasis words. Include "defi.app" logo at top. Think: App launch announcement style.`,
+      red: `RED THEME for competitions/battle/urgent content. Use red (#FF3333) for accents and glows. Black background with subtle grid. Headlines HUGE BOLD CONDENSED ITALIC ALL CAPS. Red angular shapes, battle/competition aesthetic. Include "Defi App" logo. Think: "BATTLE ROYALE" gaming competition style.`,
+      dark: `DARK/NEUTRAL THEME for general announcements. Pure black background, white text, subtle grid pattern. Headlines HUGE BOLD CONDENSED ALL CAPS in white. Minimal color, maximum impact through typography. Clean and dramatic. Include "defi.app" logo.`,
+      data: `DATA/DASHBOARD THEME for metrics and stats. Black background with grid. Show numbers prominently in white with theme accent highlights. Use CSS for simple charts/bars. Include metrics like "TOP 10 THRESHOLD: $4.91" style. Professional data visualization. Include "Defi App" logo.`,
     };
 
     const response = await client.messages.create({
@@ -191,9 +230,20 @@ export async function GET() {
   return NextResponse.json({
     status: hasKey ? 'available' : 'unavailable',
     provider: 'claude-html',
-    description: 'Generates professional HTML/CSS designs using Defi App brand kit',
-    supportedStyles: ['brand', 'gradient', 'neon', 'minimal', 'data', 'corporate'],
-    brandColors: DEFI_APP_BRAND.colors,
+    description: 'Generates graphics matching Defi App brand style - bold condensed typography, grid backgrounds, dramatic layouts',
+    supportedStyles: ['gold', 'green', 'red', 'dark', 'data'],
+    styleDescriptions: {
+      gold: 'Trading/money content - gold accents, premium feel',
+      green: 'Launches/live announcements - green accents',
+      red: 'Competitions/battle themes - red accents',
+      dark: 'General announcements - clean black & white',
+      data: 'Metrics/stats - dashboard style',
+    },
+    brandElements: {
+      logo: 'defi.app with circle icon',
+      typography: 'Bold condensed italic uppercase',
+      background: 'Black with subtle grid pattern',
+    },
     _note: hasKey ? 'Ready to generate on-brand designs' : 'Add ANTHROPIC_API_KEY to enable',
   });
 }

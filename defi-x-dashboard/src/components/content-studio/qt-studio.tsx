@@ -169,7 +169,7 @@ export function QTStudio({ initialUrl: propUrl }: QTStudioProps) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           prompt: qtContent,
-          style: 'brand',
+          style: 'dark',
           width: 1024,
           height: 1024,
         }),

@@ -69,12 +69,11 @@ const TYPE_COLORS: Record<string, string> = {
 };
 
 const IMAGE_STYLES = [
-  { id: 'claude-brand', label: 'Defi App Brand', recommended: true, claude: true },
-  { id: 'claude-gradient', label: 'Brand Gradient', claude: true },
-  { id: 'claude-neon', label: 'Brand Neon', claude: true },
-  { id: 'claude-minimal', label: 'Brand Minimal', claude: true },
-  { id: 'claude-data', label: 'Brand Data', claude: true },
-  { id: 'claude-corporate', label: 'Brand Corporate', claude: true },
+  { id: 'claude-dark', label: 'Dark', recommended: true, claude: true },
+  { id: 'claude-gold', label: 'Gold', claude: true },
+  { id: 'claude-green', label: 'Green', claude: true },
+  { id: 'claude-red', label: 'Red', claude: true },
+  { id: 'claude-data', label: 'Data', claude: true },
   { id: 'gradient-abstract', label: 'AI Gradient' },
   { id: 'neon-tech', label: 'AI Neon' },
   { id: 'digital-art', label: 'AI Digital' },
@@ -88,7 +87,7 @@ export function MediaGenerator({ tweetContent, onPromptSelect, onImageGenerated,
   const [generatedImages, setGeneratedImages] = React.useState<GeneratedImage[]>([]);
   const [isGeneratingImage, setIsGeneratingImage] = React.useState(false);
   const [generatingIndex, setGeneratingIndex] = React.useState<number | null>(null);
-  const [selectedStyle, setSelectedStyle] = React.useState<string>('claude-brand');
+  const [selectedStyle, setSelectedStyle] = React.useState<string>('claude-dark');
   const [showImageModal, setShowImageModal] = React.useState<GeneratedImage | null>(null);
   const [imageLoadStates, setImageLoadStates] = React.useState<ImageLoadState>({});
   const [referenceImage, setReferenceImage] = React.useState<string | null>(null);
