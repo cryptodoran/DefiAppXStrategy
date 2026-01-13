@@ -25,7 +25,12 @@ import {
   Loader2,
   RefreshCw,
   Target,
+  Image,
+  X,
+  Download,
+  Twitter,
 } from 'lucide-react';
+import { toPng } from 'html-to-image';
 import { VoiceMatchIndicator } from '@/components/ui/voice-match-indicator';
 
 interface TweetItem {
@@ -67,7 +72,152 @@ export function ThreadBuilder({ initialTopic, initialPosts }: ThreadBuilderProps
   const [isAnalyzing, setIsAnalyzing] = React.useState(false);
   const [isEnhancing, setIsEnhancing] = React.useState(false);
   const [enhancingAction, setEnhancingAction] = React.useState<string | null>(null);
+  const [isGeneratingImage, setIsGeneratingImage] = React.useState(false);
+  const [generatedImage, setGeneratedImage] = React.useState<string | null>(null);
+  const [showImageModal, setShowImageModal] = React.useState(false);
+  const [imageForTweet, setImageForTweet] = React.useState<string | null>(null);
   const { addToast } = useToast();
+
+  // Open first tweet on Twitter (threads can only be started via intent)
+  const openOnTwitter = () => {
+    const firstTweet = tweets[0]?.content.trim();
+    if (!firstTweet) {
+      addToast({
+        type: 'warning',
+        title: 'No content',
+        description: 'Write your first tweet to open on X',
+      });
+      return;
+    }
+
+    const text = encodeURIComponent(firstTweet);
+    const twitterIntentUrl = `https://twitter.com/intent/tweet?text=${text}`;
+    window.open(twitterIntentUrl, '_blank', 'width=600,height=400');
+
+    if (tweets.length > 1) {
+      addToast({
+        type: 'info',
+        title: 'Thread tip',
+        description: 'After posting the first tweet, reply to it with the rest of your thread',
+      });
+    }
+  };
+
+  // Generate image for a specific tweet
+  const generateImage = async (tweetContent: string, tweetId?: string) => {
+    if (!tweetContent.trim()) {
+      addToast({
+        type: 'warning',
+        title: 'No content',
+        description: 'Select a tweet with content first',
+      });
+      return;
+    }
+
+    setIsGeneratingImage(true);
+    setImageForTweet(tweetId || null);
+    try {
+      const response = await fetch('/api/media/design', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          prompt: tweetContent,
+          style: 'gradient',
+          width: 1024,
+          height: 1024,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to generate design');
+      }
+
+      const data = await response.json();
+      const imageUrl = await renderHtmlToImage(data.html);
+      setGeneratedImage(imageUrl);
+      setShowImageModal(true);
+
+      addToast({
+        type: 'success',
+        title: 'Image generated!',
+        description: 'Your image is ready to download',
+      });
+    } catch (error) {
+      console.error('Image generation error:', error);
+      addToast({
+        type: 'error',
+        title: 'Generation failed',
+        description: 'Could not generate image',
+      });
+    } finally {
+      setIsGeneratingImage(false);
+      setImageForTweet(null);
+    }
+  };
+
+  // Render HTML to image
+  const renderHtmlToImage = async (html: string): Promise<string> => {
+    const container = document.createElement('div');
+    container.style.position = 'absolute';
+    container.style.left = '-10000px';
+    container.style.top = '0';
+    container.style.width = '1024px';
+    container.style.height = '1024px';
+    container.style.overflow = 'hidden';
+    container.style.backgroundColor = '#000';
+
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, 'text/html');
+
+    const styles = doc.querySelectorAll('style');
+    styles.forEach(style => {
+      const newStyle = document.createElement('style');
+      newStyle.textContent = style.textContent;
+      container.appendChild(newStyle);
+    });
+
+    const bodyContent = doc.body.innerHTML;
+    const contentDiv = document.createElement('div');
+    contentDiv.innerHTML = bodyContent;
+    container.appendChild(contentDiv);
+
+    document.body.appendChild(container);
+
+    try {
+      const designElement = container.querySelector('.container') ||
+                           container.querySelector('div[style*="width"]') ||
+                           contentDiv.firstElementChild ||
+                           contentDiv;
+
+      if (!designElement) {
+        throw new Error('No design element found');
+      }
+
+      await new Promise(resolve => setTimeout(resolve, 300));
+
+      const dataUrl = await toPng(designElement as HTMLElement, {
+        quality: 1,
+        pixelRatio: 2,
+        backgroundColor: '#000',
+        cacheBust: true,
+      });
+
+      return dataUrl;
+    } finally {
+      document.body.removeChild(container);
+    }
+  };
+
+  // Download image
+  const downloadImage = () => {
+    if (!generatedImage) return;
+    const link = document.createElement('a');
+    link.href = generatedImage;
+    link.download = 'thread-image.png';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   // Pre-fill first tweet only with initialPosts if provided (from dashboard Edit button)
   // User will use "Generate Thread" to expand into full thread
@@ -398,10 +548,11 @@ export function ThreadBuilder({ initialTopic, initialPosts }: ThreadBuilderProps
               <PremiumButton
                 size="sm"
                 variant="ghost"
-                leftIcon={<Calendar className="h-4 w-4" />}
-                onClick={handleScheduleThread}
+                leftIcon={<Twitter className="h-4 w-4" />}
+                onClick={openOnTwitter}
+                disabled={!tweets[0]?.content.trim()}
               >
-                Schedule
+                Open on X
               </PremiumButton>
               <PremiumButton
                 size="sm"
@@ -437,9 +588,11 @@ export function ThreadBuilder({ initialTopic, initialPosts }: ThreadBuilderProps
                 onRemove={() => removeTweet(tweet.id)}
                 onAddAfter={() => addTweet(tweet.id)}
                 onAiAssist={(action) => handleAiAssist(action, tweet.id)}
+                onGenerateImage={() => generateImage(tweet.content, tweet.id)}
                 canRemove={tweets.length > 1}
                 isEnhancing={isEnhancing && enhancingTweetId === tweet.id}
                 enhancingAction={enhancingTweetId === tweet.id ? enhancingAction : null}
+                isGeneratingImage={isGeneratingImage && imageForTweet === tweet.id}
               />
             ))}
           </Reorder.Group>
@@ -673,6 +826,64 @@ export function ThreadBuilder({ initialTopic, initialPosts }: ThreadBuilderProps
           </div>
         </PremiumCard>
       </div>
+
+      {/* Image Modal */}
+      {showImageModal && generatedImage && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4"
+          onClick={() => setShowImageModal(false)}
+        >
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="relative max-w-2xl w-full bg-surface rounded-xl overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setShowImageModal(false)}
+              className="absolute top-3 right-3 p-2 rounded-full bg-black/50 text-white hover:bg-black/70 transition-colors z-10"
+            >
+              <X className="h-5 w-5" />
+            </button>
+
+            <div className="relative aspect-square">
+              <img
+                src={generatedImage}
+                alt="Generated image"
+                className="w-full h-full object-contain bg-black"
+              />
+            </div>
+
+            <div className="p-4 border-t border-white/5">
+              <div className="flex items-center gap-2">
+                <PremiumButton
+                  size="sm"
+                  variant="primary"
+                  leftIcon={<Download className="h-4 w-4" />}
+                  onClick={downloadImage}
+                  className="flex-1"
+                >
+                  Download
+                </PremiumButton>
+                <PremiumButton
+                  size="sm"
+                  variant="secondary"
+                  leftIcon={<Twitter className="h-4 w-4" />}
+                  onClick={() => {
+                    setShowImageModal(false);
+                    openOnTwitter();
+                  }}
+                >
+                  Post on X
+                </PremiumButton>
+              </div>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
     </div>
   );
 }
@@ -691,9 +902,11 @@ interface TweetCardProps {
   onRemove: () => void;
   onAddAfter: () => void;
   onAiAssist: (action: 'spicier' | 'context' | 'shorten' | 'hook' | 'cta') => void;
+  onGenerateImage: () => void;
   canRemove: boolean;
   isEnhancing?: boolean;
   enhancingAction?: string | null;
+  isGeneratingImage?: boolean;
 }
 
 function TweetCard({
@@ -709,9 +922,11 @@ function TweetCard({
   onRemove,
   onAddAfter,
   onAiAssist,
+  onGenerateImage,
   canRemove,
   isEnhancing,
   enhancingAction,
+  isGeneratingImage,
 }: TweetCardProps) {
   const controls = useDragControls();
   const isOverLimit = tweet.characterCount > 280;
@@ -887,6 +1102,19 @@ function TweetCard({
                     <Loader2 className="h-3 w-3 animate-spin" />
                   ) : (
                     <Target className="h-3 w-3" />
+                  )}
+                </button>
+                <div className="w-px h-4 bg-white/10 mx-1" />
+                <button
+                  onClick={(e) => { e.stopPropagation(); onGenerateImage(); }}
+                  disabled={isGeneratingImage}
+                  className="p-1.5 rounded bg-elevated/50 text-tertiary hover:text-pink-400 hover:bg-pink-500/10 transition-colors disabled:opacity-50"
+                  title="Generate Image"
+                >
+                  {isGeneratingImage ? (
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                  ) : (
+                    <Image className="h-3 w-3" />
                   )}
                 </button>
               </div>

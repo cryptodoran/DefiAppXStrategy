@@ -18,10 +18,11 @@ CRITICAL RULES:
 2. The design must be self-contained with inline styles
 3. Use modern CSS (gradients, box-shadows, backdrop-filter)
 4. Design dimensions should fit within the specified size
-5. Use web-safe fonts: Inter, system-ui, or sans-serif
+5. FONTS: Use ONLY system fonts. NEVER use @import or external fonts. Use this font stack: font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 6. Make it visually striking and professional
-7. NO images - only CSS shapes, gradients, and text
+7. NO images, NO external resources - only CSS shapes, gradients, and text
 8. Include the main message/concept from the prompt prominently
+9. IMPORTANT: No @import statements, no url() for fonts, no external resources of any kind
 
 STYLE GUIDELINES BY TYPE:
 - gradient: Purple/blue/cyan gradients, smooth transitions, glassmorphism, subtle glow effects
@@ -106,6 +107,12 @@ Remember:
 
     // Clean up any markdown code blocks if Claude added them
     html = html.replace(/^```html?\n?/i, '').replace(/\n?```$/i, '');
+
+    // Remove any @import statements for fonts (they won't work in html-to-image)
+    html = html.replace(/@import\s+url\([^)]+\);?\s*/gi, '');
+
+    // Replace any font-family declarations that reference external fonts with system fonts
+    html = html.replace(/font-family:\s*['"]?Inter['"]?[^;]*/gi, "font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif");
 
     // Validate it looks like HTML
     if (!html.includes('<') || !html.includes('>')) {

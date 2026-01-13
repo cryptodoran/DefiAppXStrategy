@@ -31,7 +31,12 @@ import {
   ArrowUp,
   Wand2,
   Target,
+  Image,
+  X,
+  Download,
+  Twitter,
 } from 'lucide-react';
+import { toPng } from 'html-to-image';
 import { VoiceMatchIndicator } from '@/components/ui/voice-match-indicator';
 
 interface OriginalPost {
@@ -115,7 +120,152 @@ export function QTStudio({ initialUrl: propUrl }: QTStudioProps) {
     improvements: string[];
   } | null>(null);
   const [isAnalyzing, setIsAnalyzing] = React.useState(false);
+  const [isGeneratingImage, setIsGeneratingImage] = React.useState(false);
+  const [generatedImage, setGeneratedImage] = React.useState<string | null>(null);
+  const [showImageModal, setShowImageModal] = React.useState(false);
   const { addToast } = useToast();
+
+  // Open on Twitter - creates a quote tweet with the content
+  const openOnTwitter = () => {
+    if (!qtContent.trim()) {
+      addToast({
+        type: 'warning',
+        title: 'No content',
+        description: 'Write your quote tweet first',
+      });
+      return;
+    }
+    if (!originalPost) {
+      addToast({
+        type: 'warning',
+        title: 'No tweet loaded',
+        description: 'Load a tweet to quote first',
+      });
+      return;
+    }
+
+    const tweetUrl = originalPost.tweetUrl;
+    const text = encodeURIComponent(qtContent);
+    const url = encodeURIComponent(tweetUrl);
+    const twitterIntentUrl = `https://twitter.com/intent/tweet?text=${text}&url=${url}`;
+    window.open(twitterIntentUrl, '_blank', 'width=600,height=400');
+  };
+
+  // Generate image for the quote tweet
+  const generateImage = async () => {
+    if (!qtContent.trim()) {
+      addToast({
+        type: 'warning',
+        title: 'No content',
+        description: 'Write your quote tweet first',
+      });
+      return;
+    }
+
+    setIsGeneratingImage(true);
+    try {
+      const response = await fetch('/api/media/design', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          prompt: qtContent,
+          style: 'gradient',
+          width: 1024,
+          height: 1024,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to generate design');
+      }
+
+      const data = await response.json();
+
+      // Render HTML to image
+      const imageUrl = await renderHtmlToImage(data.html);
+      setGeneratedImage(imageUrl);
+      setShowImageModal(true);
+
+      addToast({
+        type: 'success',
+        title: 'Image generated!',
+        description: 'Your image is ready to download',
+      });
+    } catch (error) {
+      console.error('Image generation error:', error);
+      addToast({
+        type: 'error',
+        title: 'Generation failed',
+        description: 'Could not generate image',
+      });
+    } finally {
+      setIsGeneratingImage(false);
+    }
+  };
+
+  // Render HTML to image
+  const renderHtmlToImage = async (html: string): Promise<string> => {
+    const container = document.createElement('div');
+    container.style.position = 'absolute';
+    container.style.left = '-10000px';
+    container.style.top = '0';
+    container.style.width = '1024px';
+    container.style.height = '1024px';
+    container.style.overflow = 'hidden';
+    container.style.backgroundColor = '#000';
+
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, 'text/html');
+
+    const styles = doc.querySelectorAll('style');
+    styles.forEach(style => {
+      const newStyle = document.createElement('style');
+      newStyle.textContent = style.textContent;
+      container.appendChild(newStyle);
+    });
+
+    const bodyContent = doc.body.innerHTML;
+    const contentDiv = document.createElement('div');
+    contentDiv.innerHTML = bodyContent;
+    container.appendChild(contentDiv);
+
+    document.body.appendChild(container);
+
+    try {
+      const designElement = container.querySelector('.container') ||
+                           container.querySelector('div[style*="width"]') ||
+                           contentDiv.firstElementChild ||
+                           contentDiv;
+
+      if (!designElement) {
+        throw new Error('No design element found');
+      }
+
+      await new Promise(resolve => setTimeout(resolve, 300));
+
+      const dataUrl = await toPng(designElement as HTMLElement, {
+        quality: 1,
+        pixelRatio: 2,
+        backgroundColor: '#000',
+        cacheBust: true,
+      });
+
+      return dataUrl;
+    } finally {
+      document.body.removeChild(container);
+    }
+  };
+
+  // Download image
+  const downloadImage = () => {
+    if (!generatedImage) return;
+    const link = document.createElement('a');
+    link.href = generatedImage;
+    link.download = 'quote-tweet-image.png';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   // Load tweet from URL on mount if provided
   React.useEffect(() => {
@@ -732,21 +882,42 @@ export function QTStudio({ initialUrl: propUrl }: QTStudioProps) {
 
           {/* Actions */}
           <div className="flex items-center justify-between mt-4">
-            <button
-              onClick={copyToClipboard}
-              disabled={!qtContent}
-              className="text-sm text-tertiary hover:text-secondary transition-colors flex items-center gap-1 disabled:opacity-50"
-            >
-              Copy to Clipboard
-            </button>
-            <PremiumButton
-              variant="primary"
-              leftIcon={<Send className="h-4 w-4" />}
-              disabled={qtContent.length < 10 || isPosting}
-              onClick={handlePostQT}
-            >
-              {isPosting ? 'Processing...' : 'Ready to Post'}
-            </PremiumButton>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={copyToClipboard}
+                disabled={!qtContent}
+                className="text-sm text-tertiary hover:text-secondary transition-colors flex items-center gap-1 disabled:opacity-50"
+              >
+                Copy
+              </button>
+              <button
+                onClick={generateImage}
+                disabled={!qtContent.trim() || isGeneratingImage}
+                className="text-sm text-tertiary hover:text-violet-400 transition-colors flex items-center gap-1 disabled:opacity-50"
+              >
+                {isGeneratingImage ? <Loader2 className="h-3 w-3 animate-spin" /> : <Image className="h-3 w-3" />}
+                Image
+              </button>
+            </div>
+            <div className="flex items-center gap-2">
+              <PremiumButton
+                variant="secondary"
+                size="sm"
+                leftIcon={<Twitter className="h-4 w-4" />}
+                disabled={qtContent.length < 10 || !originalPost}
+                onClick={openOnTwitter}
+              >
+                Open on X
+              </PremiumButton>
+              <PremiumButton
+                variant="primary"
+                leftIcon={<Send className="h-4 w-4" />}
+                disabled={qtContent.length < 10 || isPosting}
+                onClick={handlePostQT}
+              >
+                {isPosting ? 'Processing...' : 'Ready'}
+              </PremiumButton>
+            </div>
           </div>
         </PremiumCard>
 
@@ -773,6 +944,67 @@ export function QTStudio({ initialUrl: propUrl }: QTStudioProps) {
           </ul>
         </PremiumCard>
       </div>
+
+      {/* Image Modal */}
+      {showImageModal && generatedImage && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4"
+          onClick={() => setShowImageModal(false)}
+        >
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="relative max-w-2xl w-full bg-surface rounded-xl overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setShowImageModal(false)}
+              className="absolute top-3 right-3 p-2 rounded-full bg-black/50 text-white hover:bg-black/70 transition-colors z-10"
+            >
+              <X className="h-5 w-5" />
+            </button>
+
+            <div className="relative aspect-square">
+              <img
+                src={generatedImage}
+                alt="Generated image"
+                className="w-full h-full object-contain bg-black"
+              />
+            </div>
+
+            <div className="p-4 border-t border-white/5">
+              <p className="text-xs text-tertiary mb-3 line-clamp-2">
+                {qtContent}
+              </p>
+              <div className="flex items-center gap-2">
+                <PremiumButton
+                  size="sm"
+                  variant="primary"
+                  leftIcon={<Download className="h-4 w-4" />}
+                  onClick={downloadImage}
+                  className="flex-1"
+                >
+                  Download
+                </PremiumButton>
+                <PremiumButton
+                  size="sm"
+                  variant="secondary"
+                  leftIcon={<Twitter className="h-4 w-4" />}
+                  onClick={() => {
+                    setShowImageModal(false);
+                    openOnTwitter();
+                  }}
+                >
+                  Post on X
+                </PremiumButton>
+              </div>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
     </div>
   );
 }

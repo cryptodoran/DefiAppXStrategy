@@ -184,29 +184,56 @@ export function MediaGenerator({ tweetContent, onPromptSelect, onImageGenerated,
 
   // Render HTML to image using html-to-image
   const renderHtmlToImage = async (html: string): Promise<string> => {
-    // Create a hidden container for rendering
+    // Create a container that's visible but off-screen (some browsers handle this better)
     const container = document.createElement('div');
-    container.style.position = 'fixed';
-    container.style.left = '-9999px';
+    container.style.position = 'absolute';
+    container.style.left = '-10000px';
     container.style.top = '0';
-    container.innerHTML = html;
+    container.style.width = '1024px';
+    container.style.height = '1024px';
+    container.style.overflow = 'hidden';
+    container.style.backgroundColor = '#000';
+
+    // Parse the HTML and extract just the body content
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, 'text/html');
+
+    // Copy styles from the parsed document
+    const styles = doc.querySelectorAll('style');
+    styles.forEach(style => {
+      const newStyle = document.createElement('style');
+      newStyle.textContent = style.textContent;
+      container.appendChild(newStyle);
+    });
+
+    // Copy the body content
+    const bodyContent = doc.body.innerHTML;
+    const contentDiv = document.createElement('div');
+    contentDiv.innerHTML = bodyContent;
+    container.appendChild(contentDiv);
+
     document.body.appendChild(container);
 
     try {
-      // Find the main design element (usually first child of body)
-      const designElement = container.querySelector('body > div') || container.firstElementChild;
+      // Find the main design element
+      const designElement = container.querySelector('.container') ||
+                           container.querySelector('div[style*="width"]') ||
+                           contentDiv.firstElementChild ||
+                           contentDiv;
+
       if (!designElement) {
         throw new Error('No design element found');
       }
 
-      // Wait for fonts to load
-      await document.fonts.ready;
-      await new Promise(resolve => setTimeout(resolve, 100));
+      // Wait for any rendering to complete
+      await new Promise(resolve => setTimeout(resolve, 300));
 
-      // Convert to PNG
+      // Convert to PNG with high quality
       const dataUrl = await toPng(designElement as HTMLElement, {
         quality: 1,
-        pixelRatio: 2, // Higher quality
+        pixelRatio: 2,
+        backgroundColor: '#000',
+        cacheBust: true,
       });
 
       return dataUrl;
