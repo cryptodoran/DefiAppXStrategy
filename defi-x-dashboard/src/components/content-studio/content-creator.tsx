@@ -368,6 +368,20 @@ export function ContentCreator({ initialTopic }: ContentCreatorProps) {
           </div>
         </PremiumCard>
 
+        {/* Media Generation - Prominently placed */}
+        {content.length >= 20 && (
+          <MediaGenerator
+            tweetContent={content}
+            onImageGenerated={(imageUrl) => {
+              addToast({
+                type: 'success',
+                title: 'image ready!',
+                description: 'your media is ready to use with this tweet',
+              });
+            }}
+          />
+        )}
+
         {/* Generated Variations */}
         {variations.length > 0 && (
           <PremiumCard>
@@ -409,20 +423,6 @@ export function ContentCreator({ initialTopic }: ContentCreatorProps) {
               ))}
             </div>
           </PremiumCard>
-        )}
-
-        {/* Media Generation */}
-        {content.length >= 20 && (
-          <MediaGenerator
-            tweetContent={content}
-            onImageGenerated={(imageUrl) => {
-              addToast({
-                type: 'success',
-                title: 'image ready!',
-                description: 'your media is ready to use with this tweet',
-              });
-            }}
-          />
         )}
       </div>
 
