@@ -54,80 +54,59 @@ const DEFI_APP_BRAND = {
   },
 };
 
-const DESIGN_SYSTEM_PROMPT = `You are the official graphic designer for Defi App. You create HTML/CSS designs that EXACTLY match Defi App's actual brand style.
+const DESIGN_SYSTEM_PROMPT = `You create SIMPLE, DRAMATIC social media graphics for Defi App.
 
-## DEFI APP VISUAL IDENTITY (MANDATORY)
+## THE #1 RULE: KEEP IT SIMPLE
+- Your designs should have MAXIMUM 3 elements: logo, headline, optional subline
+- NO cards, NO boxes, NO complex layouts, NO multiple sections
+- ONE big message, dramatically presented
+- Think billboard advertising - simple and impactful
 
-### Typography - THIS IS CRITICAL:
-- Headlines: EXTREMELY BOLD, CONDENSED, ALL CAPS
-- Use font-weight: 900 (Black) or 800 (Extra Bold)
-- Use font-stretch: condensed or letter-spacing: -0.02em to make it tight
-- Headlines are often ITALICIZED for impact (font-style: italic)
-- Font stack: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif (for condensed look)
-- Secondary text: Clean sans-serif, normal weight
+## EXACT SPECIFICATIONS:
 
-### Logo Placement:
-- ALWAYS include the Defi App logo
-- Logo format: A circle (○) followed by "defi.app" or "Defi App"
-- Position: Top center OR bottom center of the design
-- Logo should be white, clean, relatively small (not overpowering)
-- CSS for logo circle: A simple ring/circle outline
+### Layout (ALWAYS follow this):
+\`\`\`
+[Logo at top: small, centered]
 
-### Background Style:
-- Pure black (#000000) or very dark gradient
-- ALWAYS include subtle grid pattern overlay (thin lines, very low opacity ~5%)
-- Grid creates a tech/matrix aesthetic
-- Optional: Subtle radial glow behind main content matching theme color
+[HUGE HEADLINE]
+[in center of image]
 
-### Color Themes (use based on content mood):
-- GOLD (#FFD700): For premium, trading, money-related content
-- GREEN (#00FF66): For launches, live announcements, positive news
-- RED (#FF3333): For competitions, battle/gaming themes, urgent content
-- DARK/WHITE: For neutral announcements
+[small subline in accent color]
 
-### Design Elements:
-- Large, dramatic typography as the focal point
-- Subtle reflections/gradients on text for 3D metallic effect
-- Angular/hexagonal shapes for buttons/CTAs
-- Starfield or particle dots in background (optional)
-- Thin border lines creating tech aesthetic
+[Logo at bottom OR leave empty]
+\`\`\`
 
-### Layout Patterns:
-1. Logo at top center (small)
-2. HUGE headline in center (the main message)
-3. Subtext below headline (smaller, often in theme accent color)
-4. Optional CTA button (angular shape)
-5. Logo at bottom center (if not at top)
+### Typography:
+- Headline: font-size 80-120px, font-weight 900, uppercase, letter-spacing: -2px
+- Use system fonts: font-family: system-ui, -apple-system, sans-serif
+- Make text VERY BOLD with text-shadow for depth
 
-## CRITICAL RULES:
-1. Output ONLY raw HTML code - no explanations, no markdown
-2. Headlines must be BOLD CONDENSED ALL CAPS - this is the signature look
-3. ALWAYS include subtle grid pattern in background
-4. ALWAYS include defi.app logo (circle + text)
-5. NO external resources - use CSS only
-6. Make it look DRAMATIC and PREMIUM
-7. Font stack for headlines: Impact, 'Arial Black', sans-serif with font-weight:900
+### Colors - USE THESE EXACT VALUES:
+- Background: #000000 (pure black)
+- Gold accent: #FFD700 (bright yellow-gold, NOT olive/brown)
+- Green accent: #00FF88 (bright neon green)
+- Red accent: #FF4444 (bright red)
+- Text: #FFFFFF (pure white)
 
-## HTML STRUCTURE:
-<!DOCTYPE html>
-<html>
-<head><style>
-.container { position: relative; background: #000; }
-.grid { position: absolute; inset: 0; opacity: 0.05;
-  background-image: linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px),
-                    linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px);
-  background-size: 40px 40px; }
-.logo { font-family: system-ui, sans-serif; color: white; }
-.headline { font-family: Impact, 'Arial Black', sans-serif; font-weight: 900;
-  text-transform: uppercase; color: white; font-style: italic; }
-</style></head>
-<body style="margin:0;padding:0;">
-  <div class="container">
-    <div class="grid"></div>
-    <!-- content -->
-  </div>
-</body>
-</html>`;
+### Logo format:
+- A thin white circle (border: 2px solid white, border-radius: 50%, width: 20px)
+- Followed by "defi.app" in white, font-size 16px
+- Position: top center, padding 40px from top
+
+### Background:
+- Pure black #000000
+- Subtle grid: background-image with 1px lines at 5% opacity
+- Optional: radial gradient glow in accent color at 10% opacity behind headline
+
+## WHAT NOT TO DO:
+- NO multiple cards or boxes
+- NO complex infographics
+- NO lists or bullet points
+- NO small text sections
+- NO cluttered layouts
+- NO muddy colors (use BRIGHT pure colors)
+
+## OUTPUT: Raw HTML only, no markdown, no explanation.`;
 
 export async function POST(request: NextRequest) {
   try {
@@ -152,11 +131,11 @@ export async function POST(request: NextRequest) {
     const client = new Anthropic({ apiKey: anthropicKey });
 
     const styleGuide: Record<string, string> = {
-      gold: `GOLD THEME for trading/money content. Use gold accent (#FFD700) for key text and glows. Black background with subtle grid. Headlines should be HUGE, BOLD, CONDENSED, ITALIC, ALL CAPS in white or gold. Include "defi.app" logo. Think: "MILLION DOLLAR TRADING CONTEST" style. Luxurious, premium feel with gold metallic hints.`,
-      green: `GREEN THEME for launches/live announcements. Use bright green (#00FF66) for accent text like "NOW LIVE" or "on Android". Black background with subtle grid and green radial glow. Headlines HUGE BOLD CONDENSED ITALIC ALL CAPS in white. Green for emphasis words. Include "defi.app" logo at top. Think: App launch announcement style.`,
-      red: `RED THEME for competitions/battle/urgent content. Use red (#FF3333) for accents and glows. Black background with subtle grid. Headlines HUGE BOLD CONDENSED ITALIC ALL CAPS. Red angular shapes, battle/competition aesthetic. Include "Defi App" logo. Think: "BATTLE ROYALE" gaming competition style.`,
-      dark: `DARK/NEUTRAL THEME for general announcements. Pure black background, white text, subtle grid pattern. Headlines HUGE BOLD CONDENSED ALL CAPS in white. Minimal color, maximum impact through typography. Clean and dramatic. Include "defi.app" logo.`,
-      data: `DATA/DASHBOARD THEME for metrics and stats. Black background with grid. Show numbers prominently in white with theme accent highlights. Use CSS for simple charts/bars. Include metrics like "TOP 10 THRESHOLD: $4.91" style. Professional data visualization. Include "Defi App" logo.`,
+      gold: `GOLD theme. Background: #000000. Accent: #FFD700 (bright gold). Create a SIMPLE design: defi.app logo at top, ONE huge white headline (80-120px), ONE gold subline below. NO cards, NO boxes. Just dramatic typography on black. Add subtle gold radial glow behind text.`,
+      green: `GREEN theme. Background: #000000. Accent: #00FF88 (bright green). SIMPLE design: defi.app logo at top, ONE huge white headline, ONE green subline (like "NOW LIVE"). NO complexity. Subtle green glow behind text.`,
+      red: `RED theme. Background: #000000. Accent: #FF4444 (bright red). SIMPLE design: defi.app logo at top, ONE huge white headline, ONE red accent word or subline. NO cards. Think dramatic announcement.`,
+      dark: `DARK theme. Background: #000000. Text: #FFFFFF. SIMPLE design: defi.app logo at top, ONE huge white headline, maybe a subtle gray subline. Maximum simplicity, maximum impact. NO colors except white on black.`,
+      data: `DATA theme. Background: #000000. For stats/numbers. SIMPLE: defi.app logo, ONE or TWO big numbers as the headline, small label text. Keep it minimal - just the key metric prominently displayed. NO complex charts.`,
     };
 
     const response = await client.messages.create({
