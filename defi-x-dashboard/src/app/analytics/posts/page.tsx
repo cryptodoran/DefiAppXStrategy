@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -25,8 +25,7 @@ import {
   AlertCircle,
   ExternalLink,
 } from 'lucide-react';
-import { Tooltip } from 'recharts';
-import { AreaChart, Area, XAxis, YAxis, ResponsiveContainer } from 'recharts';
+import { AreaChart, Area, XAxis, YAxis, ResponsiveContainer, Tooltip } from 'recharts';
 import { AppLayout } from '@/components/layout/app-layout';
 
 interface Tweet {
@@ -62,6 +61,11 @@ async function fetchPostsData(): Promise<TwitterUserData> {
 export default function PostPerformancePage() {
   const [timeRange, setTimeRange] = useState('7d');
   const [contentType, setContentType] = useState('all');
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const { data, isLoading, error, refetch, isFetching } = useQuery({
     queryKey: ['post-analytics'],
@@ -199,26 +203,32 @@ export default function PostPerformancePage() {
             </CardHeader>
             <CardContent>
               <div className="h-64">
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={performanceData}>
-                    <defs>
-                      <linearGradient id="impressionsGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
-                        <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
-                      </linearGradient>
-                    </defs>
-                    <XAxis dataKey="date" stroke="#71717a" fontSize={12} />
-                    <YAxis stroke="#71717a" fontSize={12} tickFormatter={formatNumber} />
-                    <Tooltip contentStyle={{ backgroundColor: '#1a1a2e', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px' }} />
-                    <Area
-                      type="monotone"
-                      dataKey="impressions"
-                      stroke="#3b82f6"
-                      fillOpacity={1}
-                      fill="url(#impressionsGradient)"
-                    />
-                  </AreaChart>
-                </ResponsiveContainer>
+                {mounted ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={performanceData}>
+                      <defs>
+                        <linearGradient id="impressionsGradient" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
+                          <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+                        </linearGradient>
+                      </defs>
+                      <XAxis dataKey="date" stroke="#71717a" fontSize={12} />
+                      <YAxis stroke="#71717a" fontSize={12} tickFormatter={formatNumber} />
+                      <Tooltip contentStyle={{ backgroundColor: '#1a1a2e', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px' }} />
+                      <Area
+                        type="monotone"
+                        dataKey="impressions"
+                        stroke="#3b82f6"
+                        fillOpacity={1}
+                        fill="url(#impressionsGradient)"
+                      />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="h-full flex items-center justify-center">
+                    <div className="h-8 w-8 animate-spin rounded-full border-2 border-white/10 border-t-blue-500" />
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>

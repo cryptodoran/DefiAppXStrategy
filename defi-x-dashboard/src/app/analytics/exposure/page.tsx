@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -14,8 +15,7 @@ import {
   Quote,
   Info,
 } from 'lucide-react';
-import { Tooltip } from 'recharts';
-import { AreaChart, Area, XAxis, YAxis, ResponsiveContainer, BarChart, Bar } from 'recharts';
+import { AreaChart, Area, XAxis, YAxis, ResponsiveContainer, BarChart, Bar, Tooltip } from 'recharts';
 import { AppLayout } from '@/components/layout/app-layout';
 
 // US-005: Exposure Budget Tracker
@@ -74,6 +74,12 @@ const exposureData = {
 };
 
 export default function ExposureBudgetPage() {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const usagePercentage = (exposureData.daily.used / exposureData.daily.total) * 100;
 
   const getUsageColor = (percentage: number) => {
@@ -188,26 +194,32 @@ export default function ExposureBudgetPage() {
           </CardHeader>
           <CardContent>
             <div className="h-64">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={exposureData.hourlyUsage}>
-                  <defs>
-                    <linearGradient id="usageGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#eab308" stopOpacity={0.3} />
-                      <stop offset="95%" stopColor="#eab308" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <XAxis dataKey="hour" stroke="#71717a" fontSize={12} />
-                  <YAxis stroke="#71717a" fontSize={12} domain={[0, 100]} />
-                  <Tooltip contentStyle={{ backgroundColor: '#1a1a2e', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px' }} />
-                  <Area
-                    type="monotone"
-                    dataKey="used"
-                    stroke="#eab308"
-                    fillOpacity={1}
-                    fill="url(#usageGradient)"
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
+              {mounted ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={exposureData.hourlyUsage}>
+                    <defs>
+                      <linearGradient id="usageGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#eab308" stopOpacity={0.3} />
+                        <stop offset="95%" stopColor="#eab308" stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
+                    <XAxis dataKey="hour" stroke="#71717a" fontSize={12} />
+                    <YAxis stroke="#71717a" fontSize={12} domain={[0, 100]} />
+                    <Tooltip contentStyle={{ backgroundColor: '#1a1a2e', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px' }} />
+                    <Area
+                      type="monotone"
+                      dataKey="used"
+                      stroke="#eab308"
+                      fillOpacity={1}
+                      fill="url(#usageGradient)"
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="h-full flex items-center justify-center">
+                  <div className="h-8 w-8 animate-spin rounded-full border-2 border-white/10 border-t-yellow-500" />
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -219,14 +231,20 @@ export default function ExposureBudgetPage() {
           </CardHeader>
           <CardContent>
             <div className="h-64">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={exposureData.weeklyTrend}>
-                  <XAxis dataKey="day" stroke="#71717a" fontSize={12} />
-                  <YAxis stroke="#71717a" fontSize={12} domain={[0, 100]} />
-                  <Tooltip contentStyle={{ backgroundColor: '#1a1a2e', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px' }} />
-                  <Bar dataKey="used" fill="#3b82f6" radius={[4, 4, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
+              {mounted ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={exposureData.weeklyTrend}>
+                    <XAxis dataKey="day" stroke="#71717a" fontSize={12} />
+                    <YAxis stroke="#71717a" fontSize={12} domain={[0, 100]} />
+                    <Tooltip contentStyle={{ backgroundColor: '#1a1a2e', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px' }} />
+                    <Bar dataKey="used" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="h-full flex items-center justify-center">
+                  <div className="h-8 w-8 animate-spin rounded-full border-2 border-white/10 border-t-blue-500" />
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>

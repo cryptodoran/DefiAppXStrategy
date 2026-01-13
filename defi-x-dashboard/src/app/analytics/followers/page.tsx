@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -20,8 +21,7 @@ import {
   RefreshCw,
   AlertCircle,
 } from 'lucide-react';
-import { Tooltip } from 'recharts';
-import { AreaChart, Area, XAxis, YAxis, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { AreaChart, Area, XAxis, YAxis, ResponsiveContainer, PieChart, Pie, Cell, Tooltip } from 'recharts';
 import { AppLayout } from '@/components/layout/app-layout';
 
 // US-006: Follower Analytics & Growth
@@ -118,6 +118,12 @@ const churnData = {
 };
 
 export default function FollowerAnalyticsPage() {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   // Fetch real data
   const { data: ownMetrics, isLoading: isLoadingOwn, error: errorOwn, refetch } = useQuery({
     queryKey: ['own-metrics-analytics'],
@@ -309,26 +315,32 @@ export default function FollowerAnalyticsPage() {
             </CardHeader>
             <CardContent>
               <div className="h-64">
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={followerData.growthTrend}>
-                    <defs>
-                      <linearGradient id="followersGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
-                        <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
-                      </linearGradient>
-                    </defs>
-                    <XAxis dataKey="date" stroke="#71717a" fontSize={12} />
-                    <YAxis stroke="#71717a" fontSize={12} tickFormatter={formatNumber} />
-                    <Tooltip contentStyle={{ backgroundColor: '#1a1a2e', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px' }} />
-                    <Area
-                      type="monotone"
-                      dataKey="followers"
-                      stroke="#3b82f6"
-                      fillOpacity={1}
-                      fill="url(#followersGradient)"
-                    />
-                  </AreaChart>
-                </ResponsiveContainer>
+                {mounted ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={followerData.growthTrend}>
+                      <defs>
+                        <linearGradient id="followersGradient" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
+                          <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+                        </linearGradient>
+                      </defs>
+                      <XAxis dataKey="date" stroke="#71717a" fontSize={12} />
+                      <YAxis stroke="#71717a" fontSize={12} tickFormatter={formatNumber} />
+                      <Tooltip contentStyle={{ backgroundColor: '#1a1a2e', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px' }} />
+                      <Area
+                        type="monotone"
+                        dataKey="followers"
+                        stroke="#3b82f6"
+                        fillOpacity={1}
+                        fill="url(#followersGradient)"
+                      />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="h-full flex items-center justify-center">
+                    <div className="h-8 w-8 animate-spin rounded-full border-2 border-white/10 border-t-blue-500" />
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -369,23 +381,29 @@ export default function FollowerAnalyticsPage() {
               </CardHeader>
               <CardContent>
                 <div className="h-64">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={demographicsData.locations}
-                        cx="50%"
-                        cy="50%"
-                        innerRadius={60}
-                        outerRadius={80}
-                        dataKey="value"
-                        label={({ name, value }) => `${name}: ${value}%`}
-                      >
-                        {demographicsData.locations.map((entry, index) => (
-                          <Cell key={index} fill={entry.color} />
-                        ))}
-                      </Pie>
-                    </PieChart>
-                  </ResponsiveContainer>
+                  {mounted ? (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie
+                          data={demographicsData.locations}
+                          cx="50%"
+                          cy="50%"
+                          innerRadius={60}
+                          outerRadius={80}
+                          dataKey="value"
+                          label={({ name, value }) => `${name}: ${value}%`}
+                        >
+                          {demographicsData.locations.map((entry, index) => (
+                            <Cell key={index} fill={entry.color} />
+                          ))}
+                        </Pie>
+                      </PieChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <div className="h-full flex items-center justify-center">
+                      <div className="h-8 w-8 animate-spin rounded-full border-2 border-white/10 border-t-blue-500" />
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
