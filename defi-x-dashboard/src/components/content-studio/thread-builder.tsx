@@ -827,19 +827,14 @@ export function ThreadBuilder({ initialTopic, initialPosts }: ThreadBuilderProps
         </PremiumCard>
       </div>
 
-      {/* Image Modal */}
+      {/* Image Modal - CSS transitions to prevent flickering */}
       {showImageModal && generatedImage && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4"
+        <div
+          className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 animate-in fade-in duration-150"
           onClick={() => setShowImageModal(false)}
         >
-          <motion.div
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            className="relative max-w-2xl w-full bg-surface rounded-xl overflow-hidden"
+          <div
+            className="relative max-w-2xl w-full bg-surface rounded-xl overflow-hidden animate-in zoom-in-95 duration-150"
             onClick={(e) => e.stopPropagation()}
           >
             <button
@@ -883,8 +878,8 @@ export function ThreadBuilder({ initialTopic, initialPosts }: ThreadBuilderProps
                 </PremiumButton>
               </div>
             </div>
-          </motion.div>
-        </motion.div>
+          </div>
+        </div>
       )}
     </div>
   );

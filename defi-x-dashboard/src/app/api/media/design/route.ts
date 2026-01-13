@@ -12,77 +12,34 @@ interface DesignRequest {
   height?: number;
 }
 
-// Defi App Brand Kit - Based on actual graphics
-const DEFI_APP_BRAND = {
-  // Theme colors based on actual campaigns
-  themes: {
-    gold: {
-      accent: '#FFD700',
-      accentDark: '#B8860B',
-      gradient: 'linear-gradient(180deg, #1a1400 0%, #0a0800 50%, #000000 100%)',
-      glow: 'rgba(255, 215, 0, 0.4)',
-    },
-    green: {
-      accent: '#00FF66',
-      accentDark: '#00CC52',
-      gradient: 'linear-gradient(180deg, #001a0d 0%, #000d06 50%, #000000 100%)',
-      glow: 'rgba(0, 255, 102, 0.4)',
-    },
-    red: {
-      accent: '#FF3333',
-      accentDark: '#CC0000',
-      gradient: 'linear-gradient(180deg, #1a0000 0%, #0d0000 50%, #000000 100%)',
-      glow: 'rgba(255, 51, 51, 0.4)',
-    },
-    dark: {
-      accent: '#FFFFFF',
-      accentDark: '#CCCCCC',
-      gradient: 'linear-gradient(180deg, #0a0a0a 0%, #050505 50%, #000000 100%)',
-      glow: 'rgba(255, 255, 255, 0.2)',
-    },
-  },
-  colors: {
-    background: '#000000',
-    backgroundAlt: '#0a0a0a',
-    textPrimary: '#FFFFFF',
-    textMuted: '#888888',
-    gridLine: 'rgba(255, 255, 255, 0.05)',
-  },
-  logo: {
-    text: 'defi.app',
-    altText: 'Defi App',
-  },
-};
+// Official Defi App logo as SVG - circle with notch at top-right (like a progress indicator at 80%)
+// This is injected directly into generated designs to ensure consistency
+const DEFI_APP_LOGO_SVG = `<svg viewBox="0 0 24 24" width="22" height="22" style="display:inline-block;vertical-align:middle;margin-right:8px;">
+  <path d="M12 2 A10 10 0 1 1 5.1 5.1" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+</svg>`;
+
+// The complete logo HTML block to inject at top center of designs
+const DEFI_APP_LOGO_HTML = `<div style="position:absolute;top:40px;left:50%;transform:translateX(-50%);display:flex;align-items:center;justify-content:center;z-index:100;">
+  ${DEFI_APP_LOGO_SVG}
+  <span style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-size:18px;font-weight:600;color:white;letter-spacing:-0.5px;">defi.app</span>
+</div>`;
 
 const DESIGN_SYSTEM_PROMPT = `You create SIMPLE, DRAMATIC social media graphics for Defi App.
 
 ## THE #1 RULE: KEEP IT SIMPLE
-- MAXIMUM 3 elements: logo, headline, optional subline
+- MAXIMUM 2 elements: headline and optional subline
 - NO cards, NO boxes, NO complex layouts
 - ONE big message, dramatically presented
 
-## DEFI APP LOGO (CRITICAL - GET THIS RIGHT):
-The logo is a circle with a GAP/NOTCH at the top-right, like a progress indicator at 80%.
-Create it with CSS:
-\`\`\`css
-.logo-circle {
-  width: 22px;
-  height: 22px;
-  border: 2.5px solid white;
-  border-radius: 50%;
-  border-top-color: transparent; /* This creates the notch/gap */
-  transform: rotate(45deg); /* Position the gap at top-right */
-}
-\`\`\`
-Place the logo circle + "defi.app" text at TOP CENTER of design.
+## IMPORTANT: DO NOT CREATE A LOGO
+The logo will be automatically injected. Do NOT include any logo, circle icon, or "defi.app" text.
+Just leave space at the top (padding-top: 100px on your main container).
 
 ## BACKGROUND (MUST HAVE DEPTH):
 Don't use plain black. Create atmosphere:
 1. Base: #000000
-2. Add gradient overlay: radial-gradient from center, using accent color at 15-20% opacity
-3. Add grid pattern: 1px lines, accent color tinted, 8-10% opacity, 40px spacing
-4. Add subtle noise/texture effect with tiny dots or secondary grid
-5. Optional: Add diagonal lines or geometric shapes at very low opacity for depth
+2. Add radial gradient from center using accent color at 15-20% opacity
+3. Add grid pattern: 1px lines, accent color, 8% opacity, 40px spacing
 
 Example background CSS:
 \`\`\`css
@@ -95,9 +52,10 @@ background-size: 100% 100%, 40px 40px, 40px 40px, 100% 100%;
 \`\`\`
 
 ## TYPOGRAPHY:
-- Headline: 90-130px, font-weight 900, uppercase, letter-spacing: -3px
-- Add text-shadow for glow: 0 0 40px rgba(ACCENT, 0.5), 0 0 80px rgba(ACCENT, 0.3)
+- Headline: 80-120px, font-weight 900, uppercase, letter-spacing: -2px
+- Text-shadow for glow: 0 0 40px rgba(ACCENT, 0.5), 0 0 80px rgba(ACCENT, 0.3)
 - Font: system-ui, -apple-system, sans-serif
+- Center the text vertically (use flexbox with align-items: center)
 
 ## COLORS:
 - Gold: #FFD700
@@ -105,7 +63,7 @@ background-size: 100% 100%, 40px 40px, 40px 40px, 100% 100%;
 - Red: #FF4444
 - Text: #FFFFFF
 
-## OUTPUT: Raw HTML only, no explanation.`;
+## OUTPUT: Raw HTML only, no markdown, no explanation.`;
 
 export async function POST(request: NextRequest) {
   try {
@@ -130,11 +88,11 @@ export async function POST(request: NextRequest) {
     const client = new Anthropic({ apiKey: anthropicKey });
 
     const styleGuide: Record<string, string> = {
-      gold: `GOLD theme. Background: #000000. Accent: #FFD700 (bright gold). Create a SIMPLE design: defi.app logo at top, ONE huge white headline (80-120px), ONE gold subline below. NO cards, NO boxes. Just dramatic typography on black. Add subtle gold radial glow behind text.`,
-      green: `GREEN theme. Background: #000000. Accent: #00FF88 (bright green). SIMPLE design: defi.app logo at top, ONE huge white headline, ONE green subline (like "NOW LIVE"). NO complexity. Subtle green glow behind text.`,
-      red: `RED theme. Background: #000000. Accent: #FF4444 (bright red). SIMPLE design: defi.app logo at top, ONE huge white headline, ONE red accent word or subline. NO cards. Think dramatic announcement.`,
-      dark: `DARK theme. Background: #000000. Text: #FFFFFF. SIMPLE design: defi.app logo at top, ONE huge white headline, maybe a subtle gray subline. Maximum simplicity, maximum impact. NO colors except white on black.`,
-      data: `DATA theme. Background: #000000. For stats/numbers. SIMPLE: defi.app logo, ONE or TWO big numbers as the headline, small label text. Keep it minimal - just the key metric prominently displayed. NO complex charts.`,
+      gold: `GOLD theme. Accent: #FFD700 (bright gold). ONE huge white headline (80-120px), ONE gold subline below. NO cards, NO boxes. Just dramatic typography. Gold radial glow behind text. Remember: NO logo - it's auto-injected.`,
+      green: `GREEN theme. Accent: #00FF88 (bright green). ONE huge white headline, ONE green subline (like "NOW LIVE"). Green glow behind text. Remember: NO logo - it's auto-injected.`,
+      red: `RED theme. Accent: #FF4444 (bright red). ONE huge white headline, ONE red subline. Red glow effect. Remember: NO logo - it's auto-injected.`,
+      dark: `DARK theme. Text: #FFFFFF. ONE huge white headline, subtle gray subline. Maximum simplicity. Remember: NO logo - it's auto-injected.`,
+      data: `DATA theme. For stats/numbers. ONE or TWO big numbers as headline, small label text. Minimal. Remember: NO logo - it's auto-injected.`,
     };
 
     const response = await client.messages.create({
@@ -181,6 +139,29 @@ Remember:
     // Validate it looks like HTML
     if (!html.includes('<') || !html.includes('>')) {
       throw new Error('Invalid HTML generated');
+    }
+
+    // Inject the official Defi App logo into the design
+    // Find the main container (first div after body or the root div) and inject logo
+    if (html.includes('<body')) {
+      // If there's a body tag, inject after it
+      html = html.replace(/<body[^>]*>/i, (match) => `${match}${DEFI_APP_LOGO_HTML}`);
+    } else {
+      // Otherwise inject after the first opening div that has style
+      html = html.replace(/<div[^>]*style="[^"]*position:\s*relative[^"]*"[^>]*>/i, (match) => `${match}${DEFI_APP_LOGO_HTML}`);
+      // If no position:relative div, try any div with width
+      if (!html.includes(DEFI_APP_LOGO_SVG)) {
+        html = html.replace(/<div[^>]*style="[^"]*width[^"]*"[^>]*>/i, (match) => `${match}${DEFI_APP_LOGO_HTML}`);
+      }
+      // Last resort: inject after first div
+      if (!html.includes(DEFI_APP_LOGO_SVG)) {
+        html = html.replace(/<div[^>]*>/i, (match) => `${match}${DEFI_APP_LOGO_HTML}`);
+      }
+    }
+
+    // Ensure the main container has position:relative for the logo positioning
+    if (!html.includes('position:relative') && !html.includes('position: relative')) {
+      html = html.replace(/<div([^>]*)style="([^"]*)"/, '<div$1style="position:relative;$2"');
     }
 
     return NextResponse.json({

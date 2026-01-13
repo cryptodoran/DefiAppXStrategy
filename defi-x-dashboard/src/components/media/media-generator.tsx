@@ -706,90 +706,82 @@ export function MediaGenerator({ tweetContent, onPromptSelect, onImageGenerated,
         </div>
       )}
 
-      {/* Image Modal */}
-      <AnimatePresence>
-        {showImageModal && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4"
-            onClick={() => setShowImageModal(null)}
+      {/* Image Modal - Using CSS transitions instead of Framer Motion to prevent flickering */}
+      {showImageModal && (
+        <div
+          className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 animate-in fade-in duration-150"
+          onClick={() => setShowImageModal(null)}
+        >
+          <div
+            className="relative max-w-2xl w-full bg-surface rounded-xl overflow-hidden animate-in zoom-in-95 duration-150"
+            onClick={(e) => e.stopPropagation()}
           >
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              className="relative max-w-2xl w-full bg-surface rounded-xl overflow-hidden"
-              onClick={(e) => e.stopPropagation()}
+            {/* Close button */}
+            <button
+              onClick={() => setShowImageModal(null)}
+              className="absolute top-3 right-3 p-2 rounded-full bg-black/50 text-white hover:bg-black/70 transition-colors z-10"
             >
-              {/* Close button */}
-              <button
-                onClick={() => setShowImageModal(null)}
-                className="absolute top-3 right-3 p-2 rounded-full bg-black/50 text-white hover:bg-black/70 transition-colors z-10"
-              >
-                <X className="h-5 w-5" />
-              </button>
+              <X className="h-5 w-5" />
+            </button>
 
-              {/* Image - fixed dimensions to prevent layout shift */}
-              <div className="relative aspect-square bg-black">
-                <img
-                  src={showImageModal.imageUrl}
-                  alt="Generated image"
-                  className="w-full h-full object-contain"
-                  style={{ imageRendering: 'auto' }}
-                  loading="eager"
-                  decoding="sync"
-                />
-              </div>
+            {/* Image - fixed dimensions to prevent layout shift */}
+            <div className="relative aspect-square bg-black">
+              <img
+                src={showImageModal.imageUrl}
+                alt="Generated image"
+                className="w-full h-full object-contain"
+                style={{ imageRendering: 'auto' }}
+                loading="eager"
+                decoding="sync"
+              />
+            </div>
 
-              {/* Actions */}
-              <div className="p-4 border-t border-white/5">
-                <p className="text-xs text-tertiary mb-3 line-clamp-2">
-                  {showImageModal.prompt}
-                </p>
-                <div className="flex items-center gap-2">
-                  <PremiumButton
-                    size="sm"
-                    variant="primary"
-                    leftIcon={<Download className="h-4 w-4" />}
-                    onClick={() => downloadImage(showImageModal.imageUrl, 'defiapp-media')}
-                    className="flex-1"
-                  >
-                    download
-                  </PremiumButton>
-                  <PremiumButton
-                    size="sm"
-                    variant="secondary"
-                    leftIcon={<RefreshCw className="h-4 w-4" />}
-                    onClick={() => {
-                      setShowImageModal(null);
-                      generateImage(showImageModal.prompt, -1);
-                    }}
-                  >
-                    regenerate
-                  </PremiumButton>
-                  <PremiumButton
-                    size="sm"
-                    variant="ghost"
-                    leftIcon={<Copy className="h-4 w-4" />}
-                    onClick={() => {
-                      navigator.clipboard.writeText(showImageModal.imageUrl);
-                      addToast({
-                        type: 'success',
-                        title: 'copied!',
-                        description: 'image url copied to clipboard',
-                      });
-                    }}
-                  >
-                    copy url
-                  </PremiumButton>
-                </div>
+            {/* Actions */}
+            <div className="p-4 border-t border-white/5">
+              <p className="text-xs text-tertiary mb-3 line-clamp-2">
+                {showImageModal.prompt}
+              </p>
+              <div className="flex items-center gap-2">
+                <PremiumButton
+                  size="sm"
+                  variant="primary"
+                  leftIcon={<Download className="h-4 w-4" />}
+                  onClick={() => downloadImage(showImageModal.imageUrl, 'defiapp-media')}
+                  className="flex-1"
+                >
+                  download
+                </PremiumButton>
+                <PremiumButton
+                  size="sm"
+                  variant="secondary"
+                  leftIcon={<RefreshCw className="h-4 w-4" />}
+                  onClick={() => {
+                    setShowImageModal(null);
+                    generateImage(showImageModal.prompt, -1);
+                  }}
+                >
+                  regenerate
+                </PremiumButton>
+                <PremiumButton
+                  size="sm"
+                  variant="ghost"
+                  leftIcon={<Copy className="h-4 w-4" />}
+                  onClick={() => {
+                    navigator.clipboard.writeText(showImageModal.imageUrl);
+                    addToast({
+                      type: 'success',
+                      title: 'copied!',
+                      description: 'image url copied to clipboard',
+                    });
+                  }}
+                >
+                  copy url
+                </PremiumButton>
               </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+            </div>
+          </div>
+        </div>
+      )}
     </PremiumCard>
   );
 }
