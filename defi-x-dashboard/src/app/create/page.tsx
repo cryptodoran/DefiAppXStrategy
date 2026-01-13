@@ -18,6 +18,18 @@ function CreatePageContent() {
   const searchParams = useSearchParams();
   const topicParam = searchParams.get('topic');
   const [activeTab, setActiveTab] = React.useState<ContentTab>('post');
+  const [initialContent, setInitialContent] = React.useState<string | undefined>(undefined);
+
+  // Check for edit content from dashboard "Ready to Post" section
+  React.useEffect(() => {
+    const editContent = sessionStorage.getItem('editTweetContent');
+    if (editContent) {
+      setInitialContent(editContent);
+      // Clear after reading so it doesn't persist on refresh
+      sessionStorage.removeItem('editTweetContent');
+      sessionStorage.removeItem('editTweetImagePrompt');
+    }
+  }, []);
 
   const tabs = [
     { id: 'post', label: 'New Post', icon: <PenSquare className="h-4 w-4" /> },
@@ -59,7 +71,7 @@ function CreatePageContent() {
         </div>
 
         {/* Content */}
-        {activeTab === 'post' && <ContentCreator initialTopic={topicParam || undefined} />}
+        {activeTab === 'post' && <ContentCreator initialTopic={topicParam || undefined} initialContent={initialContent} />}
         {activeTab === 'thread' && <ThreadBuilder initialTopic={topicParam || undefined} />}
         {activeTab === 'qt' && <QTStudio />}
       </motion.div>

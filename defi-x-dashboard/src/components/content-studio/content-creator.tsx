@@ -60,9 +60,10 @@ interface GeneratedVariation {
 
 interface ContentCreatorProps {
   initialTopic?: string;
+  initialContent?: string;
 }
 
-export function ContentCreator({ initialTopic }: ContentCreatorProps) {
+export function ContentCreator({ initialTopic, initialContent }: ContentCreatorProps) {
   const [content, setContent] = React.useState('');
   const [analysis, setAnalysis] = React.useState<ContentAnalysis | null>(null);
   const [isAnalyzing, setIsAnalyzing] = React.useState(false);
@@ -72,9 +73,17 @@ export function ContentCreator({ initialTopic }: ContentCreatorProps) {
   const [isGeneratingVariations, setIsGeneratingVariations] = React.useState(false);
   const { addToast } = useToast();
 
+  // Pre-fill with initialContent if provided (from dashboard Edit button)
+  React.useEffect(() => {
+    if (initialContent) {
+      setContent(initialContent);
+    }
+  }, [initialContent]);
+
   // Pre-fill content with topic if provided - using @defiapp voice style
   React.useEffect(() => {
-    if (initialTopic && !content) {
+    // Only use topic if no initialContent was provided
+    if (initialTopic && !content && !initialContent) {
       // Generate a few starting hooks in @defiapp's voice
       const hooks = [
         `${initialTopic.toLowerCase()} -`,
@@ -93,7 +102,7 @@ export function ContentCreator({ initialTopic }: ContentCreatorProps) {
         description: `Writing about: ${initialTopic}`,
       });
     }
-  }, [initialTopic]);
+  }, [initialTopic, initialContent]);
 
   // Opens Twitter/X with pre-filled content for manual posting
   const handleOpenInTwitter = () => {

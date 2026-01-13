@@ -150,6 +150,10 @@ export async function GET(request: Request) {
         // Build query with OR logic - simple and reliable
         const searchQuery = `(${batch.map(h => `from:${h}`).join(' OR ')}) -is:retweet`;
 
+        console.log(`[Twitter API] Searching batch of ${batch.length} accounts`);
+        console.log(`[Twitter API] Query: ${searchQuery.slice(0, 100)}...`);
+        console.log(`[Twitter API] Start time: ${startTime.toISOString()}`);
+
         const searchResults = await client.v2.search(searchQuery, {
           'tweet.fields': ['public_metrics', 'created_at', 'author_id', 'attachments'],
           'user.fields': ['username', 'name', 'profile_image_url', 'public_metrics', 'verified'],
@@ -159,6 +163,12 @@ export async function GET(request: Request) {
           start_time: startTime.toISOString(),
         });
 
+        console.log(`[Twitter API] Response received, data type: ${typeof searchResults.data}`);
+        console.log(`[Twitter API] Has data: ${!!searchResults.data}, Is array: ${Array.isArray(searchResults.data)}`);
+        if (searchResults.data) {
+          console.log(`[Twitter API] Data length/keys: ${Array.isArray(searchResults.data) ? searchResults.data.length : Object.keys(searchResults.data).join(',')}`);
+        }
+
         // Handle both array and single tweet response formats
         const tweetsData = Array.isArray(searchResults.data)
           ? searchResults.data
@@ -167,9 +177,11 @@ export async function GET(request: Request) {
             : [];
 
         if (tweetsData.length === 0) {
-          console.log(`No tweets found for batch of ${batch.length} accounts`);
+          console.log(`[Twitter API] No tweets found for batch of ${batch.length} accounts`);
           continue;
         }
+
+        console.log(`[Twitter API] Found ${tweetsData.length} tweets in batch`);
 
         // Build user lookup from includes
         const usersById = new Map<string, { username: string; name: string; avatar: string; followers: number; verified: boolean }>();

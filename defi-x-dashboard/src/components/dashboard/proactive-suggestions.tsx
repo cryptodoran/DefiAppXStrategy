@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PremiumCard } from '@/components/ui/premium-card';
 import { PremiumButton } from '@/components/ui/premium-button';
@@ -54,6 +55,7 @@ const TYPE_LABELS = {
 };
 
 export function ProactiveSuggestions() {
+  const router = useRouter();
   const [suggestions, setSuggestions] = React.useState<ProactiveSuggestion[]>([]);
   const [isLoading, setIsLoading] = React.useState(true);
   const [copiedId, setCopiedId] = React.useState<string | null>(null);
@@ -264,11 +266,16 @@ export function ProactiveSuggestions() {
                         variant="secondary"
                         leftIcon={<Edit3 className="h-4 w-4" />}
                         onClick={() => {
-                          // TODO: Open in content creator
+                          // Store content in sessionStorage for the create page to read
+                          sessionStorage.setItem('editTweetContent', suggestion.content);
+                          if (suggestion.imageSuggestion) {
+                            sessionStorage.setItem('editTweetImagePrompt', suggestion.imageSuggestion.prompt);
+                          }
+                          router.push('/create');
                           addToast({
-                            type: 'info',
-                            title: 'Coming soon',
-                            description: 'Edit functionality will be added',
+                            type: 'success',
+                            title: 'Opening editor',
+                            description: 'Tweet loaded for editing',
                           });
                         }}
                       >
