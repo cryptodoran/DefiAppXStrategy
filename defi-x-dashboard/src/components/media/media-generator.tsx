@@ -21,6 +21,8 @@ import {
   Wand2,
   X,
   RefreshCw,
+  Upload,
+  ImagePlus,
 } from 'lucide-react';
 
 interface MediaSuggestion {
@@ -34,6 +36,11 @@ interface GeneratedImage {
   imageUrl: string;
   prompt: string;
   style: string;
+  loaded?: boolean;
+}
+
+interface ImageLoadState {
+  [index: number]: boolean;
 }
 
 interface MediaGeneratorProps {
@@ -76,7 +83,47 @@ export function MediaGenerator({ tweetContent, onPromptSelect, onImageGenerated,
   const [generatingIndex, setGeneratingIndex] = React.useState<number | null>(null);
   const [selectedStyle, setSelectedStyle] = React.useState<string>('digital-art');
   const [showImageModal, setShowImageModal] = React.useState<GeneratedImage | null>(null);
+  const [imageLoadStates, setImageLoadStates] = React.useState<ImageLoadState>({});
+  const [hoveredImageIndex, setHoveredImageIndex] = React.useState<number | null>(null);
+  const [referenceImage, setReferenceImage] = React.useState<string | null>(null);
+  const [referenceImageFile, setReferenceImageFile] = React.useState<File | null>(null);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
   const { addToast } = useToast();
+
+  // Handle reference image upload
+  const handleReferenceImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 10 * 1024 * 1024) {
+        addToast({
+          type: 'error',
+          title: 'File too large',
+          description: 'Please use an image under 10MB',
+        });
+        return;
+      }
+      setReferenceImageFile(file);
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        setReferenceImage(event.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  // Clear reference image
+  const clearReferenceImage = () => {
+    setReferenceImage(null);
+    setReferenceImageFile(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  // Track image load state
+  const handleImageLoad = (index: number) => {
+    setImageLoadStates(prev => ({ ...prev, [index]: true }));
+  };
 
   // Generate suggestions when content changes
   const generateSuggestions = React.useCallback(async () => {
@@ -144,6 +191,7 @@ export function MediaGenerator({ tweetContent, onPromptSelect, onImageGenerated,
           style: selectedStyle,
           width: 1024,
           height: 1024,
+          referenceImage: referenceImage || undefined,
         }),
       });
 
@@ -357,6 +405,55 @@ export function MediaGenerator({ tweetContent, onPromptSelect, onImageGenerated,
               ))}
             </div>
           </div>
+
+          {/* Reference Image (img2img) */}
+          <div className="mt-4 pt-4 border-t border-white/5">
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-xs text-tertiary">reference image (optional):</p>
+              {referenceImage && (
+                <button
+                  onClick={clearReferenceImage}
+                  className="text-xs text-red-400 hover:text-red-300 transition-colors"
+                >
+                  remove
+                </button>
+              )}
+            </div>
+
+            {referenceImage ? (
+              <div className="relative w-24 h-24 rounded-lg overflow-hidden bg-elevated border border-violet-500/30">
+                <img
+                  src={referenceImage}
+                  alt="Reference"
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-1">
+                  <p className="text-[10px] text-white/80 text-center">starting point</p>
+                </div>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleReferenceImageUpload}
+                  className="hidden"
+                />
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  className="flex items-center gap-2 px-3 py-2 rounded-lg bg-elevated border border-white/5 hover:border-white/10 transition-colors text-xs text-tertiary hover:text-secondary"
+                >
+                  <Upload className="h-3.5 w-3.5" />
+                  upload image
+                </button>
+                <span className="text-[10px] text-tertiary">or hover a generated image and click +</span>
+              </div>
+            )}
+            <p className="text-[10px] text-tertiary mt-2 opacity-70">
+              use a reference image to guide the style and composition of generated images
+            </p>
+          </div>
         </div>
       )}
 
@@ -378,26 +475,55 @@ export function MediaGenerator({ tweetContent, onPromptSelect, onImageGenerated,
                 key={index}
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="relative aspect-square rounded-lg overflow-hidden bg-elevated cursor-pointer group"
+                className="relative aspect-square rounded-lg overflow-hidden bg-elevated cursor-pointer"
                 onClick={() => setShowImageModal(img)}
+                onMouseEnter={() => setHoveredImageIndex(index)}
+                onMouseLeave={() => setHoveredImageIndex(null)}
               >
+                {/* Loading placeholder */}
+                {!imageLoadStates[index] && (
+                  <div className="absolute inset-0 bg-elevated flex items-center justify-center">
+                    <Loader2 className="h-6 w-6 text-tertiary animate-spin" />
+                  </div>
+                )}
                 <img
                   src={img.imageUrl}
                   alt={`Generated ${index + 1}`}
-                  className="w-full h-full object-cover"
-                  loading="lazy"
+                  className={cn(
+                    "w-full h-full object-cover transition-opacity duration-200",
+                    imageLoadStates[index] ? "opacity-100" : "opacity-0"
+                  )}
+                  onLoad={() => handleImageLoad(index)}
                 />
-                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      downloadImage(img.imageUrl, `defiapp-media-${index}`);
-                    }}
-                    className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
-                  >
-                    <Download className="h-4 w-4 text-white" />
-                  </button>
-                </div>
+                {/* Hover overlay - only show when hovered AND loaded */}
+                {hoveredImageIndex === index && imageLoadStates[index] && (
+                  <div className="absolute inset-0 bg-black/60 flex items-center justify-center gap-2">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        downloadImage(img.imageUrl, `defiapp-media-${index}`);
+                      }}
+                      className="p-2 rounded-full bg-white/20 hover:bg-white/30 transition-colors"
+                    >
+                      <Download className="h-4 w-4 text-white" />
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setReferenceImage(img.imageUrl);
+                        addToast({
+                          type: 'success',
+                          title: 'Reference set',
+                          description: 'This image will be used as a starting point',
+                        });
+                      }}
+                      className="p-2 rounded-full bg-white/20 hover:bg-white/30 transition-colors"
+                      title="Use as reference"
+                    >
+                      <ImagePlus className="h-4 w-4 text-white" />
+                    </button>
+                  </div>
+                )}
               </motion.div>
             ))}
           </div>

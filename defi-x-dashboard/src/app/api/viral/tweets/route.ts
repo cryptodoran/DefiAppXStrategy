@@ -15,6 +15,9 @@ const TRACKED_ACCOUNTS = [
   'thedefiedge', 'DefiIgnas', 'MilesDeutscher',
   // News
   'TheBlock__', 'CoinDesk', 'Blockworks_',
+  // More accounts for better coverage
+  'MessariCrypto', 'Bankless', 'punk3700', 'dragonfly_xyz',
+  'ychozn', 'dcfgod', 'tayvano_', 'bengalMoney',
 ];
 
 // Minimum engagement thresholds for "viral" - kept low to ensure we get real data
@@ -109,13 +112,19 @@ export async function GET(request: Request) {
 
     // Check if Twitter API is configured
     if (!process.env.TWITTER_BEARER_TOKEN) {
-      return NextResponse.json(
-        { error: 'Twitter API not configured. Add TWITTER_BEARER_TOKEN environment variable.' },
-        { status: 503 }
-      );
+      console.warn('Twitter API not configured. Add TWITTER_BEARER_TOKEN environment variable.');
+      return NextResponse.json({
+        tweets: [],
+        total: 0,
+        timeframe,
+        error: 'Twitter API not configured. Add TWITTER_BEARER_TOKEN environment variable.',
+        isDevelopment: true,
+      });
     }
 
     const client = new TwitterApi(process.env.TWITTER_BEARER_TOKEN);
+    const viralTweets: ViralTweet[] = [];
+    const threshold = VIRAL_THRESHOLDS[timeframe];
 
     // Calculate time range
     const now = new Date();
@@ -128,161 +137,148 @@ export async function GET(request: Request) {
     };
     const startTime = new Date(now.getTime() - hoursBack[timeframe] * 60 * 60 * 1000);
 
-    // Fetch tweets from tracked accounts
-    const viralTweets: ViralTweet[] = [];
-    const threshold = VIRAL_THRESHOLDS[timeframe];
+    // Fetch tweets in smaller batches to avoid rate limits and improve reliability
+    // Process accounts in groups of 12-15 for better API performance
+    const accountBatches = [
+      TRACKED_ACCOUNTS.slice(0, 15),
+      TRACKED_ACCOUNTS.slice(15, 30),
+      TRACKED_ACCOUNTS.slice(30, 45),
+    ];
 
-    // Batch lookup users first
-    const usersResponse = await client.v2.usersByUsernames(TRACKED_ACCOUNTS.slice(0, 100), {
-      'user.fields': ['profile_image_url', 'public_metrics', 'verified'],
-    });
+    for (const batch of accountBatches) {
+      try {
+        // Build query with OR logic - simple and reliable
+        const searchQuery = `(${batch.map(h => `from:${h}`).join(' OR ')}) -is:retweet`;
 
-    const userMap = new Map<string, { id: string; followers: number; avatar: string; verified: boolean }>();
-    if (usersResponse.data) {
-      for (const user of usersResponse.data) {
-        userMap.set(user.username.toLowerCase(), {
-          id: user.id,
-          followers: user.public_metrics?.followers_count || 0,
-          avatar: user.profile_image_url || '',
-          verified: user.verified || false,
+        const searchResults = await client.v2.search(searchQuery, {
+          'tweet.fields': ['public_metrics', 'created_at', 'author_id', 'attachments'],
+          'user.fields': ['username', 'name', 'profile_image_url', 'public_metrics', 'verified'],
+          'media.fields': ['url', 'preview_image_url', 'type'],
+          expansions: ['author_id', 'attachments.media_keys'],
+          max_results: 100,
+          start_time: startTime.toISOString(),
         });
-      }
-    }
 
-    // Search for high-engagement tweets from tracked accounts
-    // Use search API for better rate limit efficiency
-    const searchQuery = `(${TRACKED_ACCOUNTS.slice(0, 20).map(h => `from:${h}`).join(' OR ')}) -is:retweet -is:reply`;
+        // Handle both array and single tweet response formats
+        const tweetsData = Array.isArray(searchResults.data)
+          ? searchResults.data
+          : searchResults.data
+            ? [searchResults.data]
+            : [];
 
-    const searchResults = await client.v2.search(searchQuery, {
-      'tweet.fields': ['public_metrics', 'created_at', 'author_id', 'attachments'],
-      'user.fields': ['username', 'name', 'profile_image_url', 'public_metrics', 'verified'],
-      'media.fields': ['url', 'preview_image_url', 'type'],
-      expansions: ['author_id', 'attachments.media_keys'],
-      max_results: 100,
-      start_time: startTime.toISOString(),
-    });
-
-    // Build user lookup from includes
-    const usersById = new Map<string, { username: string; name: string; avatar: string; followers: number; verified: boolean }>();
-    if (searchResults.includes?.users) {
-      for (const user of searchResults.includes.users) {
-        usersById.set(user.id, {
-          username: user.username,
-          name: user.name,
-          avatar: user.profile_image_url || '',
-          followers: user.public_metrics?.followers_count || 0,
-          verified: user.verified || false,
-        });
-      }
-    }
-
-    // Build media lookup
-    const mediaByKey = new Map<string, { type: string; url: string; previewUrl?: string }>();
-    if (searchResults.includes?.media) {
-      for (const media of searchResults.includes.media) {
-        mediaByKey.set(media.media_key, {
-          type: media.type as 'image' | 'video' | 'gif',
-          url: media.url || '',
-          previewUrl: media.preview_image_url,
-        });
-      }
-    }
-
-    // Process tweets - handle both Tweetv2SearchResult formats
-    // The twitter-api-v2 library returns different formats depending on version
-    const searchData = searchResults.data as unknown;
-    const tweetsData = Array.isArray(searchData) ? searchData : [];
-    if (tweetsData.length > 0) {
-      for (const rawTweet of tweetsData) {
-        const tweet = rawTweet as {
-          id: string;
-          text: string;
-          author_id?: string;
-          created_at?: string;
-          public_metrics?: {
-            like_count: number;
-            retweet_count: number;
-            reply_count: number;
-            quote_count: number;
-            impression_count?: number;
-          };
-          attachments?: {
-            media_keys?: string[];
-          };
-        };
-        const metrics = tweet.public_metrics;
-        if (!metrics) continue;
-
-        // Include all tweets, sorted by engagement (no longer filtering by threshold)
-        // This ensures we always return real data
-        const author = usersById.get(tweet.author_id || '');
-        if (!author) continue;
-
-        const hoursOld = getHoursOld(tweet.created_at || new Date().toISOString());
-        const viralScore = calculateViralScore(
-          {
-            likes: metrics.like_count,
-            retweets: metrics.retweet_count,
-            replies: metrics.reply_count,
-            quotes: metrics.quote_count,
-          },
-          hoursOld,
-          author.followers
-        );
-
-        // Get media attachments
-        const media: ViralTweet['media'] = [];
-        if (tweet.attachments?.media_keys) {
-          for (const key of tweet.attachments.media_keys) {
-            const m = mediaByKey.get(key);
-            if (m) {
-              media.push({
-                type: m.type as 'image' | 'video' | 'gif',
-                url: m.url,
-                previewUrl: m.previewUrl,
-              });
-            }
-          }
-        }
-
-        const tweetCategory = categorizeTweet(tweet.text);
-
-        // Filter by category if specified
-        if (category && category !== 'all' && tweetCategory !== category) {
+        if (tweetsData.length === 0) {
+          console.log(`No tweets found for batch of ${batch.length} accounts`);
           continue;
         }
 
-        viralTweets.push({
-          id: tweet.id,
-          author: {
-            handle: author.username,
-            name: author.name,
-            avatar: author.avatar,
-            followers: author.followers,
-            verified: author.verified,
-          },
-          content: tweet.text,
-          media: media.length > 0 ? media : undefined,
-          metrics: {
-            likes: metrics.like_count,
-            retweets: metrics.retweet_count,
-            quotes: metrics.quote_count || 0,
-            replies: metrics.reply_count,
-            views: metrics.impression_count,
-          },
-          velocity: {
-            likesPerHour: Math.round(metrics.like_count / Math.max(hoursOld, 0.5)),
-            retweetsPerHour: Math.round(metrics.retweet_count / Math.max(hoursOld, 0.5)),
-          },
-          postedAt: tweet.created_at || new Date().toISOString(),
-          tweetUrl: `https://twitter.com/${author.username}/status/${tweet.id}`,
-          viralScore,
-          category: tweetCategory,
-        });
+        // Build user lookup from includes
+        const usersById = new Map<string, { username: string; name: string; avatar: string; followers: number; verified: boolean }>();
+        if (searchResults.includes?.users) {
+          for (const user of searchResults.includes.users) {
+            usersById.set(user.id, {
+              username: user.username,
+              name: user.name,
+              avatar: user.profile_image_url || '',
+              followers: user.public_metrics?.followers_count || 0,
+              verified: user.verified || false,
+            });
+          }
+        }
+
+        // Build media lookup
+        const mediaByKey = new Map<string, { type: string; url: string; previewUrl?: string }>();
+        if (searchResults.includes?.media) {
+          for (const media of searchResults.includes.media) {
+            mediaByKey.set(media.media_key, {
+              type: media.type as 'image' | 'video' | 'gif',
+              url: media.url || '',
+              previewUrl: media.preview_image_url,
+            });
+          }
+        }
+
+        // Process tweets
+        for (const tweet of tweetsData) {
+          const metrics = tweet.public_metrics;
+          if (!metrics) continue;
+
+          const author = usersById.get(tweet.author_id || '');
+          if (!author) continue;
+
+          const hoursOld = getHoursOld(tweet.created_at || new Date().toISOString());
+          const viralScore = calculateViralScore(
+            {
+              likes: metrics.like_count,
+              retweets: metrics.retweet_count,
+              replies: metrics.reply_count,
+              quotes: metrics.quote_count,
+            },
+            hoursOld,
+            author.followers
+          );
+
+          // Get media attachments
+          const media: ViralTweet['media'] = [];
+          if (tweet.attachments?.media_keys) {
+            for (const key of tweet.attachments.media_keys) {
+              const m = mediaByKey.get(key);
+              if (m) {
+                media.push({
+                  type: m.type as 'image' | 'video' | 'gif',
+                  url: m.url,
+                  previewUrl: m.previewUrl,
+                });
+              }
+            }
+          }
+
+          const tweetCategory = categorizeTweet(tweet.text);
+
+          // Filter by category if specified
+          if (category && category !== 'all' && tweetCategory !== category) {
+            continue;
+          }
+
+          // Check for duplicates
+          const isDuplicate = viralTweets.some(t => t.id === tweet.id);
+          if (isDuplicate) continue;
+
+          viralTweets.push({
+            id: tweet.id,
+            author: {
+              handle: author.username,
+              name: author.name,
+              avatar: author.avatar,
+              followers: author.followers,
+              verified: author.verified,
+            },
+            content: tweet.text,
+            media: media.length > 0 ? media : undefined,
+            metrics: {
+              likes: metrics.like_count,
+              retweets: metrics.retweet_count,
+              quotes: metrics.quote_count || 0,
+              replies: metrics.reply_count,
+              views: metrics.impression_count,
+            },
+            velocity: {
+              likesPerHour: Math.round(metrics.like_count / Math.max(hoursOld, 0.5)),
+              retweetsPerHour: Math.round(metrics.retweet_count / Math.max(hoursOld, 0.5)),
+            },
+            postedAt: tweet.created_at || new Date().toISOString(),
+            tweetUrl: `https://twitter.com/${author.username}/status/${tweet.id}`,
+            viralScore,
+            category: tweetCategory,
+          });
+        }
+      } catch (batchError) {
+        console.warn(`Error fetching batch: ${(batchError as Error).message}`);
+        // Continue with next batch instead of failing entirely
+        continue;
       }
     }
 
-    // Sort tweets
+    // Sort tweets based on requested metric
     const sortFunctions: Record<string, (a: ViralTweet, b: ViralTweet) => number> = {
       viralScore: (a, b) => b.viralScore - a.viralScore,
       likes: (a, b) => b.metrics.likes - a.metrics.likes,
@@ -293,20 +289,28 @@ export async function GET(request: Request) {
 
     viralTweets.sort(sortFunctions[sortBy] || sortFunctions.viralScore);
 
-    // Return real data - empty array if nothing found
+    // Return data - empty array if nothing found (but graceful)
     return NextResponse.json({
       tweets: viralTweets.slice(0, limit),
       total: viralTweets.length,
       timeframe,
       threshold,
-      _note: viralTweets.length === 0 ? 'No tweets found matching criteria in this timeframe' : undefined,
+      sortBy,
+      _debug: {
+        queryTime: startTime.toISOString(),
+        accountsQueried: TRACKED_ACCOUNTS.length,
+        batchesProcessed: accountBatches.length,
+      },
     });
   } catch (error) {
     console.error('Viral tweets API error:', error);
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Failed to fetch viral tweets' },
+      {
+        error: error instanceof Error ? error.message : 'Failed to fetch viral tweets',
+        tweets: [],
+        total: 0,
+      },
       { status: 500 }
     );
   }
 }
-

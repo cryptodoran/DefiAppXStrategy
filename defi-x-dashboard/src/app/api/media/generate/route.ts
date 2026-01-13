@@ -8,6 +8,8 @@ interface GenerateRequest {
   style?: 'realistic' | 'anime' | 'digital-art' | 'cinematic';
   width?: number;
   height?: number;
+  referenceImage?: string; // Base64 data URL or image URL for img2img
+  imageStrength?: number; // 0-1, how much to preserve original image (default 0.75)
 }
 
 interface ReplicatePrediction {
@@ -20,7 +22,7 @@ interface ReplicatePrediction {
 export async function POST(request: NextRequest) {
   try {
     const body: GenerateRequest = await request.json();
-    const { prompt, style = 'digital-art', width = 1024, height = 1024 } = body;
+    const { prompt, style = 'digital-art', width = 1024, height = 1024, referenceImage, imageStrength = 0.75 } = body;
 
     if (!prompt || prompt.trim().length < 5) {
       return NextResponse.json(
@@ -76,6 +78,25 @@ export async function POST(request: NextRequest) {
     // Add instruction to avoid text
     const finalPrompt = `${cleanPrompt}, no text, no words, no letters, no labels, clean image`;
 
+    // Build input parameters
+    const inputParams: Record<string, unknown> = {
+      prompt: finalPrompt,
+      num_outputs: 1,
+      aspect_ratio: width === height ? '1:1' : width > height ? '16:9' : '9:16',
+      output_format: 'webp',
+      output_quality: 95,
+      guidance: 3.5,
+      steps: 50,
+    };
+
+    // If reference image provided, use img2img mode
+    // Flux supports image input for style transfer/variations
+    if (referenceImage) {
+      inputParams.image = referenceImage;
+      inputParams.prompt_strength = 1 - imageStrength; // Lower = more like original
+      inputParams.guidance = 4.0; // Slightly higher guidance for img2img
+    }
+
     // Create prediction with Flux Pro
     const createResponse = await fetch('https://api.replicate.com/v1/predictions', {
       method: 'POST',
@@ -85,15 +106,7 @@ export async function POST(request: NextRequest) {
       },
       body: JSON.stringify({
         version: 'black-forest-labs/flux-pro',
-        input: {
-          prompt: finalPrompt,
-          num_outputs: 1,
-          aspect_ratio: width === height ? '1:1' : width > height ? '16:9' : '9:16',
-          output_format: 'webp',
-          output_quality: 95,
-          guidance: 3.5,
-          steps: 50,
-        },
+        input: inputParams,
       }),
     });
 
@@ -150,6 +163,7 @@ export async function POST(request: NextRequest) {
       height,
       provider: 'flux-pro',
       predictionId: prediction.id,
+      mode: referenceImage ? 'img2img' : 'txt2img',
     });
   } catch (error) {
     console.error('Image generation error:', error);
