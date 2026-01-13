@@ -23,7 +23,9 @@ import {
   RefreshCw,
   Upload,
   ImagePlus,
+  Bot,
 } from 'lucide-react';
+import { toPng } from 'html-to-image';
 
 interface MediaSuggestion {
   type: 'meme' | 'infographic' | 'chart' | 'screenshot' | 'custom';
@@ -67,14 +69,14 @@ const TYPE_COLORS: Record<string, string> = {
 };
 
 const IMAGE_STYLES = [
-  { id: 'gradient-abstract', label: 'Abstract Gradient', recommended: true },
-  { id: 'neon-tech', label: 'Neon Tech' },
-  { id: 'infographic', label: 'Infographic' },
-  { id: 'minimalist', label: 'Minimalist' },
-  { id: 'data-viz', label: 'Data Viz' },
-  { id: 'digital-art', label: 'Digital Art' },
-  { id: 'realistic', label: 'Realistic' },
-  { id: 'cinematic', label: 'Cinematic' },
+  { id: 'claude-gradient', label: 'Claude Gradient', recommended: true, claude: true },
+  { id: 'claude-neon', label: 'Claude Neon', claude: true },
+  { id: 'claude-minimal', label: 'Claude Minimal', claude: true },
+  { id: 'claude-data', label: 'Claude Data', claude: true },
+  { id: 'claude-corporate', label: 'Claude Corporate', claude: true },
+  { id: 'gradient-abstract', label: 'AI Gradient' },
+  { id: 'neon-tech', label: 'AI Neon' },
+  { id: 'digital-art', label: 'AI Digital' },
 ] as const;
 
 export function MediaGenerator({ tweetContent, onPromptSelect, onImageGenerated, className }: MediaGeneratorProps) {
@@ -85,10 +87,9 @@ export function MediaGenerator({ tweetContent, onPromptSelect, onImageGenerated,
   const [generatedImages, setGeneratedImages] = React.useState<GeneratedImage[]>([]);
   const [isGeneratingImage, setIsGeneratingImage] = React.useState(false);
   const [generatingIndex, setGeneratingIndex] = React.useState<number | null>(null);
-  const [selectedStyle, setSelectedStyle] = React.useState<string>('gradient-abstract');
+  const [selectedStyle, setSelectedStyle] = React.useState<string>('claude-gradient');
   const [showImageModal, setShowImageModal] = React.useState<GeneratedImage | null>(null);
   const [imageLoadStates, setImageLoadStates] = React.useState<ImageLoadState>({});
-  const [hoveredImageIndex, setHoveredImageIndex] = React.useState<number | null>(null);
   const [referenceImage, setReferenceImage] = React.useState<string | null>(null);
   const [referenceImageFile, setReferenceImageFile] = React.useState<File | null>(null);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
@@ -181,53 +182,140 @@ export function MediaGenerator({ tweetContent, onPromptSelect, onImageGenerated,
     }
   };
 
+  // Render HTML to image using html-to-image
+  const renderHtmlToImage = async (html: string): Promise<string> => {
+    // Create a hidden container for rendering
+    const container = document.createElement('div');
+    container.style.position = 'fixed';
+    container.style.left = '-9999px';
+    container.style.top = '0';
+    container.innerHTML = html;
+    document.body.appendChild(container);
+
+    try {
+      // Find the main design element (usually first child of body)
+      const designElement = container.querySelector('body > div') || container.firstElementChild;
+      if (!designElement) {
+        throw new Error('No design element found');
+      }
+
+      // Wait for fonts to load
+      await document.fonts.ready;
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      // Convert to PNG
+      const dataUrl = await toPng(designElement as HTMLElement, {
+        quality: 1,
+        pixelRatio: 2, // Higher quality
+      });
+
+      return dataUrl;
+    } finally {
+      document.body.removeChild(container);
+    }
+  };
+
   // Generate actual image from prompt
   const generateImage = async (prompt: string, index: number) => {
     setIsGeneratingImage(true);
     setGeneratingIndex(index);
 
     try {
-      const response = await fetch('/api/media/generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          prompt,
-          style: selectedStyle,
-          width: 1024,
-          height: 1024,
-          referenceImage: referenceImage || undefined,
-        }),
-      });
+      // Check if using Claude HTML design
+      const isClaudeStyle = selectedStyle.startsWith('claude-');
 
-      if (!response.ok) {
-        throw new Error('Failed to generate image');
+      if (isClaudeStyle) {
+        // Use Claude to generate HTML design
+        const claudeStyle = selectedStyle.replace('claude-', '');
+        const response = await fetch('/api/media/design', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            prompt,
+            style: claudeStyle,
+            width: 1024,
+            height: 1024,
+          }),
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Failed to generate design');
+        }
+
+        const data = await response.json();
+
+        // Render HTML to image
+        addToast({
+          type: 'info',
+          title: 'rendering design...',
+          description: 'converting HTML to image',
+        });
+
+        const imageUrl = await renderHtmlToImage(data.html);
+
+        const newImage: GeneratedImage = {
+          imageUrl,
+          prompt: data.prompt,
+          style: `claude-${data.style}`,
+        };
+
+        setGeneratedImages((prev) => [...prev, newImage]);
+        setShowImageModal(newImage);
+
+        if (onImageGenerated) {
+          onImageGenerated(imageUrl);
+        }
+
+        addToast({
+          type: 'success',
+          title: 'design created!',
+          description: 'professional Claude design ready',
+        });
+      } else {
+        // Use traditional AI image generation
+        const response = await fetch('/api/media/generate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            prompt,
+            style: selectedStyle,
+            width: 1024,
+            height: 1024,
+            referenceImage: referenceImage || undefined,
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to generate image');
+        }
+
+        const data = await response.json();
+        const newImage: GeneratedImage = {
+          imageUrl: data.imageUrl,
+          prompt: data.originalPrompt,
+          style: data.style,
+        };
+
+        setGeneratedImages((prev) => [...prev, newImage]);
+        setShowImageModal(newImage);
+
+        if (onImageGenerated) {
+          onImageGenerated(data.imageUrl);
+        }
+
+        addToast({
+          type: 'success',
+          title: 'image generated!',
+          description: 'your image is ready to use',
+        });
       }
-
-      const data = await response.json();
-      const newImage: GeneratedImage = {
-        imageUrl: data.imageUrl,
-        prompt: data.originalPrompt,
-        style: data.style,
-      };
-
-      setGeneratedImages((prev) => [...prev, newImage]);
-      setShowImageModal(newImage);
-
-      if (onImageGenerated) {
-        onImageGenerated(data.imageUrl);
-      }
-
-      addToast({
-        type: 'success',
-        title: 'image generated!',
-        description: 'your image is ready to use',
-      });
     } catch (error) {
       console.error('Image generation error:', error);
       addToast({
         type: 'error',
         title: 'generation failed',
-        description: 'could not generate image. try again',
+        description: String(error) || 'could not generate image. try again',
       });
     } finally {
       setIsGeneratingImage(false);
@@ -391,30 +479,54 @@ export function MediaGenerator({ tweetContent, onPromptSelect, onImageGenerated,
 
           {/* Style Selector */}
           <div className="mt-4 pt-4 border-t border-white/5">
-            <p className="text-xs text-tertiary mb-2">image style (professional graphics):</p>
-            <div className="flex flex-wrap gap-2">
-              {IMAGE_STYLES.map((style) => (
-                <button
-                  key={style.id}
-                  onClick={() => setSelectedStyle(style.id)}
-                  className={cn(
-                    'px-3 py-1.5 rounded-lg text-xs font-medium transition-colors relative',
-                    selectedStyle === style.id
-                      ? 'bg-violet-500/20 text-violet-400 border border-violet-500/30'
-                      : 'bg-elevated text-tertiary hover:text-secondary border border-white/5'
-                  )}
-                >
-                  {style.label}
-                  {'recommended' in style && style.recommended && (
-                    <span className="absolute -top-1.5 -right-1.5 px-1 py-0.5 rounded text-[9px] bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-                      ★
-                    </span>
-                  )}
-                </button>
-              ))}
+            <p className="text-xs text-tertiary mb-2">design style:</p>
+            <div className="mb-2">
+              <p className="text-[10px] text-emerald-400 mb-1 flex items-center gap-1">
+                <Bot className="h-3 w-3" /> Claude Designs (recommended - professional quality)
+              </p>
+              <div className="flex flex-wrap gap-2 mb-3">
+                {IMAGE_STYLES.filter(s => 'claude' in s && s.claude).map((style) => (
+                  <button
+                    key={style.id}
+                    onClick={() => setSelectedStyle(style.id)}
+                    className={cn(
+                      'px-3 py-1.5 rounded-lg text-xs font-medium transition-colors relative',
+                      selectedStyle === style.id
+                        ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                        : 'bg-elevated text-tertiary hover:text-secondary border border-white/5'
+                    )}
+                  >
+                    {style.label.replace('Claude ', '')}
+                    {'recommended' in style && style.recommended && (
+                      <span className="absolute -top-1.5 -right-1.5 px-1 py-0.5 rounded text-[9px] bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                        ★
+                      </span>
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div>
+              <p className="text-[10px] text-tertiary mb-1">AI Generated (Flux/Replicate)</p>
+              <div className="flex flex-wrap gap-2">
+                {IMAGE_STYLES.filter(s => !('claude' in s) || !s.claude).map((style) => (
+                  <button
+                    key={style.id}
+                    onClick={() => setSelectedStyle(style.id)}
+                    className={cn(
+                      'px-3 py-1.5 rounded-lg text-xs font-medium transition-colors',
+                      selectedStyle === style.id
+                        ? 'bg-violet-500/20 text-violet-400 border border-violet-500/30'
+                        : 'bg-elevated text-tertiary hover:text-secondary border border-white/5'
+                    )}
+                  >
+                    {style.label.replace('AI ', '')}
+                  </button>
+                ))}
+              </div>
             </div>
             <p className="text-[10px] text-tertiary mt-2 opacity-70">
-              gradient-abstract and neon-tech styles are optimized for crypto/DeFi content
+              Claude designs create professional HTML-based graphics. AI styles use image generation models.
             </p>
           </div>
 
@@ -487,10 +599,8 @@ export function MediaGenerator({ tweetContent, onPromptSelect, onImageGenerated,
                 key={index}
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="relative aspect-square rounded-lg overflow-hidden bg-elevated cursor-pointer"
+                className="group relative aspect-square rounded-lg overflow-hidden bg-elevated cursor-pointer"
                 onClick={() => setShowImageModal(img)}
-                onMouseEnter={() => setHoveredImageIndex(index)}
-                onMouseLeave={() => setHoveredImageIndex(null)}
               >
                 {/* Loading placeholder */}
                 {!imageLoadStates[index] && (
@@ -507,9 +617,9 @@ export function MediaGenerator({ tweetContent, onPromptSelect, onImageGenerated,
                   )}
                   onLoad={() => handleImageLoad(index)}
                 />
-                {/* Hover overlay - only show when hovered AND loaded */}
-                {hoveredImageIndex === index && imageLoadStates[index] && (
-                  <div className="absolute inset-0 bg-black/60 flex items-center justify-center gap-2">
+                {/* Hover overlay - CSS-based hover for stability */}
+                {imageLoadStates[index] && (
+                  <div className="absolute inset-0 bg-black/60 flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                     <button
                       onClick={(e) => {
                         e.stopPropagation();

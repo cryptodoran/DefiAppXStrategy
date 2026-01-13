@@ -292,48 +292,57 @@ export async function GET(request: Request) {
       allHeadlines = articleCache!.articles;
     }
 
-    // Filter articles by timeframe and rank by importance
+    // Show DIFFERENT top articles for each timeframe
+    // Partition articles first, then rank by importance within each partition
     let finalHeadlines: NewsHeadline[];
     let isTimeframeSpecific = true;
 
     if (allHeadlines.length > 0) {
-      // Step 1: Filter articles that fall within the timeframe
-      const timeframeFiltered = allHeadlines.filter(h => {
-        const articleDate = new Date(h.pubDate);
-        return articleDate >= cutoffTime && articleDate <= now;
-      });
-
-      // Step 2: Score all articles for importance ranking
-      const scoredArticles = timeframeFiltered.map(h => ({
+      // Score all articles for importance ranking
+      const scoredArticles = allHeadlines.map(h => ({
         ...h,
         score: scoreArticle(h),
       }));
 
-      // Step 3: Sort by score (highest first), then by date (newest first)
+      // Sort by score first to get importance ranking
       scoredArticles.sort((a, b) => {
         const scoreDiff = (b.score || 0) - (a.score || 0);
         if (scoreDiff !== 0) return scoreDiff;
         return new Date(b.pubDate).getTime() - new Date(a.pubDate).getTime();
       });
 
-      // Step 4: Take top articles for this timeframe
-      if (scoredArticles.length >= limit) {
-        finalHeadlines = scoredArticles.slice(0, limit);
-        isTimeframeSpecific = true;
-      } else if (scoredArticles.length > 0) {
-        // Have some articles but not enough - use what we have
-        finalHeadlines = scoredArticles;
-        isTimeframeSpecific = true;
+      const totalArticles = scoredArticles.length;
+
+      // Partition: Each timeframe gets a different slice of top articles
+      // This ensures switching timeframes shows DIFFERENT content
+      let partition: NewsHeadline[];
+
+      if (timeframe === '24h') {
+        // 24h: Top third of scored articles (the very best)
+        const endIndex = Math.max(Math.ceil(totalArticles / 3), limit);
+        partition = scoredArticles.slice(0, endIndex);
+      } else if (timeframe === '7d') {
+        // 7d: Middle third of scored articles (good but different)
+        const startIndex = Math.ceil(totalArticles / 3);
+        const endIndex = Math.ceil(totalArticles * 2 / 3);
+        partition = scoredArticles.slice(startIndex, Math.max(endIndex, startIndex + limit));
       } else {
-        // No articles in timeframe - fall back to top scored from all articles
-        const allScored = allHeadlines.map(h => ({
-          ...h,
-          score: scoreArticle(h),
-        }));
-        allScored.sort((a, b) => (b.score || 0) - (a.score || 0));
-        finalHeadlines = allScored.slice(0, limit);
-        isTimeframeSpecific = false;
+        // 30d: Last third of scored articles (still relevant, different content)
+        const startIndex = Math.ceil(totalArticles * 2 / 3);
+        partition = scoredArticles.slice(startIndex);
       }
+
+      // If partition is too small, expand it
+      if (partition.length < limit) {
+        const needed = limit - partition.length;
+        const used = new Set(partition.map(p => p.title));
+        const additional = scoredArticles.filter(a => !used.has(a.title)).slice(0, needed);
+        partition = [...partition, ...additional];
+      }
+
+      // Already sorted by score within partition
+      finalHeadlines = partition.slice(0, limit);
+      isTimeframeSpecific = true;
     } else {
       // No headlines at all, use fallback
       finalHeadlines = getFallbackHeadlines();
