@@ -6,6 +6,7 @@ interface NewsHeadline {
   link: string;
   source: string;
   pubDate: string;
+  score?: number; // Importance score for ranking
 }
 
 // RSS feed URLs for crypto news sources - using reliable feeds
@@ -159,6 +160,53 @@ async function fetchRSSFeed(feedUrl: string, sourceName: string): Promise<NewsHe
   }
 }
 
+// Source priority for ranking (higher = more authoritative)
+const SOURCE_PRIORITY: Record<string, number> = {
+  'CoinDesk': 10,
+  'Cointelegraph': 9,
+  'The Block': 9,
+  'Bitcoin Magazine': 8,
+  'Decrypt': 7,
+  'Blockworks': 7,
+  'CryptoSlate': 6,
+  'DeFi Pulse': 5,
+};
+
+// Keywords that indicate major/important news
+const IMPORTANCE_KEYWORDS = [
+  { pattern: /breaking|exclusive|just in/i, score: 15 },
+  { pattern: /\$\d+\s*(billion|million|B|M)/i, score: 12 }, // Money amounts
+  { pattern: /SEC|ETF|regulation|approved|lawsuit/i, score: 10 },
+  { pattern: /hack|exploit|stolen|breach/i, score: 10 },
+  { pattern: /bitcoin|BTC|ethereum|ETH/i, score: 5 },
+  { pattern: /partnership|acquisition|merger|launch/i, score: 8 },
+  { pattern: /all-time high|ATH|record|surge|crash|plunge/i, score: 8 },
+  { pattern: /Coinbase|Binance|BlackRock|Fidelity/i, score: 7 },
+];
+
+// Score an article based on source and content
+function scoreArticle(headline: NewsHeadline): number {
+  let score = 0;
+
+  // Source priority
+  score += SOURCE_PRIORITY[headline.source] || 3;
+
+  // Keyword matching
+  for (const { pattern, score: keywordScore } of IMPORTANCE_KEYWORDS) {
+    if (pattern.test(headline.title)) {
+      score += keywordScore;
+    }
+  }
+
+  // Bonus for longer, more substantive titles (not too short, not clickbait)
+  const titleLength = headline.title.length;
+  if (titleLength > 40 && titleLength < 120) {
+    score += 3;
+  }
+
+  return score;
+}
+
 // Fallback headlines with REAL links to news sites
 function getFallbackHeadlines(): NewsHeadline[] {
   return [
@@ -244,47 +292,48 @@ export async function GET(request: Request) {
       allHeadlines = articleCache!.articles;
     }
 
-    // ALWAYS show different articles per timeframe
-    // This ensures switching between 24h/7d/30d shows variety
+    // Filter articles by timeframe and rank by importance
     let finalHeadlines: NewsHeadline[];
     let isTimeframeSpecific = true;
 
     if (allHeadlines.length > 0) {
-      const totalArticles = allHeadlines.length;
+      // Step 1: Filter articles that fall within the timeframe
+      const timeframeFiltered = allHeadlines.filter(h => {
+        const articleDate = new Date(h.pubDate);
+        return articleDate >= cutoffTime && articleDate <= now;
+      });
 
-      // Different timeframes get different slices of the article cache
-      // This guarantees variety when user switches timeframes
-      if (timeframe === '24h') {
-        // 24h: Show the newest articles (first portion)
-        finalHeadlines = allHeadlines.slice(0, limit);
-      } else if (timeframe === '7d') {
-        // 7d: Show middle articles (skip the newest, show next batch)
-        const skipCount = Math.min(limit, Math.floor(totalArticles * 0.3));
-        finalHeadlines = allHeadlines.slice(skipCount, skipCount + limit);
-        // If not enough, wrap around to include some newest
-        if (finalHeadlines.length < limit) {
-          const needed = limit - finalHeadlines.length;
-          finalHeadlines = [...finalHeadlines, ...allHeadlines.slice(0, needed)];
-        }
+      // Step 2: Score all articles for importance ranking
+      const scoredArticles = timeframeFiltered.map(h => ({
+        ...h,
+        score: scoreArticle(h),
+      }));
+
+      // Step 3: Sort by score (highest first), then by date (newest first)
+      scoredArticles.sort((a, b) => {
+        const scoreDiff = (b.score || 0) - (a.score || 0);
+        if (scoreDiff !== 0) return scoreDiff;
+        return new Date(b.pubDate).getTime() - new Date(a.pubDate).getTime();
+      });
+
+      // Step 4: Take top articles for this timeframe
+      if (scoredArticles.length >= limit) {
+        finalHeadlines = scoredArticles.slice(0, limit);
+        isTimeframeSpecific = true;
+      } else if (scoredArticles.length > 0) {
+        // Have some articles but not enough - use what we have
+        finalHeadlines = scoredArticles;
+        isTimeframeSpecific = true;
       } else {
-        // 30d: Show older articles (last portion of cache)
-        const skipCount = Math.min(limit * 2, Math.floor(totalArticles * 0.5));
-        finalHeadlines = allHeadlines.slice(skipCount, skipCount + limit);
-        // If not enough, include more from middle
-        if (finalHeadlines.length < limit) {
-          const needed = limit - finalHeadlines.length;
-          const midPoint = Math.floor(totalArticles * 0.3);
-          finalHeadlines = [...finalHeadlines, ...allHeadlines.slice(midPoint, midPoint + needed)];
-        }
+        // No articles in timeframe - fall back to top scored from all articles
+        const allScored = allHeadlines.map(h => ({
+          ...h,
+          score: scoreArticle(h),
+        }));
+        allScored.sort((a, b) => (b.score || 0) - (a.score || 0));
+        finalHeadlines = allScored.slice(0, limit);
+        isTimeframeSpecific = false;
       }
-
-      // Ensure we have enough headlines
-      if (finalHeadlines.length < limit && totalArticles > finalHeadlines.length) {
-        const remaining = allHeadlines.filter(h => !finalHeadlines.includes(h));
-        finalHeadlines = [...finalHeadlines, ...remaining.slice(0, limit - finalHeadlines.length)];
-      }
-
-      isTimeframeSpecific = true;
     } else {
       // No headlines at all, use fallback
       finalHeadlines = getFallbackHeadlines();
