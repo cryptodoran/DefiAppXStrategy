@@ -132,12 +132,68 @@ function QTOptimizerContent() {
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [autoAnalyzed, setAutoAnalyzed] = useState(false);
 
-  // Read URL from search params
+  // Read URL from search params and auto-analyze
   useEffect(() => {
     const urlParam = searchParams.get('url');
     if (urlParam && !autoAnalyzed) {
       setTweetUrl(urlParam);
       setAutoAnalyzed(true);
+
+      // Auto-fetch tweet data and generate QT angles
+      (async () => {
+        setIsAnalyzing(true);
+        try {
+          // First, try to fetch the actual tweet content from our API
+          const parsed = parseTweetUrl(urlParam);
+          const handle = parsed?.handle || 'unknown';
+
+          // Try to get tweet from viral API
+          const tweetIdMatch = urlParam.match(/status\/(\d+)/);
+          const tweetId = tweetIdMatch?.[1];
+
+          let content = '';
+          let fetchedTweet: OriginalTweet | null = null;
+
+          if (tweetId) {
+            try {
+              const viralResponse = await fetch(`/api/viral/tweets?tweetId=${tweetId}`);
+              if (viralResponse.ok) {
+                const viralData = await viralResponse.json();
+                if (viralData.tweet) {
+                  content = viralData.tweet.content;
+                  fetchedTweet = {
+                    author: `@${viralData.tweet.author.handle}`,
+                    authorName: viralData.tweet.author.name,
+                    content: viralData.tweet.content,
+                    likes: viralData.tweet.metrics.likes,
+                    retweets: viralData.tweet.metrics.retweets,
+                    followers: viralData.tweet.author.followers,
+                    isHighValue: viralData.tweet.author.followers > 10000,
+                  };
+                }
+              }
+            } catch (e) {
+              console.log('Could not fetch tweet details:', e);
+            }
+          }
+
+          if (fetchedTweet) {
+            setOriginalTweet(fetchedTweet);
+            setTweetContent(fetchedTweet.content);
+          }
+
+          // Generate QT angles
+          const result = await fetchQTAngles(content || 'Analyzing tweet...', handle);
+          if (!fetchedTweet) {
+            setOriginalTweet(result.tweet);
+          }
+          setOptions(result.options);
+        } catch (error) {
+          console.error('Auto-analysis failed:', error);
+        } finally {
+          setIsAnalyzing(false);
+        }
+      })();
     }
   }, [searchParams, autoAnalyzed]);
 

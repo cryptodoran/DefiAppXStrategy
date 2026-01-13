@@ -89,14 +89,14 @@ export function MarketPulseWidget() {
   }
 
   return (
-    <PremiumCard className="p-4">
-      <div className="flex items-center justify-between mb-3">
+    <PremiumCard className="p-5 h-full">
+      <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <Activity className="h-4 w-4 text-violet-400" />
-          <span className="text-sm font-medium text-primary">Market Pulse</span>
+          <Activity className="h-5 w-5 text-violet-400" />
+          <span className="text-base font-semibold text-primary">Market Pulse</span>
         </div>
         {isLoading ? (
-          <Loader2 className="h-3 w-3 animate-spin text-tertiary" />
+          <Loader2 className="h-4 w-4 animate-spin text-tertiary" />
         ) : (
           <span className="text-xs text-tertiary">
             {data?.lastUpdated && getRelativeTime(new Date(data.lastUpdated))}
@@ -105,74 +105,74 @@ export function MarketPulseWidget() {
       </div>
 
       {isLoading && !data ? (
-        <div className="grid grid-cols-3 gap-4 animate-pulse">
-          <div className="h-12 bg-elevated rounded" />
-          <div className="h-12 bg-elevated rounded" />
-          <div className="h-12 bg-elevated rounded" />
+        <div className="grid grid-cols-3 gap-6 animate-pulse">
+          <div className="h-20 bg-elevated rounded-lg" />
+          <div className="h-20 bg-elevated rounded-lg" />
+          <div className="h-20 bg-elevated rounded-lg" />
         </div>
       ) : data ? (
         <div className="grid grid-cols-3 gap-4">
           {/* BTC */}
-          <div>
-            <p className="text-xs text-tertiary mb-1">BTC</p>
-            <p className="text-sm font-semibold text-primary">
+          <div className="p-4 rounded-xl bg-elevated/50 border border-white/5">
+            <p className="text-xs text-tertiary mb-2 uppercase tracking-wider">Bitcoin</p>
+            <p className="text-xl font-bold text-primary mb-1">
               {formatPrice(data.btc.price)}
             </p>
             <p className={cn(
-              'text-xs flex items-center gap-0.5',
+              'text-sm flex items-center gap-1 font-medium',
               data.btc.change24h >= 0 ? 'text-green-400' : 'text-red-400'
             )}>
               {data.btc.change24h >= 0 ? (
-                <TrendingUp className="h-3 w-3" />
+                <TrendingUp className="h-4 w-4" />
               ) : (
-                <TrendingDown className="h-3 w-3" />
+                <TrendingDown className="h-4 w-4" />
               )}
               {formatChange(data.btc.change24h)}
             </p>
           </div>
 
           {/* ETH */}
-          <div>
-            <p className="text-xs text-tertiary mb-1">ETH</p>
-            <p className="text-sm font-semibold text-primary">
+          <div className="p-4 rounded-xl bg-elevated/50 border border-white/5">
+            <p className="text-xs text-tertiary mb-2 uppercase tracking-wider">Ethereum</p>
+            <p className="text-xl font-bold text-primary mb-1">
               {formatPrice(data.eth.price)}
             </p>
             <p className={cn(
-              'text-xs flex items-center gap-0.5',
+              'text-sm flex items-center gap-1 font-medium',
               data.eth.change24h >= 0 ? 'text-green-400' : 'text-red-400'
             )}>
               {data.eth.change24h >= 0 ? (
-                <TrendingUp className="h-3 w-3" />
+                <TrendingUp className="h-4 w-4" />
               ) : (
-                <TrendingDown className="h-3 w-3" />
+                <TrendingDown className="h-4 w-4" />
               )}
               {formatChange(data.eth.change24h)}
             </p>
           </div>
 
           {/* Fear & Greed */}
-          <div>
-            <p className="text-xs text-tertiary mb-1">Fear & Greed</p>
+          <div className="p-4 rounded-xl bg-elevated/50 border border-white/5">
+            <p className="text-xs text-tertiary mb-2 uppercase tracking-wider">Sentiment</p>
             <p className={cn(
-              'text-sm font-semibold',
+              'text-2xl font-bold mb-1',
               getFearGreedColor(data.fearGreed.value)
             )}>
               {data.fearGreed.value}
             </p>
-            <p className="text-xs text-tertiary">{data.fearGreed.label}</p>
+            <p className="text-sm text-secondary font-medium">{data.fearGreed.label}</p>
           </div>
         </div>
       ) : null}
 
       {/* Trending Topics */}
       {data?.trending && data.trending.length > 0 && (
-        <div className="mt-3 pt-3 border-t border-white/5">
+        <div className="mt-4 pt-4 border-t border-white/5">
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-xs text-tertiary">Trending:</span>
+            <span className="text-xs text-tertiary font-medium">Trending:</span>
             {data.trending.map((topic, i) => (
               <span
                 key={i}
-                className="px-2 py-0.5 rounded-full bg-violet-500/10 text-violet-400 text-xs"
+                className="px-3 py-1 rounded-full bg-violet-500/10 text-violet-400 text-sm font-medium"
               >
                 {topic}
               </span>

@@ -18,9 +18,11 @@ function CreatePageContent() {
   const searchParams = useSearchParams();
   const topicParam = searchParams.get('topic');
   const tabParam = searchParams.get('tab');
+  const urlParam = searchParams.get('url');
   const [activeTab, setActiveTab] = React.useState<ContentTab>('post');
   const [initialContent, setInitialContent] = React.useState<string | undefined>(undefined);
   const [initialThreadPosts, setInitialThreadPosts] = React.useState<string[] | undefined>(undefined);
+  const [qtUrl, setQtUrl] = React.useState<string | undefined>(undefined);
 
   // Check for edit content from dashboard "Ready to Post" section
   React.useEffect(() => {
@@ -50,8 +52,12 @@ function CreatePageContent() {
       setActiveTab('thread');
     } else if (tabParam === 'qt') {
       setActiveTab('qt');
+      // Pass URL to QT studio if provided
+      if (urlParam) {
+        setQtUrl(urlParam);
+      }
     }
-  }, [tabParam]);
+  }, [tabParam, urlParam]);
 
   const tabs = [
     { id: 'post', label: 'New Post', icon: <PenSquare className="h-4 w-4" /> },
@@ -95,7 +101,7 @@ function CreatePageContent() {
         {/* Content */}
         {activeTab === 'post' && <ContentCreator initialTopic={topicParam || undefined} initialContent={initialContent} />}
         {activeTab === 'thread' && <ThreadBuilder initialTopic={topicParam || undefined} initialPosts={initialThreadPosts} />}
-        {activeTab === 'qt' && <QTStudio />}
+        {activeTab === 'qt' && <QTStudio initialUrl={qtUrl} />}
       </motion.div>
     </AppLayout>
   );

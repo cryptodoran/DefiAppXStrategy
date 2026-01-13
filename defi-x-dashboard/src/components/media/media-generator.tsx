@@ -67,9 +67,13 @@ const TYPE_COLORS: Record<string, string> = {
 };
 
 const IMAGE_STYLES = [
+  { id: 'gradient-abstract', label: 'Abstract Gradient', recommended: true },
+  { id: 'neon-tech', label: 'Neon Tech' },
+  { id: 'infographic', label: 'Infographic' },
+  { id: 'minimalist', label: 'Minimalist' },
+  { id: 'data-viz', label: 'Data Viz' },
   { id: 'digital-art', label: 'Digital Art' },
   { id: 'realistic', label: 'Realistic' },
-  { id: 'anime', label: 'Anime' },
   { id: 'cinematic', label: 'Cinematic' },
 ] as const;
 
@@ -81,7 +85,7 @@ export function MediaGenerator({ tweetContent, onPromptSelect, onImageGenerated,
   const [generatedImages, setGeneratedImages] = React.useState<GeneratedImage[]>([]);
   const [isGeneratingImage, setIsGeneratingImage] = React.useState(false);
   const [generatingIndex, setGeneratingIndex] = React.useState<number | null>(null);
-  const [selectedStyle, setSelectedStyle] = React.useState<string>('digital-art');
+  const [selectedStyle, setSelectedStyle] = React.useState<string>('gradient-abstract');
   const [showImageModal, setShowImageModal] = React.useState<GeneratedImage | null>(null);
   const [imageLoadStates, setImageLoadStates] = React.useState<ImageLoadState>({});
   const [hoveredImageIndex, setHoveredImageIndex] = React.useState<number | null>(null);
@@ -387,23 +391,31 @@ export function MediaGenerator({ tweetContent, onPromptSelect, onImageGenerated,
 
           {/* Style Selector */}
           <div className="mt-4 pt-4 border-t border-white/5">
-            <p className="text-xs text-tertiary mb-2">image style:</p>
+            <p className="text-xs text-tertiary mb-2">image style (professional graphics):</p>
             <div className="flex flex-wrap gap-2">
               {IMAGE_STYLES.map((style) => (
                 <button
                   key={style.id}
                   onClick={() => setSelectedStyle(style.id)}
                   className={cn(
-                    'px-3 py-1.5 rounded-lg text-xs font-medium transition-colors',
+                    'px-3 py-1.5 rounded-lg text-xs font-medium transition-colors relative',
                     selectedStyle === style.id
                       ? 'bg-violet-500/20 text-violet-400 border border-violet-500/30'
                       : 'bg-elevated text-tertiary hover:text-secondary border border-white/5'
                   )}
                 >
                   {style.label}
+                  {'recommended' in style && style.recommended && (
+                    <span className="absolute -top-1.5 -right-1.5 px-1 py-0.5 rounded text-[9px] bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                      ★
+                    </span>
+                  )}
                 </button>
               ))}
             </div>
+            <p className="text-[10px] text-tertiary mt-2 opacity-70">
+              gradient-abstract and neon-tech styles are optimized for crypto/DeFi content
+            </p>
           </div>
 
           {/* Reference Image (img2img) */}

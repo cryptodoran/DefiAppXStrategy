@@ -44,6 +44,7 @@ export async function POST(request: Request) {
       case 'context':
       case 'shorten':
       case 'hook':
+      case 'cta':
         result = await enhanceContent(content, action, brandVoice);
         break;
 
@@ -128,6 +129,31 @@ function getFallbackResult(action: string, content: string) {
         reasoning: '@defiapp uses direct openers like "hot take:", questions, or bold statements',
       };
 
+    case 'cta':
+      // Improve the CTA - remove generic endings, add specific defi.app CTAs
+      const withoutGenericCta = content
+        .replace(/thoughts\?$/i, '')
+        .replace(/agree\?$/i, '')
+        .replace(/what do you think\?$/i, '')
+        .replace(/let me know.*/i, '')
+        .trim()
+        .toLowerCase();
+
+      const ctaOptions = [
+        'try it yourself at defi.app',
+        'compare rates at defi.app',
+        'check it out: defi.app',
+        'save on your next swap at defi.app',
+      ];
+      const randomCta = ctaOptions[Math.floor(Math.random() * ctaOptions.length)];
+
+      return {
+        enhanced: withoutGenericCta + '. ' + randomCta,
+        changes: ['Removed generic CTA', 'Added actionable defi.app CTA', 'Lowercased for brand voice'],
+        reasoning: '@defiapp never ends with "thoughts?" - always drives action to defi.app',
+        ctaType: 'product_promotion',
+      };
+
     case 'analyze':
       // More realistic analysis based on content
       const hasLowercase = content === content.toLowerCase();
@@ -160,28 +186,28 @@ function getFallbackResult(action: string, content: string) {
       };
 
     case 'variations':
-      const base = content.toLowerCase().replace(/\.$/, '');
+      const base = content.toLowerCase().replace(/\.$/, '').replace(/thoughts\?$/i, '').trim();
       return [
         {
-          content: base + '. we do this every day.',
+          content: base + '. try it at defi.app',
           voiceAlignment: 78,
           predictedEngagement: { likes: [80, 300], retweets: [20, 80] },
-          reasoning: 'Added confidence without being arrogant',
-          hook: 'Statement of fact',
+          reasoning: 'Direct CTA to defi.app - drives action',
+          hook: 'Statement + CTA',
         },
         {
-          content: 'hot take: ' + base,
+          content: 'hot take: ' + base + '. check the rates yourself.',
           voiceAlignment: 82,
           predictedEngagement: { likes: [100, 400], retweets: [30, 100] },
-          reasoning: '@defiapp style opener drives engagement',
-          hook: 'Hot take format',
+          reasoning: '@defiapp style opener + action CTA',
+          hook: 'Hot take + action',
         },
         {
-          content: 'why is this still a thing in 2026? ' + base,
+          content: base + '. stop overpaying - compare at defi.app',
           voiceAlignment: 85,
           predictedEngagement: { likes: [120, 500], retweets: [40, 150] },
-          reasoning: 'Rhetorical question + statement performs well',
-          hook: 'Rhetorical question',
+          reasoning: 'Problem + solution CTA performs well',
+          hook: 'Problem + solution',
         },
       ];
 

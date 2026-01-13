@@ -23,6 +23,7 @@ import {
   Image as ImageIcon,
   Copy,
   RefreshCw,
+  Target,
 } from 'lucide-react';
 import { VoiceMatchIndicator } from '@/components/ui/voice-match-indicator';
 import { MediaGenerator } from '@/components/media/media-generator';
@@ -142,7 +143,7 @@ export function ContentCreator({ initialTopic, initialContent }: ContentCreatorP
   };
 
   // Real AI enhancement
-  const handleAiAssist = async (action: 'spicier' | 'context' | 'shorten' | 'hook') => {
+  const handleAiAssist = async (action: 'spicier' | 'context' | 'shorten' | 'hook' | 'cta') => {
     if (!content.trim()) {
       addToast({
         type: 'warning',
@@ -541,10 +542,20 @@ export function ContentCreator({ initialTopic, initialContent }: ContentCreatorP
             />
           </div>
 
+          {/* CTA Improvement Button */}
+          <button
+            onClick={() => handleAiAssist('cta')}
+            disabled={isEnhancing}
+            className="w-full mt-3 p-2.5 rounded-lg bg-emerald-500/10 text-emerald-400 text-sm font-medium hover:bg-emerald-500/20 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+          >
+            {isEnhancing && enhancingAction === 'cta' ? <Loader2 className="h-4 w-4 animate-spin" /> : <Target className="h-4 w-4" />}
+            Improve CTA
+          </button>
+
           <button
             onClick={handleGenerateVariations}
             disabled={isGeneratingVariations}
-            className="w-full mt-3 p-2.5 rounded-lg bg-violet-500/10 text-violet-400 text-sm font-medium hover:bg-violet-500/20 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+            className="w-full mt-2 p-2.5 rounded-lg bg-violet-500/10 text-violet-400 text-sm font-medium hover:bg-violet-500/20 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
           >
             {isGeneratingVariations ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
             Generate 3 Variations

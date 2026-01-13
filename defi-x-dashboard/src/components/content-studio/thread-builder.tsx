@@ -19,7 +19,14 @@ import {
   AlertTriangle,
   TrendingUp,
   MessageSquare,
+  Flame,
+  Scissors,
+  ArrowUp,
+  Loader2,
+  RefreshCw,
+  Target,
 } from 'lucide-react';
+import { VoiceMatchIndicator } from '@/components/ui/voice-match-indicator';
 
 interface TweetItem {
   id: string;
@@ -32,6 +39,14 @@ interface ThreadPerformancePrediction {
   expectedImpressions: number;
   expectedEngagement: number;
   viralityChance: number;
+}
+
+interface TweetAnalysis {
+  overallScore: number;
+  voiceAlignment: number;
+  hookStrength: number;
+  improvements: string[];
+  _contentHash?: string; // For tracking if content changed
 }
 
 interface ThreadBuilderProps {
@@ -47,19 +62,35 @@ export function ThreadBuilder({ initialTopic, initialPosts }: ThreadBuilderProps
   const [isPosting, setIsPosting] = React.useState(false);
   const [isGenerating, setIsGenerating] = React.useState(false);
   const [targetThreadLength, setTargetThreadLength] = React.useState(5);
+  const [selectedTweetId, setSelectedTweetId] = React.useState<string | null>('1');
+  const [tweetAnalysis, setTweetAnalysis] = React.useState<Record<string, TweetAnalysis>>({});
+  const [isAnalyzing, setIsAnalyzing] = React.useState(false);
+  const [isEnhancing, setIsEnhancing] = React.useState(false);
+  const [enhancingAction, setEnhancingAction] = React.useState<string | null>(null);
   const { addToast } = useToast();
 
-  // Pre-fill tweets with initialPosts if provided (from dashboard Edit button)
+  // Pre-fill first tweet only with initialPosts if provided (from dashboard Edit button)
+  // User will use "Generate Thread" to expand into full thread
   React.useEffect(() => {
     if (initialPosts && initialPosts.length > 0) {
-      const newTweets: TweetItem[] = initialPosts.map((content, index) => ({
-        id: String(index + 1),
-        content: content.trim(),
-        characterCount: content.trim().length,
-      }));
-      setTweets(newTweets);
+      const firstPost = initialPosts[0].trim();
+      setTweets([{
+        id: '1',
+        content: firstPost,
+        characterCount: firstPost.length,
+      }]);
+      setSelectedTweetId('1');
+
+      // Suggest using generate thread if there were multiple posts
+      if (initialPosts.length > 1) {
+        addToast({
+          type: 'info',
+          title: 'First post loaded',
+          description: 'Use "Generate Thread" to expand into a full thread',
+        });
+      }
     }
-  }, [initialPosts]);
+  }, [initialPosts, addToast]);
 
   // Pre-fill first tweet with topic if provided (and no initialPosts)
   React.useEffect(() => {
@@ -180,6 +211,125 @@ export function ThreadBuilder({ initialTopic, initialPosts }: ThreadBuilderProps
     }
   };
 
+  // Track which tweet is being enhanced
+  const [enhancingTweetId, setEnhancingTweetId] = React.useState<string | null>(null);
+
+  // AI Assist for individual tweets - can now work on any tweet
+  const handleAiAssist = async (action: 'spicier' | 'context' | 'shorten' | 'hook' | 'cta', tweetId?: string) => {
+    const targetId = tweetId || selectedTweetId;
+    if (!targetId) {
+      addToast({
+        type: 'warning',
+        title: 'No tweet selected',
+        description: 'Click on a tweet to select it first',
+      });
+      return;
+    }
+
+    const targetTweet = tweets.find(t => t.id === targetId);
+    if (!targetTweet || !targetTweet.content.trim()) {
+      addToast({
+        type: 'warning',
+        title: 'No content',
+        description: 'Write something first for AI to enhance',
+      });
+      return;
+    }
+
+    setIsEnhancing(true);
+    setEnhancingAction(action);
+    setEnhancingTweetId(targetId);
+
+    try {
+      const response = await fetch('/api/content/enhance', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action, content: targetTweet.content }),
+      });
+
+      const data = await response.json();
+
+      if (data.error && !data._demo) {
+        throw new Error(data.error);
+      }
+
+      const result = data.result;
+      updateTweet(targetId, result.enhanced);
+
+      addToast({
+        type: 'success',
+        title: 'Tweet enhanced!',
+        description: result.changes[0] || 'Applied AI enhancement',
+      });
+    } catch (error) {
+      addToast({
+        type: 'error',
+        title: 'Enhancement failed',
+        description: String(error),
+      });
+    } finally {
+      setIsEnhancing(false);
+      setEnhancingAction(null);
+      setEnhancingTweetId(null);
+    }
+  };
+
+  // Track which tweets are being analyzed
+  const [analyzingTweetIds, setAnalyzingTweetIds] = React.useState<Set<string>>(new Set());
+
+  // Analyze ALL tweets for voice match (debounced per-tweet)
+  React.useEffect(() => {
+    const timers: NodeJS.Timeout[] = [];
+
+    tweets.forEach((tweet, index) => {
+      // Skip if already analyzed with same content, or content too short
+      const existingAnalysis = tweetAnalysis[tweet.id];
+      if (tweet.content.length < 20) return;
+
+      // Only re-analyze if content changed significantly
+      const contentHash = tweet.content.slice(0, 50);
+      const cachedHash = existingAnalysis?._contentHash;
+      if (cachedHash === contentHash) return;
+
+      const timer = setTimeout(async () => {
+        setAnalyzingTweetIds(prev => new Set(prev).add(tweet.id));
+        try {
+          const response = await fetch('/api/content/enhance', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'analyze', content: tweet.content }),
+          });
+
+          const data = await response.json();
+          if (data.result) {
+            setTweetAnalysis(prev => ({
+              ...prev,
+              [tweet.id]: {
+                overallScore: data.result.overallScore,
+                voiceAlignment: data.result.voiceAlignment,
+                hookStrength: data.result.hookStrength,
+                improvements: data.result.improvements || [],
+                _contentHash: contentHash,
+              },
+            }));
+          }
+        } catch {
+          // Silent fail for analysis
+        } finally {
+          setAnalyzingTweetIds(prev => {
+            const next = new Set(prev);
+            next.delete(tweet.id);
+            return next;
+          });
+        }
+      }, 1000 + index * 500); // Stagger requests to avoid overwhelming API
+
+      timers.push(timer);
+    });
+
+    return () => timers.forEach(t => clearTimeout(t));
+  }, [tweets]);
+
   const addTweet = (afterId?: string) => {
     const newTweet: TweetItem = {
       id: Date.now().toString(),
@@ -279,10 +429,17 @@ export function ThreadBuilder({ initialTopic, initialPosts }: ThreadBuilderProps
                 index={index}
                 isFirst={index === 0}
                 isLast={index === tweets.length - 1}
+                isSelected={selectedTweetId === tweet.id}
+                analysis={tweetAnalysis[tweet.id]}
+                isAnalyzing={analyzingTweetIds.has(tweet.id)}
+                onSelect={() => setSelectedTweetId(tweet.id)}
                 onUpdate={(content) => updateTweet(tweet.id, content)}
                 onRemove={() => removeTweet(tweet.id)}
                 onAddAfter={() => addTweet(tweet.id)}
+                onAiAssist={(action) => handleAiAssist(action, tweet.id)}
                 canRemove={tweets.length > 1}
+                isEnhancing={isEnhancing && enhancingTweetId === tweet.id}
+                enhancingAction={enhancingTweetId === tweet.id ? enhancingAction : null}
               />
             ))}
           </Reorder.Group>
@@ -398,6 +555,101 @@ export function ThreadBuilder({ initialTopic, initialPosts }: ThreadBuilderProps
           )}
         </PremiumCard>
 
+        {/* AI Assist - for selected tweet */}
+        <PremiumCard>
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="font-semibold text-primary">AI Assist</h3>
+            {selectedTweetId && (
+              <span className="text-xs text-tertiary">
+                Tweet {tweets.findIndex(t => t.id === selectedTweetId) + 1}
+              </span>
+            )}
+          </div>
+
+          {/* Voice Match Indicator */}
+          {selectedTweetId && tweetAnalysis[selectedTweetId] && (
+            <VoiceMatchIndicator
+              score={tweetAnalysis[selectedTweetId].voiceAlignment}
+              isLoading={isAnalyzing}
+              showSuggestions={false}
+              className="mb-3"
+            />
+          )}
+
+          {/* AI Assist Buttons */}
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              onClick={() => handleAiAssist('spicier')}
+              disabled={isEnhancing || !selectedTweetId}
+              className="flex items-center gap-2 p-2 rounded-lg bg-elevated text-secondary hover:text-primary hover:bg-hover transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isEnhancing && enhancingAction === 'spicier' ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Flame className="h-4 w-4" />
+              )}
+              Make Spicier
+            </button>
+            <button
+              onClick={() => handleAiAssist('context')}
+              disabled={isEnhancing || !selectedTweetId}
+              className="flex items-center gap-2 p-2 rounded-lg bg-elevated text-secondary hover:text-primary hover:bg-hover transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isEnhancing && enhancingAction === 'context' ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <ArrowUp className="h-4 w-4" />
+              )}
+              Add Context
+            </button>
+            <button
+              onClick={() => handleAiAssist('shorten')}
+              disabled={isEnhancing || !selectedTweetId}
+              className="flex items-center gap-2 p-2 rounded-lg bg-elevated text-secondary hover:text-primary hover:bg-hover transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isEnhancing && enhancingAction === 'shorten' ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Scissors className="h-4 w-4" />
+              )}
+              Shorten
+            </button>
+            <button
+              onClick={() => handleAiAssist('hook')}
+              disabled={isEnhancing || !selectedTweetId}
+              className="flex items-center gap-2 p-2 rounded-lg bg-elevated text-secondary hover:text-primary hover:bg-hover transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isEnhancing && enhancingAction === 'hook' ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Wand2 className="h-4 w-4" />
+              )}
+              Better Hook
+            </button>
+          </div>
+
+          {/* Improvements suggestions */}
+          {selectedTweetId && tweetAnalysis[selectedTweetId]?.improvements?.length > 0 && (
+            <div className="mt-3 pt-3 border-t border-white/5">
+              <p className="text-xs text-tertiary mb-2">Suggestions:</p>
+              <ul className="text-xs text-secondary space-y-1">
+                {tweetAnalysis[selectedTweetId].improvements.slice(0, 2).map((imp, i) => (
+                  <li key={i} className="flex items-start gap-1">
+                    <span className="text-violet-400">•</span>
+                    {imp}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {!selectedTweetId && (
+            <p className="text-xs text-tertiary text-center py-4">
+              Select a tweet to use AI assist
+            </p>
+          )}
+        </PremiumCard>
+
         {/* Thread Tips */}
         <PremiumCard>
           <h3 className="font-semibold text-primary mb-3">thread tips</h3>
@@ -425,16 +677,23 @@ export function ThreadBuilder({ initialTopic, initialPosts }: ThreadBuilderProps
   );
 }
 
-// Tweet Card Component
+// Tweet Card Component with per-post voice scoring
 interface TweetCardProps {
   tweet: TweetItem;
   index: number;
   isFirst: boolean;
   isLast: boolean;
+  isSelected: boolean;
+  analysis?: TweetAnalysis;
+  isAnalyzing?: boolean;
+  onSelect: () => void;
   onUpdate: (content: string) => void;
   onRemove: () => void;
   onAddAfter: () => void;
+  onAiAssist: (action: 'spicier' | 'context' | 'shorten' | 'hook' | 'cta') => void;
   canRemove: boolean;
+  isEnhancing?: boolean;
+  enhancingAction?: string | null;
 }
 
 function TweetCard({
@@ -442,14 +701,27 @@ function TweetCard({
   index,
   isFirst,
   isLast,
+  isSelected,
+  analysis,
+  isAnalyzing,
+  onSelect,
   onUpdate,
   onRemove,
   onAddAfter,
+  onAiAssist,
   canRemove,
+  isEnhancing,
+  enhancingAction,
 }: TweetCardProps) {
   const controls = useDragControls();
   const isOverLimit = tweet.characterCount > 280;
   const isNearLimit = tweet.characterCount > 250;
+
+  const getScoreColor = (score: number) => {
+    if (score >= 80) return 'text-green-400 bg-green-500/10';
+    if (score >= 60) return 'text-yellow-400 bg-yellow-500/10';
+    return 'text-red-400 bg-red-500/10';
+  };
 
   return (
     <Reorder.Item
@@ -459,11 +731,12 @@ function TweetCard({
       className="relative"
     >
       <motion.div
+        onClick={onSelect}
         className={cn(
-          'p-4 rounded-xl bg-elevated border',
-          isOverLimit ? 'border-red-500/30' : 'border-white/5'
+          'p-4 rounded-xl bg-elevated border cursor-pointer transition-colors',
+          isOverLimit ? 'border-red-500/30' : isSelected ? 'border-violet-500/50 ring-1 ring-violet-500/20' : 'border-white/5'
         )}
-        whileHover={{ borderColor: 'rgba(255,255,255,0.1)' }}
+        whileHover={{ borderColor: isSelected ? 'rgba(139, 92, 246, 0.5)' : 'rgba(255,255,255,0.1)' }}
       >
         {/* Header */}
         <div className="flex items-center justify-between mb-3">
@@ -493,7 +766,7 @@ function TweetCard({
             </span>
             {canRemove && (
               <button
-                onClick={onRemove}
+                onClick={(e) => { e.stopPropagation(); onRemove(); }}
                 className="text-tertiary hover:text-red-400 transition-colors"
               >
                 <Trash2 className="h-4 w-4" />
@@ -527,10 +800,104 @@ function TweetCard({
           </div>
         )}
 
+        {/* Per-post Voice Score & AI Assist - shown when tweet has content */}
+        {tweet.content.length >= 15 && (
+          <div className="mt-3 pt-3 border-t border-white/5">
+            <div className="flex items-center justify-between">
+              {/* Voice Score Badge */}
+              <div className="flex items-center gap-2">
+                {isAnalyzing ? (
+                  <div className="flex items-center gap-1 text-xs text-tertiary">
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                    <span>Analyzing...</span>
+                  </div>
+                ) : analysis ? (
+                  <div className="flex items-center gap-2">
+                    <span className={cn('px-2 py-0.5 rounded text-xs font-mono font-medium', getScoreColor(analysis.voiceAlignment))}>
+                      {analysis.voiceAlignment}% voice
+                    </span>
+                    {analysis.hookStrength && isFirst && (
+                      <span className={cn('px-2 py-0.5 rounded text-xs font-mono', getScoreColor(analysis.hookStrength))}>
+                        {analysis.hookStrength}% hook
+                      </span>
+                    )}
+                  </div>
+                ) : (
+                  <span className="text-xs text-tertiary">Click to analyze</span>
+                )}
+              </div>
+
+              {/* Inline AI Assist Buttons */}
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={(e) => { e.stopPropagation(); onAiAssist('spicier'); }}
+                  disabled={isEnhancing}
+                  className="p-1.5 rounded bg-elevated/50 text-tertiary hover:text-orange-400 hover:bg-orange-500/10 transition-colors disabled:opacity-50"
+                  title="Make Spicier"
+                >
+                  {isEnhancing && enhancingAction === 'spicier' ? (
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                  ) : (
+                    <Flame className="h-3 w-3" />
+                  )}
+                </button>
+                <button
+                  onClick={(e) => { e.stopPropagation(); onAiAssist('context'); }}
+                  disabled={isEnhancing}
+                  className="p-1.5 rounded bg-elevated/50 text-tertiary hover:text-blue-400 hover:bg-blue-500/10 transition-colors disabled:opacity-50"
+                  title="Add Context"
+                >
+                  {isEnhancing && enhancingAction === 'context' ? (
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                  ) : (
+                    <ArrowUp className="h-3 w-3" />
+                  )}
+                </button>
+                <button
+                  onClick={(e) => { e.stopPropagation(); onAiAssist('shorten'); }}
+                  disabled={isEnhancing}
+                  className="p-1.5 rounded bg-elevated/50 text-tertiary hover:text-green-400 hover:bg-green-500/10 transition-colors disabled:opacity-50"
+                  title="Shorten"
+                >
+                  {isEnhancing && enhancingAction === 'shorten' ? (
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                  ) : (
+                    <Scissors className="h-3 w-3" />
+                  )}
+                </button>
+                <button
+                  onClick={(e) => { e.stopPropagation(); onAiAssist('hook'); }}
+                  disabled={isEnhancing}
+                  className="p-1.5 rounded bg-elevated/50 text-tertiary hover:text-violet-400 hover:bg-violet-500/10 transition-colors disabled:opacity-50"
+                  title="Better Hook"
+                >
+                  {isEnhancing && enhancingAction === 'hook' ? (
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                  ) : (
+                    <Wand2 className="h-3 w-3" />
+                  )}
+                </button>
+                <button
+                  onClick={(e) => { e.stopPropagation(); onAiAssist('cta'); }}
+                  disabled={isEnhancing}
+                  className="p-1.5 rounded bg-elevated/50 text-tertiary hover:text-emerald-400 hover:bg-emerald-500/10 transition-colors disabled:opacity-50"
+                  title="Improve CTA"
+                >
+                  {isEnhancing && enhancingAction === 'cta' ? (
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                  ) : (
+                    <Target className="h-3 w-3" />
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Add After Button */}
         <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 opacity-0 hover:opacity-100 transition-opacity">
           <button
-            onClick={onAddAfter}
+            onClick={(e) => { e.stopPropagation(); onAddAfter(); }}
             className="p-1 rounded-full bg-surface border border-white/10 text-tertiary hover:text-primary transition-colors"
           >
             <Plus className="h-3 w-3" />

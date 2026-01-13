@@ -26,7 +26,13 @@ import {
   ExternalLink,
   Link as LinkIcon,
   Loader2,
+  Flame,
+  Scissors,
+  ArrowUp,
+  Wand2,
+  Target,
 } from 'lucide-react';
+import { VoiceMatchIndicator } from '@/components/ui/voice-match-indicator';
 
 interface OriginalPost {
   id: string;
@@ -85,9 +91,14 @@ const defaultAngles: Omit<QTAngle, 'suggestedContent' | 'reasoning'>[] = [
   },
 ];
 
-export function QTStudio() {
+interface QTStudioProps {
+  initialUrl?: string;
+}
+
+export function QTStudio({ initialUrl: propUrl }: QTStudioProps) {
   const searchParams = useSearchParams();
-  const initialUrl = searchParams.get('url') || '';
+  const paramUrl = searchParams.get('url') || '';
+  const initialUrl = propUrl || paramUrl;
 
   const [tweetUrl, setTweetUrl] = React.useState(initialUrl);
   const [originalPost, setOriginalPost] = React.useState<OriginalPost | null>(null);
@@ -97,11 +108,21 @@ export function QTStudio() {
   const [isLoadingTweet, setIsLoadingTweet] = React.useState(false);
   const [isGeneratingAngles, setIsGeneratingAngles] = React.useState(false);
   const [isPosting, setIsPosting] = React.useState(false);
+  const [isEnhancing, setIsEnhancing] = React.useState(false);
+  const [enhancingAction, setEnhancingAction] = React.useState<string | null>(null);
+  const [analysis, setAnalysis] = React.useState<{
+    voiceAlignment: number;
+    improvements: string[];
+  } | null>(null);
+  const [isAnalyzing, setIsAnalyzing] = React.useState(false);
   const { addToast } = useToast();
 
   // Load tweet from URL on mount if provided
   React.useEffect(() => {
-    if (initialUrl) {
+    if (initialUrl && initialUrl !== tweetUrl) {
+      setTweetUrl(initialUrl);
+      fetchTweetData(initialUrl);
+    } else if (initialUrl && !originalPost) {
       fetchTweetData(initialUrl);
     }
   }, [initialUrl]);
@@ -306,6 +327,86 @@ export function QTStudio() {
       description: 'QT content copied to clipboard',
     });
   };
+
+  // AI Assist for QT content
+  const handleAiAssist = async (action: 'spicier' | 'context' | 'shorten' | 'hook' | 'cta') => {
+    if (!qtContent.trim()) {
+      addToast({
+        type: 'warning',
+        title: 'No content',
+        description: 'Write something first for AI to enhance',
+      });
+      return;
+    }
+
+    setIsEnhancing(true);
+    setEnhancingAction(action);
+
+    try {
+      const response = await fetch('/api/content/enhance', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action, content: qtContent }),
+      });
+
+      const data = await response.json();
+
+      if (data.error && !data._demo) {
+        throw new Error(data.error);
+      }
+
+      const result = data.result;
+      setQtContent(result.enhanced);
+
+      addToast({
+        type: 'success',
+        title: 'QT enhanced!',
+        description: result.changes[0] || 'Applied AI enhancement',
+      });
+    } catch (error) {
+      addToast({
+        type: 'error',
+        title: 'Enhancement failed',
+        description: String(error),
+      });
+    } finally {
+      setIsEnhancing(false);
+      setEnhancingAction(null);
+    }
+  };
+
+  // Analyze QT content for voice match
+  React.useEffect(() => {
+    if (!qtContent.trim() || qtContent.length < 15) {
+      setAnalysis(null);
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      setIsAnalyzing(true);
+      try {
+        const response = await fetch('/api/content/enhance', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'analyze', content: qtContent }),
+        });
+
+        const data = await response.json();
+        if (data.result) {
+          setAnalysis({
+            voiceAlignment: data.result.voiceAlignment,
+            improvements: data.result.improvements || [],
+          });
+        }
+      } catch {
+        // Silent fail for analysis
+      } finally {
+        setIsAnalyzing(false);
+      }
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, [qtContent]);
 
   return (
     <div className="grid gap-6 lg:grid-cols-2">
@@ -515,6 +616,14 @@ export function QTStudio() {
             )}
           </div>
 
+          {/* Voice Match Indicator */}
+          <VoiceMatchIndicator
+            score={analysis?.voiceAlignment ?? null}
+            isLoading={isAnalyzing}
+            showSuggestions={false}
+            className="mb-3"
+          />
+
           <PremiumTextarea
             value={qtContent}
             onChange={(e) => setQtContent(e.target.value)}
@@ -533,6 +642,73 @@ export function QTStudio() {
               <span className="text-violet-400 font-medium">AI tip:</span> {selectedAngle.reasoning}
             </div>
           )}
+
+          {/* AI Assist Buttons */}
+          <div className="mt-4 pt-4 border-t border-white/5">
+            <p className="text-xs text-tertiary mb-2">AI Assist</p>
+            <div className="grid grid-cols-5 gap-2">
+              <button
+                onClick={() => handleAiAssist('spicier')}
+                disabled={isEnhancing || !qtContent.trim()}
+                className="flex flex-col items-center gap-1 p-2 rounded-lg bg-elevated text-secondary hover:text-primary hover:bg-hover transition-colors text-xs disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isEnhancing && enhancingAction === 'spicier' ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Flame className="h-4 w-4" />
+                )}
+                Spicier
+              </button>
+              <button
+                onClick={() => handleAiAssist('context')}
+                disabled={isEnhancing || !qtContent.trim()}
+                className="flex flex-col items-center gap-1 p-2 rounded-lg bg-elevated text-secondary hover:text-primary hover:bg-hover transition-colors text-xs disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isEnhancing && enhancingAction === 'context' ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <ArrowUp className="h-4 w-4" />
+                )}
+                Context
+              </button>
+              <button
+                onClick={() => handleAiAssist('shorten')}
+                disabled={isEnhancing || !qtContent.trim()}
+                className="flex flex-col items-center gap-1 p-2 rounded-lg bg-elevated text-secondary hover:text-primary hover:bg-hover transition-colors text-xs disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isEnhancing && enhancingAction === 'shorten' ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Scissors className="h-4 w-4" />
+                )}
+                Shorten
+              </button>
+              <button
+                onClick={() => handleAiAssist('hook')}
+                disabled={isEnhancing || !qtContent.trim()}
+                className="flex flex-col items-center gap-1 p-2 rounded-lg bg-elevated text-secondary hover:text-primary hover:bg-hover transition-colors text-xs disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isEnhancing && enhancingAction === 'hook' ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Wand2 className="h-4 w-4" />
+                )}
+                Hook
+              </button>
+              <button
+                onClick={() => handleAiAssist('cta')}
+                disabled={isEnhancing || !qtContent.trim()}
+                className="flex flex-col items-center gap-1 p-2 rounded-lg bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 transition-colors text-xs disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isEnhancing && enhancingAction === 'cta' ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Target className="h-4 w-4" />
+                )}
+                CTA
+              </button>
+            </div>
+          </div>
 
           {/* Predicted Performance */}
           {selectedAngle && qtContent.length > 20 && (

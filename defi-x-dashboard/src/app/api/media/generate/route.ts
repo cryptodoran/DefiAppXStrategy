@@ -5,7 +5,7 @@ import { NextRequest, NextResponse } from 'next/server';
 
 interface GenerateRequest {
   prompt: string;
-  style?: 'realistic' | 'anime' | 'digital-art' | 'cinematic';
+  style?: 'realistic' | 'anime' | 'digital-art' | 'cinematic' | 'infographic' | 'gradient-abstract' | 'neon-tech' | 'minimalist' | 'data-viz';
   width?: number;
   height?: number;
   referenceImage?: string; // Base64 data URL or image URL for img2img
@@ -33,16 +33,25 @@ export async function POST(request: NextRequest) {
 
     const replicateToken = process.env.REPLICATE_API_TOKEN;
 
-    // Style modifiers to enhance prompts
+    // Style modifiers optimized for professional crypto/DeFi graphics
     const styleModifiers: Record<string, string> = {
-      'realistic': 'photorealistic, high detail, 8k resolution, professional photography',
-      'anime': 'anime style, vibrant colors, clean lines, studio ghibli inspired',
-      'digital-art': 'digital art, modern design, clean aesthetic, trending on artstation',
-      'cinematic': 'cinematic, dramatic lighting, movie poster style, epic composition',
+      'realistic': 'photorealistic, high detail, 8k resolution, professional photography, sharp focus',
+      'anime': 'anime style, vibrant colors, clean lines, studio ghibli inspired, high quality',
+      'digital-art': 'professional digital art, modern design, clean aesthetic, trending on artstation, gradient colors, sleek corporate design',
+      'cinematic': 'cinematic, dramatic lighting, movie poster style, epic composition, volumetric lighting',
+      'infographic': 'professional infographic design, clean layout, modern corporate style, flat design, vector art, gradient backgrounds, minimal, data visualization aesthetic',
+      'gradient-abstract': 'abstract gradient art, smooth color transitions, professional corporate background, purple and blue gradients, modern tech aesthetic, glassmorphism effect, subtle glow',
+      'neon-tech': 'neon cyberpunk aesthetic, dark background with neon accents, tech futuristic style, grid patterns, holographic effects, purple and cyan neon lights, blockchain visual style',
+      'minimalist': 'minimalist design, clean white space, simple geometric shapes, professional and elegant, subtle shadows, modern corporate aesthetic, single accent color',
+      'data-viz': 'data visualization aesthetic, clean graphs and charts style, professional analytics design, blue and purple color scheme, modern dashboard aesthetic, metric display style',
     };
 
-    // Build enhanced prompt
-    const enhancedPrompt = `${prompt}, ${styleModifiers[style] || styleModifiers['digital-art']}`;
+    // Professional base modifiers for all styles
+    const professionalBase = 'professional quality, sharp details, clean composition, suitable for social media, high resolution, visually appealing';
+
+    // Build enhanced prompt with professional quality modifiers
+    const selectedStyle = styleModifiers[style] || styleModifiers['digital-art'];
+    const enhancedPrompt = `${prompt}, ${selectedStyle}, ${professionalBase}`;
 
     // If no Replicate token, fall back to Pollinations
     if (!replicateToken) {
@@ -78,15 +87,16 @@ export async function POST(request: NextRequest) {
     // Add instruction to avoid text
     const finalPrompt = `${cleanPrompt}, no text, no words, no letters, no labels, clean image`;
 
-    // Build input parameters
+    // Build input parameters - optimized for professional quality
     const inputParams: Record<string, unknown> = {
       prompt: finalPrompt,
       num_outputs: 1,
       aspect_ratio: width === height ? '1:1' : width > height ? '16:9' : '9:16',
       output_format: 'webp',
-      output_quality: 95,
-      guidance: 3.5,
-      steps: 50,
+      output_quality: 100, // Maximum quality
+      guidance: 4.0, // Slightly higher guidance for better prompt adherence
+      steps: 50, // Good balance of quality and speed
+      safety_tolerance: 5, // More permissive for professional graphics
     };
 
     // If reference image provided, use img2img mode
@@ -180,11 +190,21 @@ export async function GET() {
 
   return NextResponse.json({
     status: hasToken ? 'available' : 'fallback',
-    provider: hasToken ? 'flux-schnell (Replicate)' : 'pollinations.ai (fallback)',
+    provider: hasToken ? 'flux-pro (Replicate)' : 'pollinations.ai (fallback)',
     features: hasToken
-      ? ['high-quality', 'flux-model', 'fast-generation']
+      ? ['high-quality', 'flux-pro-model', 'professional-graphics', 'fast-generation']
       : ['free', 'no-api-key', 'lower-quality'],
-    supportedStyles: ['realistic', 'anime', 'digital-art', 'cinematic'],
-    _note: hasToken ? 'Using Flux via Replicate' : 'Add REPLICATE_API_TOKEN for Flux quality',
+    supportedStyles: [
+      'realistic',
+      'anime',
+      'digital-art',
+      'cinematic',
+      'infographic',
+      'gradient-abstract',
+      'neon-tech',
+      'minimalist',
+      'data-viz',
+    ],
+    _note: hasToken ? 'Using Flux Pro via Replicate for professional quality' : 'Add REPLICATE_API_TOKEN for Flux quality',
   });
 }

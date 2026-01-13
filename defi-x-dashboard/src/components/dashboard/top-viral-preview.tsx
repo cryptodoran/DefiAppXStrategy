@@ -163,7 +163,7 @@ export function TopViralPreview() {
                 View on X
               </PremiumButton>
             </a>
-            <Link href={`/qt-studio?url=${encodeURIComponent(tweet.tweetUrl)}`}>
+            <Link href={`/create?tab=qt&url=${encodeURIComponent(tweet.tweetUrl)}`}>
               <PremiumButton size="sm" variant="primary">
                 Quote Tweet
               </PremiumButton>

@@ -1,4 +1,5 @@
 import Anthropic from '@anthropic-ai/sdk';
+import { getKnowledgeSummary } from './defi-app-knowledge';
 
 // Initialize Anthropic client
 const anthropic = new Anthropic({
@@ -8,6 +9,11 @@ const anthropic = new Anthropic({
 // Check if Claude API is configured
 export function isClaudeConfigured(): boolean {
   return !!process.env.ANTHROPIC_API_KEY;
+}
+
+// Get product knowledge context for AI prompts
+function getProductContext(): string {
+  return getKnowledgeSummary();
 }
 
 // Base function to call Claude
@@ -71,7 +77,7 @@ export interface EnhanceResult {
 
 export async function enhanceContent(
   content: string,
-  action: 'spicier' | 'context' | 'shorten' | 'hook',
+  action: 'spicier' | 'context' | 'shorten' | 'hook' | 'cta',
   brandVoice?: BrandVoiceProfile
 ): Promise<EnhanceResult> {
   const voiceContext = brandVoice
@@ -89,10 +95,24 @@ Brand Voice Guidelines:
     context: `Add relevant market context, data, or news to this tweet. Make it more informative while keeping it engaging. Include specific numbers or facts if relevant.`,
     shorten: `Shorten this tweet while preserving the core message and impact. Make every word count. Remove filler. Keep it punchy.`,
     hook: `Rewrite with a stronger opening hook. The first 10 words should grab attention and make people stop scrolling. Consider: questions, bold statements, surprising facts, or pattern interrupts.`,
+    cta: `Improve the Call-To-Action (CTA) in this tweet. Remove any generic endings like "thoughts?", "agree?", "what do you think?" and replace with a strong, actionable CTA that drives users to defi.app or gives them something specific to do. The CTA should feel natural, not salesy. Examples of good CTAs: "try it at defi.app", "compare rates yourself", "check your potential savings", "stop overpaying for swaps".`,
   };
+
+  // Get product knowledge for context
+  const productKnowledge = getProductContext();
 
   const systemPrompt = `You are a crypto Twitter expert who writes viral content. You understand what makes tweets perform well on Crypto Twitter.
 ${voiceContext}
+
+${productKnowledge}
+
+CRITICAL CTA RULES:
+- NEVER end with generic questions like "thoughts?", "agree?", "what do you think?"
+- Instead, give users a specific action related to DeFi App or DeFi in general
+- Good CTAs: "try it at defi.app", "check the best rates at defi.app", "save on your next swap", "compare for yourself"
+- End with value or a call to action, not a question asking for validation
+- Reference specific Defi App features when relevant (aggregation, best rates, cross-chain, etc.)
+
 You MUST respond in valid JSON format with this structure:
 {
   "enhanced": "the improved tweet text",
@@ -147,6 +167,9 @@ export async function generateTweets(
 
   const exampleTweets = brandVoice.examples.great.slice(0, 5).join('\n\n');
 
+  // Get product knowledge for context
+  const productKnowledge = getProductContext();
+
   const systemPrompt = `You are the social media voice for ${brandVoice.name}. You write tweets that perfectly match their brand voice.
 
 BRAND VOICE PROFILE:
@@ -155,6 +178,15 @@ BRAND VOICE PROFILE:
 - Signature phrases: ${brandVoice.vocabulary.signatures.join(', ')}
 - Core topics: ${brandVoice.topics.core.join(', ')}
 - NEVER mention: ${brandVoice.topics.avoid.join(', ')}
+
+${productKnowledge}
+
+CRITICAL CTA RULES:
+- NEVER end with generic questions like "thoughts?", "agree?", "what do you think?"
+- Instead, give users a specific action related to DeFi App
+- Good CTAs: "try it at defi.app", "check the best rates", "save on your next swap", "compare for yourself"
+- End with value or a call to action, not a question asking for validation
+- Reference specific Defi App features and stats when relevant
 
 EXAMPLE TWEETS (match this style exactly):
 ${exampleTweets}
@@ -212,11 +244,17 @@ BRAND VOICE:
 - Style: ${brandVoice.style.sentenceLength} sentences
 - Examples: ${exampleTweets}
 
+CRITICAL CTA RULES FOR FINAL TWEET:
+- NEVER end with generic questions like "thoughts?", "agree?", "what do you think?"
+- The LAST tweet MUST give users a specific action related to DeFi App
+- Good final CTAs: "try it at defi.app", "check the best rates at defi.app", "save on your next swap", "stop overpaying - compare at defi.app"
+- End the thread with value and a clear action, not a question asking for validation
+
 Threads should:
 1. Open with a hook that promises value
 2. Build tension/curiosity
 3. Deliver insights progressively
-4. End with a strong call-to-action or takeaway
+4. End with a STRONG call-to-action (never "thoughts?" - give them something to DO)
 5. Each tweet should work standalone but flow together
 
 Respond in JSON array format.`;
@@ -380,12 +418,18 @@ BRAND VOICE:
 - Tone: ${brandVoice.tone.join(', ')}
 - Style: ${brandVoice.style.sentenceLength} sentences
 
+CRITICAL CTA RULES:
+- NEVER end with generic questions like "thoughts?", "agree?", "what do you think?"
+- Instead, give users a specific action or strong statement
+- Good endings: reference defi.app, give actionable advice, make a bold claim
+- End with value, not a question asking for validation
+
 Good QT strategies:
 1. Add unique insight/context
 2. Agree and amplify with data
 3. Respectful disagreement with reasoning
 4. Make it personal/relatable
-5. Ask a thought-provoking question
+5. End with a bold statement or call to action (NEVER "thoughts?")
 
 Respond in JSON array format.`;
 

@@ -59,7 +59,7 @@ interface ViralTweet {
 }
 
 type Timeframe = '1h' | '6h' | '24h' | '7d' | '30d';
-type SortBy = 'velocity' | 'likes' | 'retweets' | 'total';
+type SortBy = 'velocity' | 'likes' | 'retweets' | 'viralScore' | 'newest';
 
 const TIMEFRAMES: { value: Timeframe; label: string }[] = [
   { value: '1h', label: '1 Hour' },
@@ -70,10 +70,11 @@ const TIMEFRAMES: { value: Timeframe; label: string }[] = [
 ];
 
 const SORT_OPTIONS: { value: SortBy; label: string; icon: React.ReactNode }[] = [
+  { value: 'viralScore', label: 'Viral Score', icon: <Flame className="h-4 w-4" /> },
   { value: 'velocity', label: 'Fastest Growing', icon: <Zap className="h-4 w-4" /> },
   { value: 'likes', label: 'Most Liked', icon: <Heart className="h-4 w-4" /> },
   { value: 'retweets', label: 'Most Retweeted', icon: <Repeat className="h-4 w-4" /> },
-  { value: 'total', label: 'Total Engagement', icon: <BarChart3 className="h-4 w-4" /> },
+  { value: 'newest', label: 'Most Recent', icon: <Clock className="h-4 w-4" /> },
 ];
 
 export default function ViralDiscoveryPage() {
@@ -83,7 +84,7 @@ export default function ViralDiscoveryPage() {
   const [isLoading, setIsLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
   const [timeframe, setTimeframe] = React.useState<Timeframe>('6h');
-  const [sortBy, setSortBy] = React.useState<SortBy>('velocity');
+  const [sortBy, setSortBy] = React.useState<SortBy>('viralScore');
   const [isFilterOpen, setIsFilterOpen] = React.useState(false);
 
   // Fetch viral tweets
@@ -226,6 +227,15 @@ export default function ViralDiscoveryPage() {
           </span>
         </div>
 
+        {/* 30d/7d Notice */}
+        {(timeframe === '30d' || timeframe === '7d') && tweets.length < 10 && !isLoading && (
+          <div className="p-3 rounded-lg bg-yellow-500/10 border border-yellow-500/20 text-sm text-yellow-400">
+            <strong>Note:</strong> Twitter API limits historical data to ~7 days.
+            {timeframe === '30d' && ' 30-day view uses cached data from previous sessions.'}
+            {' '}Results may be limited.
+          </div>
+        )}
+
         {/* Tweet list */}
         {error ? (
           <PremiumCard>
@@ -284,7 +294,7 @@ export default function ViralDiscoveryPage() {
                     tweet={tweet}
                     rank={index + 1}
                     onQuoteTweet={() => {
-                      router.push('/create/qt?url=' + encodeURIComponent(tweet.tweetUrl));
+                      router.push('/create?tab=qt&url=' + encodeURIComponent(tweet.tweetUrl));
                       addToast({
                         type: 'info',
                         title: 'Creating QT response',
