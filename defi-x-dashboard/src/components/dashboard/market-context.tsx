@@ -42,6 +42,7 @@ interface TrendingHashtag {
 }
 
 type TimeRange = '24h' | '7d' | '30d';
+type NewsCategory = 'hot' | 'featured' | 'more';
 import {
   TrendingUp,
   TrendingDown,
@@ -67,13 +68,13 @@ export function MarketContextPanel() {
   const [isRefreshing, setIsRefreshing] = React.useState(false);
   const [hasError, setHasError] = React.useState(false);
   const [economicEvents] = React.useState<EconomicEvent[]>(getUpcomingEconomicEvents());
-  const [newsTimeRange, setNewsTimeRange] = React.useState<TimeRange>('24h');
+  const [newsCategory, setNewsCategory] = React.useState<NewsCategory>('hot');
   const [hashtagTimeRange, setHashtagTimeRange] = React.useState<TimeRange>('24h');
 
-  // Fetch news headlines with timeframe
-  const fetchNewsHeadlines = async (timeframe: TimeRange): Promise<NewsHeadline[]> => {
+  // Fetch news headlines by category (hot/featured/more)
+  const fetchNewsHeadlines = async (category: NewsCategory): Promise<NewsHeadline[]> => {
     try {
-      const response = await fetch(`/api/news/headlines?timeframe=${timeframe}`);
+      const response = await fetch(`/api/news/headlines?category=${category}`);
       if (!response.ok) return [];
       const data = await response.json();
       return data.headlines || data;
@@ -104,7 +105,7 @@ export function MarketContextPanel() {
         fetchRealCryptoPrices(),
         fetchRealFearGreed(),
         fetchRealTVL(),
-        fetchNewsHeadlines(newsTimeRange),
+        fetchNewsHeadlines(newsCategory),
         fetchHashtags(hashtagTimeRange),
       ]);
 
@@ -122,7 +123,7 @@ export function MarketContextPanel() {
     } finally {
       setIsRefreshing(false);
     }
-  }, [newsTimeRange, hashtagTimeRange]);
+  }, [newsCategory, hashtagTimeRange]);
 
   // Initial load
   React.useEffect(() => {
@@ -365,18 +366,22 @@ export function MarketContextPanel() {
               <span className="text-sm text-tertiary">Latest News</span>
             </div>
             <div className="flex items-center gap-1">
-              {(['24h', '7d', '30d'] as TimeRange[]).map((range) => (
+              {([
+                { id: 'hot', label: 'Hot' },
+                { id: 'featured', label: 'Featured' },
+                { id: 'more', label: 'More' },
+              ] as { id: NewsCategory; label: string }[]).map(({ id, label }) => (
                 <button
-                  key={range}
-                  onClick={() => setNewsTimeRange(range)}
+                  key={id}
+                  onClick={() => setNewsCategory(id)}
                   className={cn(
                     'px-2 py-0.5 rounded text-[10px] font-medium transition-colors',
-                    newsTimeRange === range
+                    newsCategory === id
                       ? 'bg-violet-500/20 text-violet-400'
                       : 'text-tertiary hover:text-secondary'
                   )}
                 >
-                  {range}
+                  {label}
                 </button>
               ))}
             </div>

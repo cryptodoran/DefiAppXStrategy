@@ -240,17 +240,17 @@ function getFallbackHeadlines(): NewsHeadline[] {
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
-    const timeframe = searchParams.get('timeframe') || '24h';
+    // Support both 'category' (new) and 'timeframe' (legacy) parameters
+    const category = searchParams.get('category') || searchParams.get('timeframe') || 'hot';
     const limit = Math.min(parseInt(searchParams.get('limit') || '8'), 20);
 
-    // Calculate time range
-    const now = new Date();
-    const hoursBack: Record<string, number> = {
-      '24h': 24,
-      '7d': 168,
-      '30d': 720,
+    // Map legacy timeframe values to new categories
+    const categoryMap: Record<string, string> = {
+      '24h': 'hot',
+      '7d': 'featured',
+      '30d': 'more',
     };
-    const cutoffTime = new Date(now.getTime() - (hoursBack[timeframe] || 24) * 60 * 60 * 1000);
+    const normalizedCategory = categoryMap[category] || category;
 
     // Check if we need to refresh the article cache
     const shouldRefreshCache = !articleCache ||
@@ -292,10 +292,13 @@ export async function GET(request: Request) {
       allHeadlines = articleCache!.articles;
     }
 
-    // Show DIFFERENT top articles for each timeframe
-    // Partition articles first, then rank by importance within each partition
+    // Show DIFFERENT articles for each category
+    // Categories are based on importance ranking, not actual dates (RSS feeds only have recent articles)
+    // - "hot": Top importance stories (breaking news, major headlines)
+    // - "featured": Good stories you should know about
+    // - "more": Additional interesting stories you may have missed
     let finalHeadlines: NewsHeadline[];
-    let isTimeframeSpecific = true;
+    let categoryLabel = 'hot';
 
     if (allHeadlines.length > 0) {
       // Score all articles for importance ranking
@@ -313,23 +316,26 @@ export async function GET(request: Request) {
 
       const totalArticles = scoredArticles.length;
 
-      // Partition: Each timeframe gets a different slice of top articles
-      // This ensures switching timeframes shows DIFFERENT content
+      // Partition: Each category gets a different slice of scored articles
+      // This ensures switching categories shows DIFFERENT content
       let partition: NewsHeadline[];
 
-      if (timeframe === '24h') {
-        // 24h: Top third of scored articles (the very best)
+      if (normalizedCategory === 'hot') {
+        // Hot: Top third of scored articles (the very best/most important)
         const endIndex = Math.max(Math.ceil(totalArticles / 3), limit);
         partition = scoredArticles.slice(0, endIndex);
-      } else if (timeframe === '7d') {
-        // 7d: Middle third of scored articles (good but different)
+        categoryLabel = 'hot';
+      } else if (normalizedCategory === 'featured') {
+        // Featured: Middle third of scored articles (good but different)
         const startIndex = Math.ceil(totalArticles / 3);
         const endIndex = Math.ceil(totalArticles * 2 / 3);
         partition = scoredArticles.slice(startIndex, Math.max(endIndex, startIndex + limit));
+        categoryLabel = 'featured';
       } else {
-        // 30d: Last third of scored articles (still relevant, different content)
+        // More: Last third of scored articles (still relevant, different content)
         const startIndex = Math.ceil(totalArticles * 2 / 3);
         partition = scoredArticles.slice(startIndex);
+        categoryLabel = 'more';
       }
 
       // If partition is too small, expand it
@@ -342,11 +348,10 @@ export async function GET(request: Request) {
 
       // Already sorted by score within partition
       finalHeadlines = partition.slice(0, limit);
-      isTimeframeSpecific = true;
     } else {
       // No headlines at all, use fallback
       finalHeadlines = getFallbackHeadlines();
-      isTimeframeSpecific = false;
+      categoryLabel = 'fallback';
     }
 
     // Deduplicate by title (some feeds may have same story)
@@ -360,17 +365,17 @@ export async function GET(request: Request) {
 
     return NextResponse.json({
       headlines: finalHeadlines,
-      timeframe,
+      category: categoryLabel,
       count: finalHeadlines.length,
-      _timeframeMatch: isTimeframeSpecific,
       _cachedArticles: articleCache?.articles.length || 0,
+      _note: 'Categories show different articles ranked by importance. RSS feeds only contain recent articles.',
     });
   } catch (error) {
     console.error('News headlines API error:', error);
     // Return fallback instead of error
     return NextResponse.json({
       headlines: getFallbackHeadlines(),
-      timeframe: '24h',
+      category: 'fallback',
       count: 4,
       _fallback: true,
     });
