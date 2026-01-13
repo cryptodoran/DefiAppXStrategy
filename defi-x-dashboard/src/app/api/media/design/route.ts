@@ -12,10 +12,14 @@ interface DesignRequest {
   height?: number;
 }
 
-// Official Defi App logo as SVG - circle with notch at top-right (like a progress indicator at 80%)
+// Official Defi App logo as SVG - crosshair/target style with 4 arc segments and center dot
 // This is injected directly into generated designs to ensure consistency
-const DEFI_APP_LOGO_SVG = `<svg viewBox="0 0 24 24" width="22" height="22" style="display:inline-block;vertical-align:middle;margin-right:8px;">
-  <path d="M12 2 A10 10 0 1 1 5.1 5.1" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+const DEFI_APP_LOGO_SVG = `<svg viewBox="0 0 24 24" width="24" height="24" style="display:inline-block;vertical-align:middle;margin-right:8px;">
+  <path d="M 14.5 2.2 A 10 10 0 0 1 21.8 9.5" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round"/>
+  <path d="M 21.8 14.5 A 10 10 0 0 1 14.5 21.8" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round"/>
+  <path d="M 9.5 21.8 A 10 10 0 0 1 2.2 14.5" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round"/>
+  <path d="M 2.2 9.5 A 10 10 0 0 1 9.5 2.2" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round"/>
+  <circle cx="12" cy="12" r="3" fill="white"/>
 </svg>`;
 
 // The complete logo HTML block to inject at top center of designs
