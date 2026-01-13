@@ -61,11 +61,22 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Use Flux Schnell (fast) or Flux Dev (higher quality)
-    // flux-schnell is faster and cheaper, flux-dev is higher quality
-    const model = 'black-forest-labs/flux-schnell';
+    // Use Flux Pro for highest quality
+    // Remove any text/word instructions from prompt - AI is bad at rendering text
+    const cleanPrompt = enhancedPrompt
+      .replace(/with text ['"][^'"]*['"]/gi, '')
+      .replace(/text overlay[^,.]*/gi, '')
+      .replace(/labeled ['"][^'"]*['"]/gi, '')
+      .replace(/saying ['"][^'"]*['"]/gi, '')
+      .replace(/caption[^,.]*/gi, '')
+      .replace(/words? ['"][^'"]*['"]/gi, '')
+      .replace(/\s+/g, ' ')
+      .trim();
 
-    // Create prediction
+    // Add instruction to avoid text
+    const finalPrompt = `${cleanPrompt}, no text, no words, no letters, no labels, clean image`;
+
+    // Create prediction with Flux Pro
     const createResponse = await fetch('https://api.replicate.com/v1/predictions', {
       method: 'POST',
       headers: {
@@ -73,13 +84,15 @@ export async function POST(request: NextRequest) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        version: 'black-forest-labs/flux-schnell',
+        version: 'black-forest-labs/flux-pro',
         input: {
-          prompt: enhancedPrompt,
+          prompt: finalPrompt,
           num_outputs: 1,
           aspect_ratio: width === height ? '1:1' : width > height ? '16:9' : '9:16',
           output_format: 'webp',
-          output_quality: 90,
+          output_quality: 95,
+          guidance: 3.5,
+          steps: 50,
         },
       }),
     });
@@ -135,7 +148,7 @@ export async function POST(request: NextRequest) {
       style,
       width,
       height,
-      provider: 'flux-schnell',
+      provider: 'flux-pro',
       predictionId: prediction.id,
     });
   } catch (error) {

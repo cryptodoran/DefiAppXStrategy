@@ -17,13 +17,13 @@ const TRACKED_ACCOUNTS = [
   'TheBlock__', 'CoinDesk', 'Blockworks_',
 ];
 
-// Minimum engagement thresholds for "viral"
+// Minimum engagement thresholds for "viral" - kept low to ensure we get real data
 const VIRAL_THRESHOLDS = {
-  '1h': { likes: 100, retweets: 20 },
-  '6h': { likes: 500, retweets: 100 },
-  '24h': { likes: 1000, retweets: 200 },
-  '7d': { likes: 5000, retweets: 1000 },
-  '30d': { likes: 10000, retweets: 2000 },
+  '1h': { likes: 10, retweets: 2 },
+  '6h': { likes: 25, retweets: 5 },
+  '24h': { likes: 50, retweets: 10 },
+  '7d': { likes: 100, retweets: 20 },
+  '30d': { likes: 200, retweets: 40 },
 };
 
 interface ViralTweet {
@@ -109,12 +109,10 @@ export async function GET(request: Request) {
 
     // Check if Twitter API is configured
     if (!process.env.TWITTER_BEARER_TOKEN) {
-      // Return sample data for demo
-      return NextResponse.json({
-        tweets: getSampleViralTweets(timeframe, category, limit),
-        _demo: true,
-        _message: 'Configure TWITTER_BEARER_TOKEN for real viral tweets',
-      });
+      return NextResponse.json(
+        { error: 'Twitter API not configured. Add TWITTER_BEARER_TOKEN environment variable.' },
+        { status: 503 }
+      );
     }
 
     const client = new TwitterApi(process.env.TWITTER_BEARER_TOKEN);
@@ -215,11 +213,8 @@ export async function GET(request: Request) {
         const metrics = tweet.public_metrics;
         if (!metrics) continue;
 
-        // Check if meets viral threshold
-        if (metrics.like_count < threshold.likes && metrics.retweet_count < threshold.retweets) {
-          continue;
-        }
-
+        // Include all tweets, sorted by engagement (no longer filtering by threshold)
+        // This ensures we always return real data
         const author = usersById.get(tweet.author_id || '');
         if (!author) continue;
 
@@ -298,135 +293,20 @@ export async function GET(request: Request) {
 
     viralTweets.sort(sortFunctions[sortBy] || sortFunctions.viralScore);
 
-    // If no viral tweets found, return sample data
-    if (viralTweets.length === 0) {
-      return NextResponse.json({
-        tweets: getSampleViralTweets(timeframe, category, limit),
-        _demo: true,
-        _message: 'No viral tweets found matching thresholds - showing sample data',
-      });
-    }
-
+    // Return real data - empty array if nothing found
     return NextResponse.json({
       tweets: viralTweets.slice(0, limit),
       total: viralTweets.length,
       timeframe,
       threshold,
+      _note: viralTweets.length === 0 ? 'No tweets found matching criteria in this timeframe' : undefined,
     });
   } catch (error) {
     console.error('Viral tweets API error:', error);
-    // Fall back to demo data on error
-    const { searchParams } = new URL(request.url);
-    const timeframe = (searchParams.get('timeframe') || '24h') as keyof typeof VIRAL_THRESHOLDS;
-    const category = searchParams.get('category');
-    const limit = Math.min(parseInt(searchParams.get('limit') || '20'), 50);
-
-    return NextResponse.json({
-      tweets: getSampleViralTweets(timeframe, category, limit),
-      _demo: true,
-      _error: String(error),
-      _message: 'Twitter API error - showing sample data',
-    });
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : 'Failed to fetch viral tweets' },
+      { status: 500 }
+    );
   }
 }
 
-// Sample data for demo mode - uses proper tweet URL format
-function getSampleViralTweets(timeframe: string, category: string | null, limit: number): ViralTweet[] {
-  // Generate dynamic timestamps based on current time
-  const now = Date.now();
-
-  const sampleTweets: ViralTweet[] = [
-    {
-      id: 'demo-vitalik-1',
-      author: {
-        handle: 'VitalikButerin',
-        name: 'vitalik.eth',
-        avatar: 'https://pbs.twimg.com/profile_images/1747374647399936000/bHQKqOYd_normal.jpg',
-        followers: 5400000,
-        verified: true,
-      },
-      content: 'The next major Ethereum upgrade focuses on improving the user experience. We\'re working on account abstraction, better L2 interop, and statelessness. The goal is to make Ethereum feel seamless.',
-      metrics: { likes: 45000, retweets: 12000, quotes: 3500, replies: 8900, views: 2500000 },
-      velocity: { likesPerHour: 2250, retweetsPerHour: 600 },
-      postedAt: new Date(now - 2 * 60 * 60 * 1000).toISOString(),
-      tweetUrl: 'https://x.com/VitalikButerin/status/1876616158936027542',
-      viralScore: 98,
-      category: 'thread',
-    },
-    {
-      id: 'demo-lookonchain-1',
-      author: {
-        handle: 'lookonchain',
-        name: 'Lookonchain',
-        avatar: 'https://pbs.twimg.com/profile_images/1640000000000000000/lookonchain_normal.jpg',
-        followers: 580000,
-        verified: true,
-      },
-      content: '🚨 BREAKING: Major whale activity detected!\n\nA smart money wallet just accumulated a significant position.\n\nFollow the smart money. Track on-chain data. Stay informed.',
-      metrics: { likes: 28000, retweets: 8500, quotes: 2100, replies: 4200, views: 1800000 },
-      velocity: { likesPerHour: 4666, retweetsPerHour: 1416 },
-      postedAt: new Date(now - 45 * 60 * 1000).toISOString(), // 45 mins ago
-      tweetUrl: 'https://x.com/lookonchain/status/1876543210987654321',
-      viralScore: 95,
-      category: 'news',
-    },
-    {
-      id: 'demo-uniswap-1',
-      author: {
-        handle: 'Uniswap',
-        name: 'Uniswap Labs',
-        avatar: 'https://pbs.twimg.com/profile_images/1620000000000000000/uniswap_normal.jpg',
-        followers: 1100000,
-        verified: true,
-      },
-      content: 'Uniswap continues to lead DeFi trading.\n\nHooks. Innovation. User experience.\n\nThe future of decentralized exchange is being built every day.',
-      metrics: { likes: 52000, retweets: 15000, quotes: 5500, replies: 3200, views: 3200000 },
-      velocity: { likesPerHour: 2166, retweetsPerHour: 625 },
-      postedAt: new Date(now - 4 * 60 * 60 * 1000).toISOString(), // 4 hours ago
-      tweetUrl: 'https://x.com/Uniswap/status/1876432109876543210',
-      viralScore: 92,
-      category: 'defi',
-    },
-    {
-      id: 'demo-brian-1',
-      author: {
-        handle: 'brian_armstrong',
-        name: 'Brian Armstrong',
-        avatar: 'https://pbs.twimg.com/profile_images/1600000000000000000/brian_normal.jpg',
-        followers: 1400000,
-        verified: true,
-      },
-      content: 'Crypto is going mainstream.\n\nMore institutions, more adoption, more innovation.\n\nThe US needs clear regulation to stay competitive in this space.',
-      metrics: { likes: 35000, retweets: 9800, quotes: 4200, replies: 6500, views: 2100000 },
-      velocity: { likesPerHour: 1458, retweetsPerHour: 408 },
-      postedAt: new Date(now - 8 * 60 * 60 * 1000).toISOString(), // 8 hours ago
-      tweetUrl: 'https://x.com/brian_armstrong/status/1876321098765432109',
-      viralScore: 88,
-      category: 'general',
-    },
-    {
-      id: 'demo-defillama-1',
-      author: {
-        handle: 'DefiLlama',
-        name: 'DefiLlama',
-        avatar: 'https://pbs.twimg.com/profile_images/1580000000000000000/defillama_normal.jpg',
-        followers: 450000,
-        verified: true,
-      },
-      content: 'DeFi TVL continues to grow.\n\nTop chains by TVL:\n• Ethereum\n• Solana\n• BSC\n• Arbitrum\n\nTrack all the data at defillama.com',
-      metrics: { likes: 18500, retweets: 5200, quotes: 1800, replies: 2100, views: 950000 },
-      velocity: { likesPerHour: 1541, retweetsPerHour: 433 },
-      postedAt: new Date(now - 3 * 60 * 60 * 1000).toISOString(), // 3 hours ago
-      tweetUrl: 'https://x.com/DefiLlama/status/1876210987654321098',
-      viralScore: 85,
-      category: 'defi',
-    },
-  ];
-
-  // Filter by category if specified
-  let filtered = category && category !== 'all'
-    ? sampleTweets.filter(t => t.category === category)
-    : sampleTweets;
-
-  return filtered.slice(0, limit);
-}
