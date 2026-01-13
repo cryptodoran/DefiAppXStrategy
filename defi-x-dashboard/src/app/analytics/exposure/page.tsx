@@ -14,11 +14,7 @@ import {
   Quote,
   Info,
 } from 'lucide-react';
-import {
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-} from '@/components/ui/chart';
+import { Tooltip } from 'recharts';
 import { AreaChart, Area, XAxis, YAxis, ResponsiveContainer, BarChart, Bar } from 'recharts';
 import { AppLayout } from '@/components/layout/app-layout';
 
@@ -202,7 +198,7 @@ export default function ExposureBudgetPage() {
                   </defs>
                   <XAxis dataKey="hour" stroke="#71717a" fontSize={12} />
                   <YAxis stroke="#71717a" fontSize={12} domain={[0, 100]} />
-                  <ChartTooltip content={<ChartTooltipContent />} />
+                  <Tooltip contentStyle={{ backgroundColor: '#1a1a2e', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px' }} />
                   <Area
                     type="monotone"
                     dataKey="used"
@@ -227,7 +223,7 @@ export default function ExposureBudgetPage() {
                 <BarChart data={exposureData.weeklyTrend}>
                   <XAxis dataKey="day" stroke="#71717a" fontSize={12} />
                   <YAxis stroke="#71717a" fontSize={12} domain={[0, 100]} />
-                  <ChartTooltip content={<ChartTooltipContent />} />
+                  <Tooltip contentStyle={{ backgroundColor: '#1a1a2e', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px' }} />
                   <Bar dataKey="used" fill="#3b82f6" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>

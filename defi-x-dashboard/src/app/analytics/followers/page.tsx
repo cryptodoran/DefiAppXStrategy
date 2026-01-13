@@ -20,11 +20,7 @@ import {
   RefreshCw,
   AlertCircle,
 } from 'lucide-react';
-import {
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-} from '@/components/ui/chart';
+import { Tooltip } from 'recharts';
 import { AreaChart, Area, XAxis, YAxis, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { AppLayout } from '@/components/layout/app-layout';
 
@@ -323,7 +319,7 @@ export default function FollowerAnalyticsPage() {
                     </defs>
                     <XAxis dataKey="date" stroke="#71717a" fontSize={12} />
                     <YAxis stroke="#71717a" fontSize={12} tickFormatter={formatNumber} />
-                    <ChartTooltip content={<ChartTooltipContent />} />
+                    <Tooltip contentStyle={{ backgroundColor: '#1a1a2e', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px' }} />
                     <Area
                       type="monotone"
                       dataKey="followers"
