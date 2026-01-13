@@ -16,6 +16,7 @@ import {
   Trophy,
 } from 'lucide-react';
 import { AppLayout } from '@/components/layout/app-layout';
+import { useRouter } from 'next/navigation';
 import { useToast } from '@/components/ui/toast';
 
 // Mock data
@@ -140,15 +141,17 @@ const weeklyProgress = [
 ];
 
 export default function PathTo1Page() {
+  const router = useRouter();
   const requiredGrowthRate = 12.5; // % per month to reach #1 in 6 months
   const { addToast } = useToast();
 
   const handleGenerateActionPlan = () => {
     addToast({
-      type: 'success',
-      title: 'Generating Action Plan',
-      description: 'Your weekly action plan is being created...',
+      type: 'info',
+      title: 'Opening Content Creator',
+      description: 'Creating your weekly growth action plan...',
     });
+    router.push('/create/thread?topic=' + encodeURIComponent('Weekly Growth Action Plan - Path to #1'));
   };
 
   const getStatusBadge = (status: string) => {

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -20,8 +20,21 @@ import {
 import { AppLayout } from '@/components/layout/app-layout';
 import { useToast } from '@/components/ui/toast';
 
-// Mock algorithm data
-const algorithmFactors = [
+interface AlgorithmFactor {
+  id: string;
+  category: string;
+  factorName: string;
+  understanding: string;
+  confidence: number;
+  impact: number;
+  source: string;
+  lastUpdated: Date;
+  verified: boolean;
+  trend: string;
+}
+
+// Fallback data when API unavailable
+const fallbackFactors: AlgorithmFactor[] = [
   {
     id: '1',
     category: 'EXPOSURE_ALLOCATION',
@@ -124,21 +137,69 @@ const trackedResearchers = [
   { handle: '@dickiebush', focus: 'Thread optimization', reliability: 'medium' },
 ];
 
+// Fetch algorithm insights from API
+async function fetchAlgorithmInsights(): Promise<AlgorithmFactor[]> {
+  try {
+    const response = await fetch('/api/research/algorithm');
+    const data = await response.json();
+
+    if (data.insights) {
+      return data.insights.map((insight: { id: string; factorName: string; understanding: string; confidence: number; category: string; impact: number; source: string; isVerified: boolean }) => ({
+        id: insight.id,
+        category: insight.category,
+        factorName: insight.factorName,
+        understanding: insight.understanding,
+        confidence: insight.confidence,
+        impact: insight.impact,
+        source: insight.source,
+        lastUpdated: new Date(),
+        verified: insight.isVerified,
+        trend: 'stable',
+      }));
+    }
+
+    return fallbackFactors;
+  } catch (error) {
+    console.error('Failed to fetch algorithm insights:', error);
+    return fallbackFactors;
+  }
+}
+
 export default function AlgorithmIntelPage() {
   const [activeCategory, setActiveCategory] = useState<string>('all');
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [algorithmFactors, setAlgorithmFactors] = useState<AlgorithmFactor[]>(fallbackFactors);
+  const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
   const { addToast } = useToast();
 
-  const handleRefreshIntel = () => {
+  // Load data on mount
+  useEffect(() => {
+    fetchAlgorithmInsights().then(factors => {
+      setAlgorithmFactors(factors);
+      setLastUpdated(new Date());
+    });
+  }, []);
+
+  const handleRefreshIntel = async () => {
     setIsRefreshing(true);
-    setTimeout(() => {
-      setIsRefreshing(false);
+    try {
+      const factors = await fetchAlgorithmInsights();
+      setAlgorithmFactors(factors);
+      setLastUpdated(new Date());
       addToast({
         type: 'success',
         title: 'Intel refreshed',
         description: 'Algorithm insights updated with latest data',
       });
-    }, 1500);
+    } catch (error) {
+      addToast({
+        type: 'error',
+        title: 'Refresh failed',
+        description: 'Could not update algorithm insights',
+      });
+    } finally {
+      setIsRefreshing(false);
+    }
   };
 
   const handleViewResearcher = (handle: string) => {
