@@ -1,5 +1,6 @@
 'use client';
 
+import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -14,10 +15,64 @@ import {
   Circle,
   ArrowRight,
   Trophy,
+  RefreshCw,
+  AlertCircle,
+  Flame,
+  Clock,
 } from 'lucide-react';
 import { AppLayout } from '@/components/layout/app-layout';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/components/ui/toast';
+
+// Types for API response
+interface StrategyData {
+  currentMetrics: {
+    followers: number;
+    engagementRate: number;
+    tweetsPerWeek: number;
+    avgLikes: number;
+    avgRetweets: number;
+  };
+  ranking: {
+    position: number;
+    totalAccounts: number;
+    gapTo1: number;
+  };
+  strategies: {
+    category: string;
+    recommendations: {
+      action: string;
+      impact: string;
+      effort: string;
+      status: string;
+      reasoning?: string;
+    }[];
+  }[];
+  weeklyPlan: {
+    day: string;
+    content: string;
+    type: string;
+    optimalTime: string;
+  }[];
+  viralPatterns: {
+    pattern: string;
+    effectiveness: number;
+    example: string;
+  }[];
+  competitorInsights: {
+    account: string;
+    strength: string;
+    weakness: string;
+    opportunity: string;
+  }[];
+  _demo?: boolean;
+}
+
+async function fetchStrategy(): Promise<StrategyData> {
+  const response = await fetch('/api/strategy/path-to-1');
+  if (!response.ok) throw new Error('Failed to fetch strategy');
+  return response.json();
+}
 
 // Mock data
 const currentRanking = {
@@ -142,8 +197,30 @@ const weeklyProgress = [
 
 export default function PathTo1Page() {
   const router = useRouter();
-  const requiredGrowthRate = 12.5; // % per month to reach #1 in 6 months
   const { addToast } = useToast();
+
+  const { data: strategy, isLoading, error, refetch, isFetching } = useQuery({
+    queryKey: ['path-to-1-strategy'],
+    queryFn: fetchStrategy,
+    staleTime: 10 * 60 * 1000, // 10 minutes
+  });
+
+  // Use API data or fallback to mock data
+  const currentRankingData = strategy ? {
+    position: strategy.ranking.position,
+    totalDeFiAccounts: strategy.ranking.totalAccounts,
+    followerCount: strategy.currentMetrics.followers,
+    leadingAccount: '@uniswap',
+    leadingFollowers: strategy.currentMetrics.followers + strategy.ranking.gapTo1,
+    gap: strategy.ranking.gapTo1,
+  } : currentRanking;
+
+  const strategiesData = strategy?.strategies || strategies;
+  const requiredGrowthRate = strategy
+    ? Math.min(Math.round((strategy.ranking.gapTo1 / strategy.currentMetrics.followers / 6) * 100), 25)
+    : 12.5;
+
+  const isLive = strategy && !strategy._demo;
 
   const handleGenerateActionPlan = () => {
     addToast({
@@ -151,8 +228,58 @@ export default function PathTo1Page() {
       title: 'Opening Content Creator',
       description: 'Creating your weekly growth action plan...',
     });
-    router.push('/create/thread?topic=' + encodeURIComponent('Weekly Growth Action Plan - Path to #1'));
+    router.push('/create?topic=' + encodeURIComponent('Weekly Growth Action Plan - Path to #1'));
   };
+
+  if (isLoading) {
+    return (
+      <AppLayout>
+        <div className="space-y-6">
+          <div className="flex items-center gap-3">
+            <h1 className="text-2xl font-bold text-white flex items-center gap-2">
+              <Trophy className="h-6 w-6 text-yellow-400" />
+              Path to #1
+            </h1>
+            <span className="text-xs text-tertiary flex items-center gap-1">
+              <RefreshCw className="h-3 w-3 animate-spin" />
+              Loading strategy...
+            </span>
+          </div>
+          <div className="grid gap-4 md:grid-cols-4">
+            {[1, 2, 3, 4].map((i) => (
+              <Card key={i} className="bg-surface border-white/5 animate-pulse">
+                <CardContent className="pt-4">
+                  <div className="h-20 bg-elevated rounded" />
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </AppLayout>
+    );
+  }
+
+  if (error) {
+    return (
+      <AppLayout>
+        <div className="space-y-6">
+          <h1 className="text-2xl font-bold text-white flex items-center gap-2">
+            <Trophy className="h-6 w-6 text-yellow-400" />
+            Path to #1
+          </h1>
+          <Card className="bg-red-500/10 border-red-500/20">
+            <CardContent className="py-8 text-center">
+              <AlertCircle className="h-8 w-8 text-red-400 mx-auto mb-2" />
+              <p className="text-red-400">Failed to load strategy</p>
+              <Button variant="outline" className="mt-4" onClick={() => refetch()}>
+                Try Again
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </AppLayout>
+    );
+  }
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -184,14 +311,32 @@ export default function PathTo1Page() {
     <AppLayout>
     <div className="space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-white flex items-center gap-2">
-          <Trophy className="h-6 w-6 text-yellow-400" />
-          Path to #1
-        </h1>
-        <p className="text-tertiary">
-          Strategic roadmap to become the #1 DeFi account on Crypto Twitter
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <div className="flex items-center gap-3">
+            <h1 className="text-2xl font-bold text-white flex items-center gap-2">
+              <Trophy className="h-6 w-6 text-yellow-400" />
+              Path to #1
+            </h1>
+            {isLive ? (
+              <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-green-500/20 text-green-400 flex items-center gap-1">
+                <CheckCircle className="h-3 w-3" />
+                AI Strategy
+              </span>
+            ) : (
+              <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-yellow-500/20 text-yellow-400">
+                Sample Strategy
+              </span>
+            )}
+          </div>
+          <p className="text-tertiary">
+            Strategic roadmap to become the #1 DeFi account on Crypto Twitter
+          </p>
+        </div>
+        <Button variant="outline" onClick={() => refetch()} disabled={isFetching}>
+          <RefreshCw className={cn("mr-2 h-4 w-4", isFetching && "animate-spin")} />
+          {isFetching ? 'Refreshing...' : 'Refresh'}
+        </Button>
       </div>
 
       {/* Current Position */}
@@ -200,8 +345,8 @@ export default function PathTo1Page() {
           <CardContent className="pt-4">
             <p className="text-sm text-tertiary">Current Ranking</p>
             <div className="flex items-baseline gap-1">
-              <span className="text-3xl font-bold text-white">#{currentRanking.position}</span>
-              <span className="text-tertiary">/ {currentRanking.totalDeFiAccounts}</span>
+              <span className="text-3xl font-bold text-white">#{currentRankingData.position}</span>
+              <span className="text-tertiary">/ {currentRankingData.totalDeFiAccounts}</span>
             </div>
           </CardContent>
         </Card>
@@ -209,7 +354,7 @@ export default function PathTo1Page() {
           <CardContent className="pt-4">
             <p className="text-sm text-tertiary">Current Followers</p>
             <p className="text-3xl font-bold text-white">
-              {currentRanking.followerCount.toLocaleString()}
+              {currentRankingData.followerCount.toLocaleString()}
             </p>
           </CardContent>
         </Card>
@@ -217,9 +362,9 @@ export default function PathTo1Page() {
           <CardContent className="pt-4">
             <p className="text-sm text-tertiary">Gap to #1</p>
             <p className="text-3xl font-bold text-red-400">
-              {currentRanking.gap.toLocaleString()}
+              {currentRankingData.gap.toLocaleString()}
             </p>
-            <p className="text-xs text-tertiary">{currentRanking.leadingAccount}</p>
+            <p className="text-xs text-tertiary">{currentRankingData.leadingAccount}</p>
           </CardContent>
         </Card>
         <Card className="bg-surface border-white/5">
@@ -252,12 +397,12 @@ export default function PathTo1Page() {
                   <div
                     className={cn(
                       'h-8 w-8 rounded-full border-2 flex items-center justify-center z-10',
-                      currentRanking.followerCount >= milestone.followers
+                      currentRankingData.followerCount >= milestone.followers
                         ? 'bg-green-500 border-green-500'
                         : 'bg-surface border-white/10'
                     )}
                   >
-                    {currentRanking.followerCount >= milestone.followers ? (
+                    {currentRankingData.followerCount >= milestone.followers ? (
                       <CheckCircle className="h-4 w-4 text-white" />
                     ) : (
                       <Circle className="h-4 w-4 text-tertiary" />
@@ -276,7 +421,7 @@ export default function PathTo1Page() {
 
       {/* Strategic Recommendations */}
       <div className="grid gap-6 lg:grid-cols-2">
-        {strategies.map((strategy) => (
+        {strategiesData.map((strategy) => (
           <Card key={strategy.category} className="bg-surface border-white/5">
             <CardHeader>
               <CardTitle className="text-white">{strategy.category} Strategy</CardTitle>
@@ -339,6 +484,101 @@ export default function PathTo1Page() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Viral Patterns */}
+      {strategy?.viralPatterns && strategy.viralPatterns.length > 0 && (
+        <Card className="bg-surface border-white/5">
+          <CardHeader>
+            <CardTitle className="text-white flex items-center gap-2">
+              <Flame className="h-5 w-5 text-orange-400" />
+              Viral Content Patterns
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {strategy.viralPatterns.map((pattern, index) => (
+                <div key={index} className="flex items-center justify-between p-3 rounded-lg bg-base">
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-white">{pattern.pattern}</p>
+                    <p className="text-xs text-tertiary mt-1">Example: "{pattern.example}"</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-24 h-2 bg-elevated rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-gradient-to-r from-orange-500 to-red-500 rounded-full"
+                        style={{ width: `${pattern.effectiveness}%` }}
+                      />
+                    </div>
+                    <span className="text-sm font-medium text-orange-400">{pattern.effectiveness}%</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Weekly Content Plan */}
+      {strategy?.weeklyPlan && strategy.weeklyPlan.length > 0 && (
+        <Card className="bg-surface border-white/5">
+          <CardHeader>
+            <CardTitle className="text-white flex items-center gap-2">
+              <Calendar className="h-5 w-5" />
+              Weekly Content Plan
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-3 md:grid-cols-7">
+              {strategy.weeklyPlan.map((day, index) => (
+                <div key={index} className="p-3 rounded-lg bg-base">
+                  <p className="text-xs font-medium text-violet-400 mb-1">{day.day}</p>
+                  <p className="text-sm text-secondary">{day.content}</p>
+                  <div className="flex items-center gap-1 mt-2">
+                    <Clock className="h-3 w-3 text-tertiary" />
+                    <span className="text-[10px] text-tertiary">{day.optimalTime}</span>
+                  </div>
+                  <Badge className="mt-2 text-[10px] bg-white/5 text-tertiary">{day.type}</Badge>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Competitor Insights */}
+      {strategy?.competitorInsights && strategy.competitorInsights.length > 0 && (
+        <Card className="bg-surface border-white/5">
+          <CardHeader>
+            <CardTitle className="text-white flex items-center gap-2">
+              <Users className="h-5 w-5" />
+              Competitor Analysis
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-4 md:grid-cols-3">
+              {strategy.competitorInsights.map((competitor, index) => (
+                <div key={index} className="p-4 rounded-lg bg-base">
+                  <p className="text-sm font-medium text-white mb-3">{competitor.account}</p>
+                  <div className="space-y-2">
+                    <div>
+                      <p className="text-[10px] text-green-400 font-medium">Strength</p>
+                      <p className="text-xs text-tertiary">{competitor.strength}</p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] text-red-400 font-medium">Weakness</p>
+                      <p className="text-xs text-tertiary">{competitor.weakness}</p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] text-blue-400 font-medium">Opportunity</p>
+                      <p className="text-xs text-tertiary">{competitor.opportunity}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Action Button */}
       <Card className="bg-gradient-to-r from-violet-900/50 to-indigo-900/50 border-white/5">

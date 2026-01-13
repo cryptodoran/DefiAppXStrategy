@@ -24,6 +24,8 @@ import {
   CheckCircle,
   AlertCircle,
   ExternalLink,
+  Users,
+  Quote,
 } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, ResponsiveContainer, Tooltip } from 'recharts';
 import { AppLayout } from '@/components/layout/app-layout';
@@ -37,6 +39,24 @@ interface Tweet {
   impressions?: number;
   createdAt: string;
 }
+
+interface KOLEngagement {
+  handle: string;
+  name: string;
+  action: 'like' | 'retweet' | 'reply' | 'quote';
+  followers: number;
+  tweetId: string;
+  timestamp: string;
+}
+
+// Sample KOL engagements for demo mode
+const SAMPLE_KOL_ENGAGEMENTS: KOLEngagement[] = [
+  { handle: '@sassal0x', name: 'sassal.eth', action: 'retweet', followers: 165000, tweetId: 'sample-1', timestamp: '2h ago' },
+  { handle: '@DefiIgnas', name: 'Ignas | DeFi', action: 'like', followers: 385000, tweetId: 'sample-1', timestamp: '3h ago' },
+  { handle: '@thedefiedge', name: 'The DeFi Edge', action: 'reply', followers: 390000, tweetId: 'sample-2', timestamp: '5h ago' },
+  { handle: '@Route2FI', name: 'Route 2 FI', action: 'quote', followers: 425000, tweetId: 'sample-3', timestamp: '8h ago' },
+  { handle: '@Pentosh1', name: 'Pentoshi', action: 'like', followers: 720000, tweetId: 'sample-3', timestamp: '12h ago' },
+];
 
 interface TwitterUserData {
   id: string;
@@ -263,6 +283,68 @@ export default function PostPerformancePage() {
             </CardContent>
           </Card>
         </div>
+
+        {/* KOL Engagements */}
+        <Card className="bg-surface border-white/5">
+          <CardHeader>
+            <CardTitle className="text-white flex items-center gap-2">
+              <Users className="h-5 w-5 text-violet-400" />
+              Notable Engagements
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {SAMPLE_KOL_ENGAGEMENTS.map((engagement, index) => (
+                <div
+                  key={index}
+                  className="flex items-center justify-between p-3 rounded-lg bg-base hover:bg-elevated transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-full bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center">
+                      <span className="text-white font-bold text-sm">{engagement.name[0]}</span>
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium text-white">{engagement.name}</span>
+                        <span className="text-xs text-tertiary">{engagement.handle}</span>
+                      </div>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        <span className="text-xs text-tertiary">{formatNumber(engagement.followers)} followers</span>
+                        <span className="text-xs text-tertiary">·</span>
+                        <span className="text-xs text-tertiary">{engagement.timestamp}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Badge className={cn(
+                      'text-xs',
+                      engagement.action === 'retweet' && 'bg-green-500/20 text-green-400',
+                      engagement.action === 'like' && 'bg-pink-500/20 text-pink-400',
+                      engagement.action === 'reply' && 'bg-blue-500/20 text-blue-400',
+                      engagement.action === 'quote' && 'bg-purple-500/20 text-purple-400'
+                    )}>
+                      {engagement.action === 'retweet' && <Repeat2 className="h-3 w-3 mr-1" />}
+                      {engagement.action === 'like' && <Heart className="h-3 w-3 mr-1" />}
+                      {engagement.action === 'reply' && <MessageCircle className="h-3 w-3 mr-1" />}
+                      {engagement.action === 'quote' && <Quote className="h-3 w-3 mr-1" />}
+                      {engagement.action}
+                    </Badge>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => window.open(`https://twitter.com/${engagement.handle.replace('@', '')}`, '_blank')}
+                    >
+                      <ExternalLink className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <p className="text-xs text-tertiary mt-4 text-center">
+              {isLive ? 'Live engagement data from Twitter API' : 'Sample data - configure TWITTER_BEARER_TOKEN for live tracking'}
+            </p>
+          </CardContent>
+        </Card>
 
         {/* Posts List */}
         <Card className="bg-surface border-white/5">

@@ -11,7 +11,7 @@ interface DailySuggestion {
   spiceLevel: number;
 }
 
-// Fallback suggestions when API not configured - these link to real actions
+// Fallback suggestions matching @defiapp voice - casual, direct, confident
 function getFallbackSuggestions(): DailySuggestion[] {
   const now = new Date();
   const hour = now.getHours();
@@ -22,44 +22,54 @@ function getFallbackSuggestions(): DailySuggestion[] {
     hour < 12 ? '12:00 PM EST' : '4:00 PM EST',
     'Within 2 hours',
     hour < 16 ? '4:00 PM EST' : '9:00 AM EST tomorrow',
+    hour < 18 ? '7:00 PM EST' : '11:00 AM EST tomorrow',
   ];
 
   return [
     {
       id: `suggestion-${Date.now()}-1`,
-      content: 'Share insights on the latest DeFi developments - aggregators, yield optimization, and cross-chain bridging are hot topics right now.',
-      type: 'TRENDING',
-      predictedPerformance: 75,
+      content: 'someone compared swap fees across protocols and we came out on top. again. maybe flex that.',
+      type: 'PRODUCT_UPDATE',
+      predictedPerformance: 78,
       optimalTime: times[0],
-      source: 'DeFi trend analysis',
-      spiceLevel: 4,
+      source: 'Product wins',
+      spiceLevel: 5,
     },
     {
       id: `suggestion-${Date.now()}-2`,
-      content: 'Create a thread explaining how DeFi App saves users money on swaps through smart routing and aggregation.',
-      type: 'PRODUCT_UPDATE',
-      predictedPerformance: 70,
-      optimalTime: times[1],
-      source: 'Product feature highlight',
-      spiceLevel: 3,
+      content: 'hot take: most "defi protocols" are just expensive middlemen with extra steps. we\'re not.',
+      type: 'HOT_TAKE',
+      predictedPerformance: 85,
+      optimalTime: times[2],
+      source: 'Spicy content performs well',
+      spiceLevel: 8,
     },
     {
       id: `suggestion-${Date.now()}-3`,
-      content: 'Hot take: Share a contrarian view on a trending crypto narrative. Controversial but thoughtful takes drive engagement.',
-      type: 'HOT_TAKE',
-      predictedPerformance: 80,
-      optimalTime: times[2],
-      source: 'Engagement pattern',
-      spiceLevel: 7,
+      content: 'thread idea: how much people are actually losing to slippage and bad routing (spoiler: a lot)',
+      type: 'TRENDING',
+      predictedPerformance: 76,
+      optimalTime: times[1],
+      source: 'Educational threads convert',
+      spiceLevel: 4,
     },
     {
       id: `suggestion-${Date.now()}-4`,
-      content: 'Educational content: Break down a complex DeFi concept in simple terms. These threads get saved and shared.',
-      type: 'HISTORICAL_PATTERN',
+      content: 'new chain integration shipped. more routes = better rates. that\'s literally it.',
+      type: 'PRODUCT_UPDATE',
       predictedPerformance: 72,
       optimalTime: times[3],
-      source: 'Content performance data',
-      spiceLevel: 2,
+      source: 'Product update',
+      spiceLevel: 3,
+    },
+    {
+      id: `suggestion-${Date.now()}-5`,
+      content: 'why are people still paying 2% fees in 2026? genuine question.',
+      type: 'HOT_TAKE',
+      predictedPerformance: 82,
+      optimalTime: times[4],
+      source: 'Rhetorical questions perform',
+      spiceLevel: 6,
     },
   ];
 }
@@ -67,23 +77,35 @@ function getFallbackSuggestions(): DailySuggestion[] {
 async function generateAISuggestions(): Promise<DailySuggestion[]> {
   const voice = DEFAULT_DEFI_APP_VOICE;
 
-  const systemPrompt = `You are a social media strategist for DeFi App. Generate daily content suggestions that:
-1. Match DeFi App's voice: ${voice.tone.join(', ')}
-2. Cover different content types (trends, product, hot takes, educational)
-3. Have realistic performance predictions
-4. Include appropriate spice levels (1-10 scale)
+  const systemPrompt = `You are the social media strategist for @defiapp. Their voice is:
+- Casual, lowercase, direct
+- Confident but not arrogant
+- Slightly irreverent and witty
+- Data-driven when it matters
+- Never uses: "gm", "wagmi", "ser", "fren", "wen", "lfg", "probably nothing"
+- Never sounds like generic AI: avoid "revolutionary", "game-changing", "excited to announce"
 
-Current time context: ${new Date().toISOString()}`;
+Example tweets from @defiapp that perform well:
+- "best rates or something idk"
+- "why are you still paying 2% fees when you can get 0.1%?"
+- "we ship. you save. simple."
+- "hot take: most defi protocols are just expensive middlemen with extra steps"
 
-  const userPrompt = `Generate 5 daily tweet/content suggestions for DeFi App.
+Generate suggestions that SOUND LIKE THIS VOICE - casual, direct, sometimes spicy.`;
 
-For each suggestion, provide:
-- content: The suggestion (what to tweet about, not the actual tweet)
-- type: One of TRENDING, PRODUCT_UPDATE, COMPETITOR_GAP, HISTORICAL_PATTERN, HOT_TAKE
-- predictedPerformance: 60-95 (realistic score)
-- optimalTime: Specific time like "2:00 PM EST" or "Within 2 hours"
-- source: Where this insight comes from
-- spiceLevel: 1-10 (how controversial/bold)
+  const userPrompt = `Generate 5 daily tweet suggestions for @defiapp.
+
+These should be ACTUAL TWEET IDEAS in @defiapp's voice (casual, lowercase, direct), not generic marketing suggestions.
+
+For each:
+- content: The actual tweet idea in @defiapp's voice style
+- type: TRENDING | PRODUCT_UPDATE | COMPETITOR_GAP | HISTORICAL_PATTERN | HOT_TAKE
+- predictedPerformance: 65-90 (be realistic)
+- optimalTime: e.g., "2:00 PM EST" or "Within 2 hours"
+- source: Brief context
+- spiceLevel: 1-10
+
+CRITICAL: The content should sound like @defiapp wrote it - lowercase, casual, direct. NOT generic AI marketing speak.
 
 Return as JSON array.`;
 

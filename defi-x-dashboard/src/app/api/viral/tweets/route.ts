@@ -314,12 +314,14 @@ export async function GET(request: Request) {
   }
 }
 
-// Sample data for demo mode - uses REAL tweet URLs that actually work
+// Sample data for demo mode - uses proper tweet URL format
 function getSampleViralTweets(timeframe: string, category: string | null, limit: number): ViralTweet[] {
-  // These are REAL tweet URLs from actual crypto accounts
+  // Generate dynamic timestamps based on current time
+  const now = Date.now();
+
   const sampleTweets: ViralTweet[] = [
     {
-      id: '1876616158936027542',
+      id: 'demo-vitalik-1',
       author: {
         handle: 'VitalikButerin',
         name: 'vitalik.eth',
@@ -330,13 +332,13 @@ function getSampleViralTweets(timeframe: string, category: string | null, limit:
       content: 'The next major Ethereum upgrade focuses on improving the user experience. We\'re working on account abstraction, better L2 interop, and statelessness. The goal is to make Ethereum feel seamless.',
       metrics: { likes: 45000, retweets: 12000, quotes: 3500, replies: 8900, views: 2500000 },
       velocity: { likesPerHour: 2250, retweetsPerHour: 600 },
-      postedAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-      tweetUrl: 'https://x.com/VitalikButerin',
+      postedAt: new Date(now - 2 * 60 * 60 * 1000).toISOString(),
+      tweetUrl: 'https://x.com/VitalikButerin/status/1876616158936027542',
       viralScore: 98,
       category: 'thread',
     },
     {
-      id: '1876543210987654321',
+      id: 'demo-lookonchain-1',
       author: {
         handle: 'lookonchain',
         name: 'Lookonchain',
@@ -347,16 +349,16 @@ function getSampleViralTweets(timeframe: string, category: string | null, limit:
       content: '🚨 BREAKING: Major whale activity detected!\n\nA smart money wallet just accumulated a significant position.\n\nFollow the smart money. Track on-chain data. Stay informed.',
       metrics: { likes: 28000, retweets: 8500, quotes: 2100, replies: 4200, views: 1800000 },
       velocity: { likesPerHour: 4666, retweetsPerHour: 1416 },
-      postedAt: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(),
-      tweetUrl: 'https://x.com/lookonchain',
+      postedAt: new Date(now - 45 * 60 * 1000).toISOString(), // 45 mins ago
+      tweetUrl: 'https://x.com/lookonchain/status/1876543210987654321',
       viralScore: 95,
       category: 'news',
     },
     {
-      id: '1876432109876543210',
+      id: 'demo-uniswap-1',
       author: {
         handle: 'Uniswap',
-        name: 'Uniswap Labs 🦄',
+        name: 'Uniswap Labs',
         avatar: 'https://pbs.twimg.com/profile_images/1620000000000000000/uniswap_normal.jpg',
         followers: 1100000,
         verified: true,
@@ -364,13 +366,13 @@ function getSampleViralTweets(timeframe: string, category: string | null, limit:
       content: 'Uniswap continues to lead DeFi trading.\n\nHooks. Innovation. User experience.\n\nThe future of decentralized exchange is being built every day.',
       metrics: { likes: 52000, retweets: 15000, quotes: 5500, replies: 3200, views: 3200000 },
       velocity: { likesPerHour: 2166, retweetsPerHour: 625 },
-      postedAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-      tweetUrl: 'https://x.com/Uniswap',
+      postedAt: new Date(now - 4 * 60 * 60 * 1000).toISOString(), // 4 hours ago
+      tweetUrl: 'https://x.com/Uniswap/status/1876432109876543210',
       viralScore: 92,
       category: 'defi',
     },
     {
-      id: '1876321098765432109',
+      id: 'demo-brian-1',
       author: {
         handle: 'brian_armstrong',
         name: 'Brian Armstrong',
@@ -381,16 +383,16 @@ function getSampleViralTweets(timeframe: string, category: string | null, limit:
       content: 'Crypto is going mainstream.\n\nMore institutions, more adoption, more innovation.\n\nThe US needs clear regulation to stay competitive in this space.',
       metrics: { likes: 35000, retweets: 9800, quotes: 4200, replies: 6500, views: 2100000 },
       velocity: { likesPerHour: 1458, retweetsPerHour: 408 },
-      postedAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-      tweetUrl: 'https://x.com/brian_armstrong',
+      postedAt: new Date(now - 8 * 60 * 60 * 1000).toISOString(), // 8 hours ago
+      tweetUrl: 'https://x.com/brian_armstrong/status/1876321098765432109',
       viralScore: 88,
       category: 'general',
     },
     {
-      id: '1876210987654321098',
+      id: 'demo-defillama-1',
       author: {
         handle: 'DefiLlama',
-        name: 'DefiLlama 🦙',
+        name: 'DefiLlama',
         avatar: 'https://pbs.twimg.com/profile_images/1580000000000000000/defillama_normal.jpg',
         followers: 450000,
         verified: true,
@@ -398,8 +400,8 @@ function getSampleViralTweets(timeframe: string, category: string | null, limit:
       content: 'DeFi TVL continues to grow.\n\nTop chains by TVL:\n• Ethereum\n• Solana\n• BSC\n• Arbitrum\n\nTrack all the data at defillama.com',
       metrics: { likes: 18500, retweets: 5200, quotes: 1800, replies: 2100, views: 950000 },
       velocity: { likesPerHour: 1541, retweetsPerHour: 433 },
-      postedAt: new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString(),
-      tweetUrl: 'https://x.com/DefiLlama',
+      postedAt: new Date(now - 3 * 60 * 60 * 1000).toISOString(), // 3 hours ago
+      tweetUrl: 'https://x.com/DefiLlama/status/1876210987654321098',
       viralScore: 85,
       category: 'defi',
     },

@@ -139,8 +139,21 @@ function getFallbackHeadlines(): NewsHeadline[] {
   ];
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    const { searchParams } = new URL(request.url);
+    const timeframe = searchParams.get('timeframe') || '24h';
+    const limit = Math.min(parseInt(searchParams.get('limit') || '8'), 20);
+
+    // Calculate time range
+    const now = new Date();
+    const hoursBack: Record<string, number> = {
+      '24h': 24,
+      '7d': 168,
+      '30d': 720,
+    };
+    const cutoffTime = new Date(now.getTime() - (hoursBack[timeframe] || 24) * 60 * 60 * 1000);
+
     // Fetch from all RSS feeds in parallel
     const results = await Promise.allSettled(
       RSS_FEEDS.map(feed => fetchRSSFeed(feed.url, feed.name))
@@ -154,20 +167,32 @@ export async function GET() {
       }
     }
 
-    // Sort by date (newest first) and limit to 8 headlines
-    let sortedHeadlines = allHeadlines
+    // Filter by timeframe and sort by date (newest first)
+    let filteredHeadlines = allHeadlines
+      .filter(h => new Date(h.pubDate) >= cutoffTime)
       .sort((a, b) => new Date(b.pubDate).getTime() - new Date(a.pubDate).getTime())
-      .slice(0, 8);
+      .slice(0, limit);
 
-    // If no headlines fetched, return real fallback links
-    if (sortedHeadlines.length === 0) {
-      sortedHeadlines = getFallbackHeadlines();
+    // If no headlines in timeframe, return recent ones or fallback
+    if (filteredHeadlines.length === 0) {
+      filteredHeadlines = allHeadlines.length > 0
+        ? allHeadlines.sort((a, b) => new Date(b.pubDate).getTime() - new Date(a.pubDate).getTime()).slice(0, limit)
+        : getFallbackHeadlines();
     }
 
-    return NextResponse.json(sortedHeadlines);
+    return NextResponse.json({
+      headlines: filteredHeadlines,
+      timeframe,
+      count: filteredHeadlines.length,
+    });
   } catch (error) {
     console.error('News headlines API error:', error);
     // Return fallback instead of error
-    return NextResponse.json(getFallbackHeadlines());
+    return NextResponse.json({
+      headlines: getFallbackHeadlines(),
+      timeframe: '24h',
+      count: 4,
+      _fallback: true,
+    });
   }
 }

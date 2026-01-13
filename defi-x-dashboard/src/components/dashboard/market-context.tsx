@@ -19,7 +19,6 @@ import {
   type MarketMood,
 } from '@/services/real-market-data';
 import {
-  TRENDING_HASHTAGS,
   getUpcomingEconomicEvents,
   type EconomicEvent,
 } from '@/services/real-twitter-links';
@@ -32,6 +31,17 @@ interface NewsHeadline {
   pubDate: string;
   _fallback?: boolean;
 }
+
+// Trending hashtag from API
+interface TrendingHashtag {
+  tag: string;
+  searchUrl: string;
+  category: 'crypto' | 'defi' | 'nft' | 'general';
+  volume?: number;
+  change?: number;
+}
+
+type TimeRange = '24h' | '7d' | '30d';
 import {
   TrendingUp,
   TrendingDown,
@@ -50,20 +60,37 @@ export function MarketContextPanel() {
   const [fearGreed, setFearGreed] = React.useState<FearGreedData | null>(null);
   const [tvl, setTvl] = React.useState<TVLData | null>(null);
   const [newsHeadlines, setNewsHeadlines] = React.useState<NewsHeadline[]>([]);
+  const [trendingHashtags, setTrendingHashtags] = React.useState<TrendingHashtag[]>([]);
+  const [hashtagDisclaimer, setHashtagDisclaimer] = React.useState<string>('');
   const [currentMood, setCurrentMood] = React.useState<MarketMood>('neutral');
   const [lastUpdate, setLastUpdate] = React.useState<Date>(new Date());
   const [isRefreshing, setIsRefreshing] = React.useState(false);
   const [hasError, setHasError] = React.useState(false);
   const [economicEvents] = React.useState<EconomicEvent[]>(getUpcomingEconomicEvents());
+  const [newsTimeRange, setNewsTimeRange] = React.useState<TimeRange>('24h');
+  const [hashtagTimeRange, setHashtagTimeRange] = React.useState<TimeRange>('24h');
 
-  // Fetch news headlines
-  const fetchNewsHeadlines = async (): Promise<NewsHeadline[]> => {
+  // Fetch news headlines with timeframe
+  const fetchNewsHeadlines = async (timeframe: TimeRange): Promise<NewsHeadline[]> => {
     try {
-      const response = await fetch('/api/news/headlines');
+      const response = await fetch(`/api/news/headlines?timeframe=${timeframe}`);
       if (!response.ok) return [];
-      return response.json();
+      const data = await response.json();
+      return data.headlines || data;
     } catch {
       return [];
+    }
+  };
+
+  // Fetch trending hashtags with timeframe
+  const fetchHashtags = async (timeframe: TimeRange): Promise<{ hashtags: TrendingHashtag[]; disclaimer?: string }> => {
+    try {
+      const response = await fetch(`/api/twitter/hashtags?timeframe=${timeframe}`);
+      if (!response.ok) return { hashtags: [] };
+      const data = await response.json();
+      return { hashtags: data.hashtags || [], disclaimer: data._disclaimer };
+    } catch {
+      return { hashtags: [] };
     }
   };
 
@@ -73,17 +100,20 @@ export function MarketContextPanel() {
     setHasError(false);
 
     try {
-      const [pricesData, fgData, tvlData, newsData] = await Promise.all([
+      const [pricesData, fgData, tvlData, newsData, hashtagData] = await Promise.all([
         fetchRealCryptoPrices(),
         fetchRealFearGreed(),
         fetchRealTVL(),
-        fetchNewsHeadlines(),
+        fetchNewsHeadlines(newsTimeRange),
+        fetchHashtags(hashtagTimeRange),
       ]);
 
       setCryptos(pricesData);
       setFearGreed(fgData);
       setTvl(tvlData);
       setNewsHeadlines(newsData);
+      setTrendingHashtags(hashtagData.hashtags);
+      setHashtagDisclaimer(hashtagData.disclaimer || '');
       setCurrentMood(calculateMarketMood(fgData.value));
       setLastUpdate(new Date());
     } catch (error) {
@@ -92,7 +122,7 @@ export function MarketContextPanel() {
     } finally {
       setIsRefreshing(false);
     }
-  }, []);
+  }, [newsTimeRange, hashtagTimeRange]);
 
   // Initial load
   React.useEffect(() => {
@@ -273,21 +303,58 @@ export function MarketContextPanel() {
               <Newspaper className="h-4 w-4 text-tertiary" />
               <span className="text-sm text-tertiary">CT Hashtags</span>
             </div>
-            <span className="text-xs text-tertiary">Click to view on X</span>
+            <div className="flex items-center gap-1">
+              {(['24h', '7d', '30d'] as TimeRange[]).map((range) => (
+                <button
+                  key={range}
+                  onClick={() => setHashtagTimeRange(range)}
+                  className={cn(
+                    'px-2 py-0.5 rounded text-[10px] font-medium transition-colors',
+                    hashtagTimeRange === range
+                      ? 'bg-violet-500/20 text-violet-400'
+                      : 'text-tertiary hover:text-secondary'
+                  )}
+                >
+                  {range}
+                </button>
+              ))}
+            </div>
           </div>
           <div className="flex flex-wrap gap-1.5">
-            {TRENDING_HASHTAGS.slice(0, 8).map((hashtag) => (
-              <a
-                key={hashtag.tag}
-                href={hashtag.searchUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="px-2 py-1 rounded bg-elevated text-xs text-secondary hover:text-primary hover:bg-hover transition-colors"
-              >
-                {hashtag.tag}
-              </a>
-            ))}
+            {trendingHashtags.length > 0 ? (
+              trendingHashtags.slice(0, 8).map((hashtag) => (
+                <a
+                  key={hashtag.tag}
+                  href={hashtag.searchUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-2 py-1 rounded bg-elevated text-xs text-secondary hover:text-primary hover:bg-hover transition-colors flex items-center gap-1"
+                >
+                  {hashtag.tag}
+                  {hashtag.change !== undefined && (
+                    <span className={cn(
+                      'text-[10px]',
+                      hashtag.change >= 0 ? 'text-green-400' : 'text-red-400'
+                    )}>
+                      {hashtag.change >= 0 ? '+' : ''}{hashtag.change.toFixed(0)}%
+                    </span>
+                  )}
+                </a>
+              ))
+            ) : (
+              <div className="w-full text-center py-2 text-tertiary text-xs">
+                Loading hashtags...
+              </div>
+            )}
           </div>
+          {hashtagDisclaimer && (
+            <div className="mt-2 p-2 rounded bg-yellow-500/10 border border-yellow-500/20">
+              <p className="text-[10px] text-yellow-400 flex items-center gap-1">
+                <AlertCircle className="h-3 w-3" />
+                {hashtagDisclaimer}
+              </p>
+            </div>
+          )}
         </section>
 
         {/* Latest News Headlines */}
@@ -297,7 +364,22 @@ export function MarketContextPanel() {
               <Newspaper className="h-4 w-4 text-tertiary" />
               <span className="text-sm text-tertiary">Latest News</span>
             </div>
-            <span className="text-[10px] text-tertiary">Live headlines</span>
+            <div className="flex items-center gap-1">
+              {(['24h', '7d', '30d'] as TimeRange[]).map((range) => (
+                <button
+                  key={range}
+                  onClick={() => setNewsTimeRange(range)}
+                  className={cn(
+                    'px-2 py-0.5 rounded text-[10px] font-medium transition-colors',
+                    newsTimeRange === range
+                      ? 'bg-violet-500/20 text-violet-400'
+                      : 'text-tertiary hover:text-secondary'
+                  )}
+                >
+                  {range}
+                </button>
+              ))}
+            </div>
           </div>
           <div className="space-y-2">
             {newsHeadlines.length > 0 ? (

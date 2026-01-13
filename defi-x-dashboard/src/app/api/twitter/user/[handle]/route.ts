@@ -15,19 +15,69 @@ export async function GET(
 
     // Check if Twitter API is configured
     if (!process.env.TWITTER_BEARER_TOKEN) {
-      // Return mock data if not configured
+      // Return realistic sample data for demo mode
+      const now = Date.now();
+      const sampleTweets = [
+        {
+          id: 'sample-1',
+          content: 'DeFi is about financial freedom and accessibility. Building products that actually matter.',
+          likes: 1247,
+          retweets: 389,
+          replies: 156,
+          impressions: 89500,
+          createdAt: new Date(now - 2 * 60 * 60 * 1000).toISOString(),
+        },
+        {
+          id: 'sample-2',
+          content: 'Best yields in DeFi, no cap. Check the rates yourself.',
+          likes: 892,
+          retweets: 234,
+          replies: 98,
+          impressions: 67200,
+          createdAt: new Date(now - 8 * 60 * 60 * 1000).toISOString(),
+        },
+        {
+          id: 'sample-3',
+          content: 'New chain integration dropping this week. Multi-chain aggregation just got better.',
+          likes: 2156,
+          retweets: 567,
+          replies: 234,
+          impressions: 145000,
+          createdAt: new Date(now - 24 * 60 * 60 * 1000).toISOString(),
+        },
+        {
+          id: 'sample-4',
+          content: 'Why are people still paying 2% fees when you can get 0.1%? Make it make sense.',
+          likes: 1567,
+          retweets: 445,
+          replies: 189,
+          impressions: 112000,
+          createdAt: new Date(now - 48 * 60 * 60 * 1000).toISOString(),
+        },
+        {
+          id: 'sample-5',
+          content: 'Thread on the state of DeFi yields in 2026. Spoiler: They\'re actually good now.',
+          likes: 3245,
+          retweets: 823,
+          replies: 312,
+          impressions: 198000,
+          createdAt: new Date(now - 72 * 60 * 60 * 1000).toISOString(),
+        },
+      ];
+
       return NextResponse.json({
-        id: 'mock-id',
+        id: 'demo-defiapp',
         handle: `@${handle}`,
-        name: handle,
-        description: 'Twitter API not configured - showing placeholder data',
-        followers: 0,
-        following: 0,
-        tweets: 0,
-        engagementRate: 0,
-        tier: 'nano',
-        recentTweets: [],
+        name: 'defi app',
+        description: 'best rates or something idk. Configure TWITTER_BEARER_TOKEN for real data.',
+        followers: 89500,
+        following: 342,
+        tweets: 1847,
+        engagementRate: 4.2,
+        tier: 'macro',
+        recentTweets: sampleTweets,
         _mock: true,
+        _message: 'Demo mode - configure TWITTER_BEARER_TOKEN for live data',
       });
     }
 

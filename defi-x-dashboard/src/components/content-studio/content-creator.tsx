@@ -80,12 +80,28 @@ export function ContentCreator({ initialTopic }: ContentCreatorProps) {
   const [isGeneratingMedia, setIsGeneratingMedia] = React.useState(false);
   const { addToast } = useToast();
 
-  // Pre-fill content with topic if provided
+  // Pre-fill content with topic if provided - using @defiapp voice style
   React.useEffect(() => {
     if (initialTopic && !content) {
-      setContent(`Thoughts on ${initialTopic}:\n\n`);
+      // Generate a few starting hooks in @defiapp's voice
+      const hooks = [
+        `${initialTopic.toLowerCase()} -`,
+        `hot take on ${initialTopic.toLowerCase()}:`,
+        `everyone's talking about ${initialTopic.toLowerCase()}. here's the thing:`,
+        `${initialTopic.toLowerCase()}? let's talk about it.`,
+      ];
+      // Pick a random hook style
+      const hook = hooks[Math.floor(Math.random() * hooks.length)];
+      setContent(`${hook} `);
+
+      // Show toast to inform user
+      addToast({
+        type: 'info',
+        title: 'Topic loaded',
+        description: `Writing about: ${initialTopic}`,
+      });
     }
-  }, [initialTopic, content]);
+  }, [initialTopic]);
 
   // Opens Twitter/X with pre-filled content for manual posting
   const handleOpenInTwitter = () => {
