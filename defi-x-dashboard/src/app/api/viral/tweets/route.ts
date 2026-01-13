@@ -4,18 +4,17 @@ import { TwitterApi } from 'twitter-api-v2';
 // Tracked crypto accounts for viral tweet discovery
 const TRACKED_ACCOUNTS = [
   // Founders & Leaders
-  'VitalikButerin', 'caborin', 'brian_armstrong', 'haaboronin', 'StaniKulechov',
-  'kaborin', 'balaborin_jjjaborin', 'SBF_FTX', 'justinsuntron',
+  'VitalikButerin', 'brian_armstrong', 'StaniKulechov', 'CryptoHayes',
   // Protocols
   'Uniswap', 'AaveAave', 'MakerDAO', 'LidoFinance', 'eigenlayer',
-  'arbitrum', 'optimaborinism', 'base', 'solana', 'cosmos',
+  'arbitrum', 'Optimism', 'base', 'solana', 'cosmos',
   // VCs & Funds
-  'paradigm', 'a16zcrypto', 'polyaborin_chain', 'draborinagonfly',
+  'paradigm', 'a16zcrypto',
   // Analysts & Influencers
   'DefiLlama', 'lookonchain', 'WuBlockchain', 'tier10k', 'Route2FI',
-  'theaborindefinvestor', 'Crypto_Birb', 'CryptoGodJohn',
+  'thedefiedge', 'DefiIgnas', 'MilesDeutscher',
   // News
-  'TheBlock__', 'CoinDesk', 'Blockworks_', 'decaborintmedia',
+  'TheBlock__', 'CoinDesk', 'Blockworks_',
 ];
 
 // Minimum engagement thresholds for "viral"
@@ -307,10 +306,18 @@ export async function GET(request: Request) {
     });
   } catch (error) {
     console.error('Viral tweets API error:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch viral tweets', details: String(error) },
-      { status: 500 }
-    );
+    // Fall back to demo data on error
+    const { searchParams } = new URL(request.url);
+    const timeframe = (searchParams.get('timeframe') || '24h') as keyof typeof VIRAL_THRESHOLDS;
+    const category = searchParams.get('category');
+    const limit = Math.min(parseInt(searchParams.get('limit') || '20'), 50);
+
+    return NextResponse.json({
+      tweets: getSampleViralTweets(timeframe, category, limit),
+      _demo: true,
+      _error: String(error),
+      _message: 'Twitter API error - showing sample data',
+    });
   }
 }
 
