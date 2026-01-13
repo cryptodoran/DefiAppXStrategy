@@ -36,9 +36,10 @@ interface ThreadPerformancePrediction {
 
 interface ThreadBuilderProps {
   initialTopic?: string;
+  initialPosts?: string[];
 }
 
-export function ThreadBuilder({ initialTopic }: ThreadBuilderProps) {
+export function ThreadBuilder({ initialTopic, initialPosts }: ThreadBuilderProps) {
   const [tweets, setTweets] = React.useState<TweetItem[]>([
     { id: '1', content: '', characterCount: 0 },
   ]);
@@ -48,12 +49,24 @@ export function ThreadBuilder({ initialTopic }: ThreadBuilderProps) {
   const [targetThreadLength, setTargetThreadLength] = React.useState(5);
   const { addToast } = useToast();
 
-  // Pre-fill first tweet with topic if provided
+  // Pre-fill tweets with initialPosts if provided (from dashboard Edit button)
   React.useEffect(() => {
-    if (initialTopic && tweets[0].content === '') {
+    if (initialPosts && initialPosts.length > 0) {
+      const newTweets: TweetItem[] = initialPosts.map((content, index) => ({
+        id: String(index + 1),
+        content: content.trim(),
+        characterCount: content.trim().length,
+      }));
+      setTweets(newTweets);
+    }
+  }, [initialPosts]);
+
+  // Pre-fill first tweet with topic if provided (and no initialPosts)
+  React.useEffect(() => {
+    if (initialTopic && !initialPosts && tweets[0].content === '') {
       setTweets([{ id: '1', content: `Thread: ${initialTopic}\n\n`, characterCount: initialTopic.length + 10 }]);
     }
-  }, [initialTopic]);
+  }, [initialTopic, initialPosts]);
 
   const handlePostThread = async () => {
     const filledTweets = tweets.filter((t) => t.content.trim().length > 0);

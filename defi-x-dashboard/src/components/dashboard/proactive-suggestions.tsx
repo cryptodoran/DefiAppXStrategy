@@ -54,6 +54,41 @@ const TYPE_LABELS = {
   news: 'News',
 };
 
+// Parse thread content into individual posts
+function parseThreadContent(content: string): string[] {
+  const posts: string[] = [];
+
+  // Remove "Thread:" header if present
+  let cleanContent = content.replace(/^thread:\s*/i, '').trim();
+
+  // Try to split by numbered pattern (1/, 2/, etc.)
+  const numberedPattern = /(?:^|\n)\s*(\d+)\/\s*/g;
+  const matches = [...cleanContent.matchAll(numberedPattern)];
+
+  if (matches.length >= 2) {
+    // Split by numbered posts
+    for (let i = 0; i < matches.length; i++) {
+      const startIndex = matches[i].index! + matches[i][0].length;
+      const endIndex = i < matches.length - 1 ? matches[i + 1].index! : cleanContent.length;
+      const postContent = cleanContent.slice(startIndex, endIndex).trim();
+      if (postContent) {
+        posts.push(postContent);
+      }
+    }
+  } else {
+    // Try splitting by double newlines or paragraph breaks
+    const paragraphs = cleanContent.split(/\n\n+/).filter(p => p.trim());
+    if (paragraphs.length >= 2) {
+      posts.push(...paragraphs.map(p => p.trim()));
+    } else {
+      // Just use the whole content as one post
+      posts.push(cleanContent);
+    }
+  }
+
+  return posts.length > 0 ? posts : [content];
+}
+
 export function ProactiveSuggestions() {
   const router = useRouter();
   const [suggestions, setSuggestions] = React.useState<ProactiveSuggestion[]>([]);
@@ -266,17 +301,36 @@ export function ProactiveSuggestions() {
                         variant="secondary"
                         leftIcon={<Edit3 className="h-4 w-4" />}
                         onClick={() => {
-                          // Store content in sessionStorage for the create page to read
-                          sessionStorage.setItem('editTweetContent', suggestion.content);
-                          if (suggestion.imageSuggestion) {
-                            sessionStorage.setItem('editTweetImagePrompt', suggestion.imageSuggestion.prompt);
+                          // Check if this is a thread (contains numbered posts like "1/", "2/", etc.)
+                          const isThread = /\d+\//.test(suggestion.content) ||
+                                          suggestion.content.toLowerCase().startsWith('thread:') ||
+                                          suggestion.content.toLowerCase().includes('\nthread:');
+
+                          if (isThread) {
+                            // Parse thread into individual posts
+                            const threadPosts = parseThreadContent(suggestion.content);
+                            sessionStorage.setItem('editThreadPosts', JSON.stringify(threadPosts));
+                            sessionStorage.removeItem('editTweetContent');
+                            router.push('/create?tab=thread');
+                            addToast({
+                              type: 'success',
+                              title: 'Opening Thread Builder',
+                              description: `Thread with ${threadPosts.length} posts loaded`,
+                            });
+                          } else {
+                            // Regular single post
+                            sessionStorage.setItem('editTweetContent', suggestion.content);
+                            sessionStorage.removeItem('editThreadPosts');
+                            if (suggestion.imageSuggestion) {
+                              sessionStorage.setItem('editTweetImagePrompt', suggestion.imageSuggestion.prompt);
+                            }
+                            router.push('/create');
+                            addToast({
+                              type: 'success',
+                              title: 'Opening editor',
+                              description: 'Tweet loaded for editing',
+                            });
                           }
-                          router.push('/create');
-                          addToast({
-                            type: 'success',
-                            title: 'Opening editor',
-                            description: 'Tweet loaded for editing',
-                          });
                         }}
                       >
                         Edit

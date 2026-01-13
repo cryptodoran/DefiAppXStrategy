@@ -17,19 +17,41 @@ type ContentTab = 'post' | 'thread' | 'qt';
 function CreatePageContent() {
   const searchParams = useSearchParams();
   const topicParam = searchParams.get('topic');
+  const tabParam = searchParams.get('tab');
   const [activeTab, setActiveTab] = React.useState<ContentTab>('post');
   const [initialContent, setInitialContent] = React.useState<string | undefined>(undefined);
+  const [initialThreadPosts, setInitialThreadPosts] = React.useState<string[] | undefined>(undefined);
 
   // Check for edit content from dashboard "Ready to Post" section
   React.useEffect(() => {
+    // Check for thread posts first
+    const threadPostsJson = sessionStorage.getItem('editThreadPosts');
+    if (threadPostsJson) {
+      try {
+        const posts = JSON.parse(threadPostsJson);
+        setInitialThreadPosts(posts);
+        setActiveTab('thread');
+        sessionStorage.removeItem('editThreadPosts');
+      } catch (e) {
+        console.error('Failed to parse thread posts:', e);
+      }
+    }
+
+    // Check for single tweet content
     const editContent = sessionStorage.getItem('editTweetContent');
     if (editContent) {
       setInitialContent(editContent);
-      // Clear after reading so it doesn't persist on refresh
       sessionStorage.removeItem('editTweetContent');
       sessionStorage.removeItem('editTweetImagePrompt');
     }
-  }, []);
+
+    // Handle tab query param
+    if (tabParam === 'thread') {
+      setActiveTab('thread');
+    } else if (tabParam === 'qt') {
+      setActiveTab('qt');
+    }
+  }, [tabParam]);
 
   const tabs = [
     { id: 'post', label: 'New Post', icon: <PenSquare className="h-4 w-4" /> },
@@ -72,7 +94,7 @@ function CreatePageContent() {
 
         {/* Content */}
         {activeTab === 'post' && <ContentCreator initialTopic={topicParam || undefined} initialContent={initialContent} />}
-        {activeTab === 'thread' && <ThreadBuilder initialTopic={topicParam || undefined} />}
+        {activeTab === 'thread' && <ThreadBuilder initialTopic={topicParam || undefined} initialPosts={initialThreadPosts} />}
         {activeTab === 'qt' && <QTStudio />}
       </motion.div>
     </AppLayout>
