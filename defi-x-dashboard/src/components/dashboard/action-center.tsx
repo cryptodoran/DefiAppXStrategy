@@ -316,11 +316,11 @@ function ViralTweetItem({ tweet }: { tweet: ViralTweet }) {
               href={tweet.tweetUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-violet-400 hover:text-violet-300 flex items-center gap-1 ml-auto"
+              className="text-violet-400 hover:text-violet-300 ml-auto"
               onClick={(e) => e.stopPropagation()}
+              title="View on X"
             >
-              <ExternalLink className="h-3 w-3" />
-              View
+              <ExternalLink className="h-3.5 w-3.5" />
             </a>
           </div>
         </div>

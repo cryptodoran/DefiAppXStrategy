@@ -576,23 +576,23 @@ export function QTStudio() {
 
         {/* Best Practices */}
         <PremiumCard variant="elevated" className="bg-gradient-to-br from-violet-500/5 to-indigo-500/5">
-          <h3 className="font-semibold text-primary mb-3">QT Best Practices</h3>
+          <h3 className="font-semibold text-primary mb-3">qt rules</h3>
           <ul className="space-y-2 text-sm text-secondary">
             <li className="flex items-start gap-2">
               <span className="text-green-400">+</span>
-              Add value beyond the original post
+              add something they didn't say. make it worth the click
             </li>
             <li className="flex items-start gap-2">
               <span className="text-green-400">+</span>
-              Be respectful even when disagreeing
+              disagree? cool. be spicy, not toxic
             </li>
             <li className="flex items-start gap-2">
               <span className="text-green-400">+</span>
-              Include your unique perspective or data
+              bring data or a hot take. preferably both
             </li>
             <li className="flex items-start gap-2">
               <span className="text-red-400">-</span>
-              Don't just say "this" or "agree"
+              "this" and "agree" are not content. try harder
             </li>
           </ul>
         </PremiumCard>

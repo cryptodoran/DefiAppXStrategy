@@ -387,23 +387,23 @@ export function ThreadBuilder({ initialTopic }: ThreadBuilderProps) {
 
         {/* Thread Tips */}
         <PremiumCard>
-          <h3 className="font-semibold text-primary mb-3">Thread Tips</h3>
+          <h3 className="font-semibold text-primary mb-3">thread tips</h3>
           <div className="space-y-2">
             <TipItem
               icon="1️⃣"
-              text="Start with a strong hook that creates curiosity"
+              text="hook them in tweet 1 or lose them forever"
             />
             <TipItem
               icon="📊"
-              text="Include data or specific examples for credibility"
+              text="numbers hit different. use real data when you can"
             />
             <TipItem
               icon="🎯"
-              text="Each tweet should stand alone and add value"
+              text="each tweet should slap on its own"
             />
             <TipItem
               icon="✨"
-              text="End with a call-to-action or summary"
+              text="end with something they can do, not just 'thoughts?'"
             />
           </div>
         </PremiumCard>
@@ -495,10 +495,10 @@ function TweetCard({
           onChange={(e) => onUpdate(e.target.value)}
           placeholder={
             isFirst
-              ? "Hook: Start with something that grabs attention..."
+              ? "hook: start with something that makes them stop scrolling..."
               : isLast && index > 0
-                ? "CTA: End with a call-to-action or summary..."
-                : "Continue your thread..."
+                ? "cta: tell them what to do next (not just 'thoughts?')..."
+                : "keep it going..."
           }
           className={cn(
             'w-full bg-transparent text-primary placeholder:text-tertiary/50',
