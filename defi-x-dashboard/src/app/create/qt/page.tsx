@@ -34,82 +34,130 @@ interface QTOption {
   reasoning: string;
 }
 
-const mockOriginalTweet = {
-  author: '@vikivinik',
-  authorName: 'Vik Vink',
-  content: 'The biggest mistake in DeFi is chasing yield instead of building utility. Protocols that focus on real use cases will outlast the yield farms.',
-  likes: 12500,
-  retweets: 3400,
-  followers: 1200000,
-  isHighValue: true,
-};
+interface OriginalTweet {
+  author: string;
+  authorName: string;
+  content: string;
+  likes: number;
+  retweets: number;
+  followers: number;
+  isHighValue: boolean;
+}
 
-const mockQTOptions: QTOption[] = [
-  {
-    id: '1',
-    type: 'agree',
-    content: '100% this.\n\nWe built Defi App with this exact philosophy. Sustainable utility > temporary APYs.\n\nThe protocols still standing after the bear market all have one thing in common: they solved real problems.',
-    predictedEngagement: 85,
-    reasoning: 'Agrees while adding brand perspective. High engagement from original tweet audience.',
-  },
-  {
-    id: '2',
-    type: 'hot_take',
-    content: 'Counterpoint: the "yield vs utility" framing is a false dichotomy.\n\nThe best protocols do both - they create utility THROUGH well-designed incentive mechanisms.\n\nYield isn\'t the enemy. Unsustainable tokenomics are.',
-    predictedEngagement: 92,
-    reasoning: 'Contrarian take that adds nuance. Will spark debate and higher engagement.',
-  },
-  {
-    id: '3',
-    type: 'add_context',
-    content: 'To add context:\n\n• DeFi protocols that focused on yield farming: 90% defunct\n• DeFi protocols that focused on utility: 65% still operating\n\nThe data speaks for itself. Build for users, not mercenary capital.',
-    predictedEngagement: 78,
-    reasoning: 'Adds data and specificity. Educational angle performs well.',
-  },
-  {
-    id: '4',
-    type: 'humor',
-    content: 'DeFi devs watching their 10,000% APY pool go to zero:\n\n"But the utility was the friends we made along the way" 💀\n\n(jokes aside, this is exactly right)',
-    predictedEngagement: 88,
-    reasoning: 'Humor + agreement combo. High shareability factor.',
-  },
-];
+// Fetch QT angles from API
+async function fetchQTAngles(tweetContent: string, authorHandle: string): Promise<{ tweet: OriginalTweet; options: QTOption[] }> {
+  try {
+    const response = await fetch('/api/content/qt-angles', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tweetContent, authorHandle }),
+    });
+
+    const data = await response.json();
+
+    if (data.angles) {
+      return {
+        tweet: {
+          author: `@${authorHandle}`,
+          authorName: authorHandle,
+          content: tweetContent,
+          likes: 0,
+          retweets: 0,
+          followers: 0,
+          isHighValue: true,
+        },
+        options: data.angles.map((angle: { type: string; content: string; reasoning: string; predictedEngagement: number }, i: number) => ({
+          id: `qt-${Date.now()}-${i}`,
+          type: angle.type as QTOption['type'],
+          content: angle.content,
+          predictedEngagement: angle.predictedEngagement || 75,
+          reasoning: angle.reasoning,
+        })),
+      };
+    }
+
+    throw new Error('No angles returned');
+  } catch (error) {
+    console.error('QT angles error:', error);
+    // Return placeholder if API fails
+    return {
+      tweet: {
+        author: `@${authorHandle}`,
+        authorName: authorHandle,
+        content: tweetContent,
+        likes: 0,
+        retweets: 0,
+        followers: 0,
+        isHighValue: true,
+      },
+      options: [
+        {
+          id: 'fallback-1',
+          type: 'agree',
+          content: `Great point by ${authorHandle}. This aligns with what we're building at DeFi App.`,
+          predictedEngagement: 70,
+          reasoning: 'Agreement builds rapport with original author',
+        },
+        {
+          id: 'fallback-2',
+          type: 'add_context',
+          content: `To add some context here...\n\n[Add your perspective on: ${tweetContent.slice(0, 50)}...]`,
+          predictedEngagement: 65,
+          reasoning: 'Adding context shows expertise',
+        },
+      ],
+    };
+  }
+}
+
+// Extract tweet info from URL (basic parsing)
+function parseTweetUrl(url: string): { handle: string } | null {
+  try {
+    const match = url.match(/(?:twitter\.com|x\.com)\/(\w+)\/status/);
+    if (match) return { handle: match[1] };
+    return null;
+  } catch {
+    return null;
+  }
+}
 
 function QTOptimizerContent() {
   const searchParams = useSearchParams();
   const [tweetUrl, setTweetUrl] = useState('');
-  const [originalTweet, setOriginalTweet] = useState<typeof mockOriginalTweet | null>(null);
+  const [tweetContent, setTweetContent] = useState('');
+  const [originalTweet, setOriginalTweet] = useState<OriginalTweet | null>(null);
   const [options, setOptions] = useState<QTOption[]>([]);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [selectedOption, setSelectedOption] = useState<QTOption | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [autoAnalyzed, setAutoAnalyzed] = useState(false);
 
-  // Read URL from search params and auto-analyze
+  // Read URL from search params
   useEffect(() => {
     const urlParam = searchParams.get('url');
     if (urlParam && !autoAnalyzed) {
       setTweetUrl(urlParam);
       setAutoAnalyzed(true);
-      // Auto-trigger analysis after setting URL
-      setTimeout(() => {
-        setIsAnalyzing(true);
-        setTimeout(() => {
-          setOriginalTweet(mockOriginalTweet);
-          setOptions(mockQTOptions);
-          setIsAnalyzing(false);
-        }, 2000);
-      }, 100);
     }
   }, [searchParams, autoAnalyzed]);
 
   const handleAnalyze = async () => {
+    if (!tweetUrl && !tweetContent) return;
+
     setIsAnalyzing(true);
-    setTimeout(() => {
-      setOriginalTweet(mockOriginalTweet);
-      setOptions(mockQTOptions);
+    try {
+      const parsed = parseTweetUrl(tweetUrl);
+      const handle = parsed?.handle || 'unknown';
+      const content = tweetContent || 'Paste the tweet content here for analysis';
+
+      const result = await fetchQTAngles(content, handle);
+      setOriginalTweet(result.tweet);
+      setOptions(result.options);
+    } catch (error) {
+      console.error('Analysis failed:', error);
+    } finally {
       setIsAnalyzing(false);
-    }, 2000);
+    }
   };
 
   const copyToClipboard = async (content: string, id: string) => {

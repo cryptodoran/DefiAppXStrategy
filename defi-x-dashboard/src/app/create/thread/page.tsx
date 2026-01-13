@@ -35,44 +35,72 @@ interface ThreadPost {
   engagementHook: boolean;
 }
 
-// Mock generated thread
-const mockThread: ThreadPost[] = [
-  {
-    id: '1',
-    content: "DeFi is about to enter its biggest bull run ever.\n\nBut 90% of people will miss it because they're looking in the wrong places.\n\nHere's what the smartest money is actually doing (and why Defi App is positioned to win):\n\n🧵",
-    isHook: true,
-    isCTA: false,
-    engagementHook: true,
-  },
-  {
-    id: '2',
-    content: "First, let's understand what's actually happening:\n\nThe \"DeFi is dead\" narrative was always wrong. What died was the unsustainable yield farming ponzis.\n\nReal DeFi? It's been quietly building infrastructure this entire time.",
-    isHook: false,
-    isCTA: false,
-    engagementHook: false,
-  },
-  {
-    id: '3',
-    content: "Here's the pattern smart money follows:\n\n1. Accumulate during fear\n2. Use the best tools\n3. Focus on protocols with real utility\n\nDefi App checks all three boxes. Let me explain...",
-    isHook: false,
-    isCTA: false,
-    engagementHook: true,
-  },
-  {
-    id: '4',
-    content: "The key differentiator?\n\nMost DeFi tools are built for degens.\n\nDefi App is built for builders.\n\nThat's why institutional money is starting to pay attention.",
-    isHook: false,
-    isCTA: false,
-    engagementHook: false,
-  },
-  {
-    id: '5',
-    content: "TL;DR:\n\n• DeFi 2.0 is coming\n• The winners will be protocols with real utility\n• Defi App is positioned perfectly\n\nIf you're not using the right tools, you're already behind.\n\nLike + RT if this helped.\n\nFollow @DeFiApp for more alpha.",
-    isHook: false,
-    isCTA: true,
-    engagementHook: true,
-  },
-];
+// Generate thread using AI API
+async function generateThreadWithAI(topic: string, keyPoints: string[], length: number): Promise<ThreadPost[]> {
+  try {
+    const response = await fetch('/api/content/enhance', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'thread',
+        content: topic,
+        options: { keyPoints: keyPoints.filter(p => p.trim()), length }
+      }),
+    });
+
+    const data = await response.json();
+
+    if (data.result && Array.isArray(data.result)) {
+      return data.result.map((post: { content: string; isHook?: boolean; isCTA?: boolean }, i: number) => ({
+        id: `thread-${Date.now()}-${i}`,
+        content: post.content,
+        isHook: i === 0,
+        isCTA: i === data.result.length - 1,
+        engagementHook: post.isHook || post.isCTA || false,
+      }));
+    }
+
+    // If result is not in expected format, create posts from text
+    if (data.result?.enhanced) {
+      const posts = data.result.enhanced.split('\n\n---\n\n').filter((p: string) => p.trim());
+      return posts.map((content: string, i: number) => ({
+        id: `thread-${Date.now()}-${i}`,
+        content: content.trim(),
+        isHook: i === 0,
+        isCTA: i === posts.length - 1,
+        engagementHook: i === 0 || i === posts.length - 1,
+      }));
+    }
+
+    throw new Error('Unexpected response format');
+  } catch (error) {
+    console.error('Thread generation error:', error);
+    // Return a starter thread if API fails
+    return [
+      {
+        id: `thread-${Date.now()}-0`,
+        content: `${topic}\n\nHere's what you need to know:\n\n🧵`,
+        isHook: true,
+        isCTA: false,
+        engagementHook: true,
+      },
+      ...keyPoints.filter(p => p.trim()).map((point, i) => ({
+        id: `thread-${Date.now()}-${i + 1}`,
+        content: point,
+        isHook: false,
+        isCTA: false,
+        engagementHook: false,
+      })),
+      {
+        id: `thread-${Date.now()}-final`,
+        content: `That's it!\n\nLike + RT if this helped.\n\nFollow @DefiApp for more.`,
+        isHook: false,
+        isCTA: true,
+        engagementHook: true,
+      },
+    ];
+  }
+}
 
 export default function ThreadBuilderPage() {
   const [topic, setTopic] = useState('');
@@ -98,11 +126,20 @@ export default function ThreadBuilderPage() {
   };
 
   const handleGenerate = async () => {
+    if (!topic.trim()) return;
     setIsGenerating(true);
-    setTimeout(() => {
-      setThread(mockThread);
+    try {
+      const generatedThread = await generateThreadWithAI(
+        topic,
+        keyPoints,
+        parseInt(targetLength)
+      );
+      setThread(generatedThread);
+    } catch (error) {
+      console.error('Failed to generate thread:', error);
+    } finally {
       setIsGenerating(false);
-    }, 2500);
+    }
   };
 
   const updateThreadPost = (id: string, content: string) => {
