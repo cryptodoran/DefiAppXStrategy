@@ -298,6 +298,15 @@ export async function GET(request: Request) {
 
     viralTweets.sort(sortFunctions[sortBy] || sortFunctions.viralScore);
 
+    // If no viral tweets found, return sample data
+    if (viralTweets.length === 0) {
+      return NextResponse.json({
+        tweets: getSampleViralTweets(timeframe, category, limit),
+        _demo: true,
+        _message: 'No viral tweets found matching thresholds - showing sample data',
+      });
+    }
+
     return NextResponse.json({
       tweets: viralTweets.slice(0, limit),
       total: viralTweets.length,
