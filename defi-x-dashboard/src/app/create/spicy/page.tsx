@@ -109,19 +109,54 @@ const spiceLevels: SpiceLevel[] = [
   },
 ];
 
-const contentAnalysis = {
-  currentSpice: 4,
-  controversyScore: 28,
-  engagementPotential: 65,
-  brandAlignment: 85,
-  riskFlags: ['Contains competitor mention', 'Market prediction included'],
-  suggestions: [
-    'Add supporting data for credibility',
-    'Consider softening "always fails" language',
-    'Great hook - keep the opening',
-  ],
+interface SpiceAnalysis {
+  currentSpice: number;
+  controversyScore: number;
+  engagementPotential: number;
+  brandAlignment: number;
+  riskFlags: string[];
+  suggestions: string[];
+}
+
+const defaultAnalysis: SpiceAnalysis = {
+  currentSpice: 0,
+  controversyScore: 0,
+  engagementPotential: 0,
+  brandAlignment: 0,
+  riskFlags: [],
+  suggestions: ['Enter content to analyze'],
 };
 
+// Analyze content spice level using AI
+async function analyzeSpiceLevel(content: string): Promise<SpiceAnalysis> {
+  try {
+    const response = await fetch('/api/content/analyze', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ content, type: 'spice' }),
+    });
+
+    const data = await response.json();
+
+    if (data.analysis) {
+      return {
+        currentSpice: data.analysis.spiceLevel || 5,
+        controversyScore: data.analysis.controversyScore || 50,
+        engagementPotential: data.analysis.engagementPotential || 50,
+        brandAlignment: data.analysis.brandAlignment || 50,
+        riskFlags: data.analysis.riskFlags || [],
+        suggestions: data.analysis.suggestions || [],
+      };
+    }
+
+    throw new Error('Unexpected response format');
+  } catch (error) {
+    console.error('Spice analysis error:', error);
+    return defaultAnalysis;
+  }
+}
+
+// This data would ideally come from analytics but is a reasonable reference
 const historicalPerformance = [
   { spiceLevel: '1-2', avgEngagement: 2.1, avgReach: 15000, posts: 45 },
   { spiceLevel: '3-4', avgEngagement: 3.8, avgReach: 28000, posts: 67 },
@@ -134,6 +169,20 @@ export default function SpicyFrameworkPage() {
   const [content, setContent] = useState('');
   const [targetSpice, setTargetSpice] = useState([5]);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [analysis, setAnalysis] = useState<SpiceAnalysis>(defaultAnalysis);
+
+  const handleAnalyze = async () => {
+    if (!content.trim()) return;
+    setIsAnalyzing(true);
+    try {
+      const result = await analyzeSpiceLevel(content);
+      setAnalysis(result);
+    } catch (error) {
+      console.error('Failed to analyze:', error);
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
 
   const getCurrentLevel = () => {
     return spiceLevels.find(
@@ -303,12 +352,21 @@ export default function SpicyFrameworkPage() {
                   className="min-h-[200px] bg-base border-white/5"
                 />
                 <Button
-                  onClick={() => setIsAnalyzing(true)}
+                  onClick={handleAnalyze}
                   className="w-full bg-gradient-to-r from-orange-600 to-red-600"
-                  disabled={!content}
+                  disabled={!content || isAnalyzing}
                 >
-                  <Flame className="mr-2 h-4 w-4" />
-                  Analyze Spice Level
+                  {isAnalyzing ? (
+                    <>
+                      <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white/20 border-t-white" />
+                      Analyzing...
+                    </>
+                  ) : (
+                    <>
+                      <Flame className="mr-2 h-4 w-4" />
+                      Analyze Spice Level
+                    </>
+                  )}
                 </Button>
               </CardContent>
             </Card>
@@ -321,38 +379,47 @@ export default function SpicyFrameworkPage() {
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="p-4 bg-base rounded-lg text-center">
-                    <p className="text-3xl font-bold text-white">{contentAnalysis.currentSpice}</p>
+                    <p className="text-3xl font-bold text-white">{analysis.currentSpice || '-'}</p>
                     <p className="text-xs text-tertiary">Spice Level</p>
-                    <p className="text-sm text-orange-400 mt-1">🌶️🌶️ Warm</p>
+                    {analysis.currentSpice > 0 && (
+                      <p className="text-sm text-orange-400 mt-1">
+                        {analysis.currentSpice <= 2 ? '🌱 Mild' :
+                         analysis.currentSpice <= 4 ? '🌶️ Warm' :
+                         analysis.currentSpice <= 6 ? '🔥 Medium' :
+                         analysis.currentSpice <= 8 ? '🌋 Hot' : '☢️ Nuclear'}
+                      </p>
+                    )}
                   </div>
                   <div className="p-4 bg-base rounded-lg text-center">
-                    <p className="text-3xl font-bold text-white">{contentAnalysis.engagementPotential}%</p>
+                    <p className="text-3xl font-bold text-white">{analysis.engagementPotential || '-'}%</p>
                     <p className="text-xs text-tertiary">Engagement Potential</p>
                   </div>
                   <div className="p-4 bg-base rounded-lg text-center">
-                    <p className="text-3xl font-bold text-white">{contentAnalysis.controversyScore}%</p>
+                    <p className="text-3xl font-bold text-white">{analysis.controversyScore || '-'}%</p>
                     <p className="text-xs text-tertiary">Controversy Score</p>
                   </div>
                   <div className="p-4 bg-base rounded-lg text-center">
-                    <p className="text-3xl font-bold text-white">{contentAnalysis.brandAlignment}%</p>
+                    <p className="text-3xl font-bold text-white">{analysis.brandAlignment || '-'}%</p>
                     <p className="text-xs text-tertiary">Brand Alignment</p>
                   </div>
                 </div>
 
                 {/* Risk Flags */}
-                <div className="p-4 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
-                  <h4 className="text-sm text-yellow-400 mb-2 flex items-center gap-2">
-                    <AlertTriangle className="h-4 w-4" />
-                    Risk Flags
-                  </h4>
-                  <ul className="space-y-1">
-                    {contentAnalysis.riskFlags.map((flag, i) => (
-                      <li key={i} className="text-sm text-secondary">
-                        • {flag}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
+                {analysis.riskFlags.length > 0 && (
+                  <div className="p-4 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
+                    <h4 className="text-sm text-yellow-400 mb-2 flex items-center gap-2">
+                      <AlertTriangle className="h-4 w-4" />
+                      Risk Flags
+                    </h4>
+                    <ul className="space-y-1">
+                      {analysis.riskFlags.map((flag, i) => (
+                        <li key={i} className="text-sm text-secondary">
+                          • {flag}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
 
                 {/* Suggestions */}
                 <div className="p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg">
@@ -361,7 +428,7 @@ export default function SpicyFrameworkPage() {
                     Suggestions
                   </h4>
                   <ul className="space-y-1">
-                    {contentAnalysis.suggestions.map((suggestion, i) => (
+                    {analysis.suggestions.map((suggestion, i) => (
                       <li key={i} className="text-sm text-secondary">
                         • {suggestion}
                       </li>

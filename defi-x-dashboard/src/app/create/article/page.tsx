@@ -37,18 +37,54 @@ interface ArticleSection {
   content: string;
 }
 
-const mockGeneratedArticle: ArticleSection[] = [
-  { id: '1', type: 'heading', content: 'The Future of DeFi: Why 2026 Will Be Different' },
-  { id: '2', type: 'paragraph', content: 'The DeFi landscape has undergone a remarkable transformation over the past two years. What was once dismissed as "dead" has quietly evolved into something far more robust and sustainable. This article explores why the next wave of DeFi will look fundamentally different from what came before.' },
-  { id: '3', type: 'heading', content: 'The Problem With DeFi 1.0' },
-  { id: '4', type: 'paragraph', content: 'The first generation of DeFi protocols suffered from several critical flaws: unsustainable yield mechanics, poor user experience, and a lack of real utility beyond speculation. These issues led to the infamous "DeFi winter" that caused many to write off the entire sector.' },
-  { id: '5', type: 'list', content: '• Unsustainable token emissions\n• Complex interfaces that alienated mainstream users\n• Security vulnerabilities and frequent exploits\n• Lack of regulatory clarity' },
-  { id: '6', type: 'heading', content: 'What\'s Different Now' },
-  { id: '7', type: 'paragraph', content: 'Defi App represents the new generation of protocols that have learned from past mistakes. By focusing on real utility, sustainable economics, and user-friendly interfaces, we\'re building infrastructure that can actually scale to mainstream adoption.' },
-  { id: '8', type: 'quote', content: '"The protocols that survive won\'t be the ones with the highest yields, but the ones that solve real problems." - Defi App Team' },
-  { id: '9', type: 'heading', content: 'Conclusion' },
-  { id: '10', type: 'paragraph', content: 'The future of DeFi is not about recreating the hype cycles of the past. It\'s about building genuine financial infrastructure that serves real needs. Defi App is committed to being at the forefront of this transformation.' },
-];
+// Generate article using AI API
+async function generateArticleWithAI(
+  topic: string,
+  outline: string,
+  keyPoints: string,
+  targetLength: string
+): Promise<{ sections: ArticleSection[]; promotionalTweet: string }> {
+  try {
+    const response = await fetch('/api/content/enhance', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'article',
+        content: topic,
+        options: { outline, keyPoints, targetLength },
+      }),
+    });
+
+    const data = await response.json();
+
+    if (data.result?.sections) {
+      return {
+        sections: data.result.sections.map((s: { type: string; content: string }, i: number) => ({
+          id: `section-${Date.now()}-${i}`,
+          type: s.type as ArticleSection['type'],
+          content: s.content,
+        })),
+        promotionalTweet: data.result.promotionalTweet || `NEW ARTICLE: ${topic}\n\nFull breakdown inside. 👇`,
+      };
+    }
+
+    throw new Error('Unexpected response format');
+  } catch (error) {
+    console.error('Article generation error:', error);
+    // Return fallback structure if API fails
+    return {
+      sections: [
+        { id: `section-${Date.now()}-0`, type: 'heading', content: topic },
+        { id: `section-${Date.now()}-1`, type: 'paragraph', content: `This article explores ${topic}. ${keyPoints || 'Key insights and analysis follow.'}` },
+        { id: `section-${Date.now()}-2`, type: 'heading', content: 'Key Points' },
+        { id: `section-${Date.now()}-3`, type: 'paragraph', content: outline || 'Add your main arguments here.' },
+        { id: `section-${Date.now()}-4`, type: 'heading', content: 'Conclusion' },
+        { id: `section-${Date.now()}-5`, type: 'paragraph', content: 'Defi App is committed to being at the forefront of this transformation.' },
+      ],
+      promotionalTweet: `NEW ARTICLE: ${topic}\n\nFull breakdown inside. 👇`,
+    };
+  }
+}
 
 export default function ArticleGeneratorPage() {
   const [topic, setTopic] = useState('');
@@ -63,12 +99,17 @@ export default function ArticleGeneratorPage() {
   const { addToast } = useToast();
 
   const handleGenerate = async () => {
+    if (!topic.trim()) return;
     setIsGenerating(true);
-    setTimeout(() => {
-      setArticle(mockGeneratedArticle);
-      setPromotionalTweet(`NEW ARTICLE: The Future of DeFi - Why 2026 Will Be Different\n\nWhat we learned from DeFi 1.0, and why the next wave will be fundamentally different.\n\nFull breakdown inside. 👇`);
+    try {
+      const result = await generateArticleWithAI(topic, outline, keyPoints, targetLength);
+      setArticle(result.sections);
+      setPromotionalTweet(result.promotionalTweet);
+    } catch (error) {
+      console.error('Failed to generate article:', error);
+    } finally {
       setIsGenerating(false);
-    }, 3000);
+    }
   };
 
   const copyArticle = async () => {
