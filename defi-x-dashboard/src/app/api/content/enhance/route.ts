@@ -13,7 +13,7 @@ import {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { action, content, options = {} } = body;
+    const { action, content, context = '', options = {} } = body;
 
     if (!content || !action) {
       return NextResponse.json(
@@ -45,7 +45,7 @@ export async function POST(request: Request) {
       case 'shorten':
       case 'hook':
       case 'cta':
-        result = await enhanceContent(content, action, brandVoice);
+        result = await enhanceContent(content, action, brandVoice, context);
         break;
 
       case 'analyze':

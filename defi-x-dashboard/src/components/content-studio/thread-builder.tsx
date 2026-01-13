@@ -33,6 +33,7 @@ import {
 } from 'lucide-react';
 import { toPng } from 'html-to-image';
 import { VoiceMatchIndicator } from '@/components/ui/voice-match-indicator';
+import { ContextInput, formatContextForAI, type ContextSource } from './context-input';
 
 interface TweetItem {
   id: string;
@@ -78,6 +79,7 @@ export function ThreadBuilder({ initialTopic, initialPosts }: ThreadBuilderProps
   const [showImageModal, setShowImageModal] = React.useState(false);
   const [imageForTweet, setImageForTweet] = React.useState<string | null>(null);
   const [imagePrompts, setImagePrompts] = React.useState<Record<string, string>>({});
+  const [contextSources, setContextSources] = React.useState<ContextSource[]>([]);
   const { addToast } = useToast();
 
   // Get/set image prompt for a tweet
@@ -401,10 +403,11 @@ export function ThreadBuilder({ initialTopic, initialPosts }: ThreadBuilderProps
     setEnhancingTweetId(targetId);
 
     try {
+      const contextString = formatContextForAI(contextSources);
       const response = await fetch('/api/content/enhance', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action, content: targetTweet.content }),
+        body: JSON.stringify({ action, content: targetTweet.content, context: contextString }),
       });
 
       const data = await response.json();
@@ -575,6 +578,13 @@ export function ThreadBuilder({ initialTopic, initialPosts }: ThreadBuilderProps
               </PremiumButton>
             </div>
           </div>
+
+          {/* Context Input */}
+          <ContextInput
+            context={contextSources}
+            onContextChange={setContextSources}
+            className="mb-4"
+          />
 
           {/* Reorderable Tweet List */}
           <Reorder.Group

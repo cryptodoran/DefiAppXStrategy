@@ -3,6 +3,7 @@
 import * as React from 'react';
 import { createPortal } from 'react-dom';
 import { motion } from 'framer-motion';
+import { ContextInput, formatContextForAI, type ContextSource } from './context-input';
 import { useSearchParams } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { PremiumCard } from '@/components/ui/premium-card';
@@ -126,6 +127,7 @@ export function QTStudio({ initialUrl: propUrl }: QTStudioProps) {
   const [showImageModal, setShowImageModal] = React.useState(false);
   const [imagePrompt, setImagePrompt] = React.useState('');
   const [showImagePromptInput, setShowImagePromptInput] = React.useState(false);
+  const [contextSources, setContextSources] = React.useState<ContextSource[]>([]);
   const { addToast } = useToast();
 
   // Update image prompt when qtContent changes (as default)
@@ -504,10 +506,11 @@ export function QTStudio({ initialUrl: propUrl }: QTStudioProps) {
     setEnhancingAction(action);
 
     try {
+      const contextString = formatContextForAI(contextSources);
       const response = await fetch('/api/content/enhance', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action, content: qtContent }),
+        body: JSON.stringify({ action, content: qtContent, context: contextString }),
       });
 
       const data = await response.json();
@@ -776,6 +779,13 @@ export function QTStudio({ initialUrl: propUrl }: QTStudioProps) {
               </button>
             )}
           </div>
+
+          {/* Context Input */}
+          <ContextInput
+            context={contextSources}
+            onContextChange={setContextSources}
+            className="mb-3"
+          />
 
           {/* Voice Match Indicator */}
           <VoiceMatchIndicator

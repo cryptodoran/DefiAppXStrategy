@@ -78,7 +78,8 @@ export interface EnhanceResult {
 export async function enhanceContent(
   content: string,
   action: 'spicier' | 'context' | 'shorten' | 'hook' | 'cta',
-  brandVoice?: BrandVoiceProfile
+  brandVoice?: BrandVoiceProfile,
+  additionalContext?: string
 ): Promise<EnhanceResult> {
   const voiceContext = brandVoice
     ? `
@@ -152,8 +153,12 @@ You MUST respond in valid JSON format with this structure:
   "reasoning": "why these changes will improve engagement"
 }`;
 
-  const userPrompt = `${actionPrompts[action]}
+  const contextSection = additionalContext
+    ? `\n\nREFERENCE MATERIAL PROVIDED BY USER (use this for context and facts):\n${additionalContext}\n`
+    : '';
 
+  const userPrompt = `${actionPrompts[action]}
+${contextSection}
 Original tweet:
 "${content}"
 

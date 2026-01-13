@@ -27,6 +27,7 @@ import {
 } from 'lucide-react';
 import { VoiceMatchIndicator } from '@/components/ui/voice-match-indicator';
 import { MediaGenerator } from '@/components/media/media-generator';
+import { ContextInput, formatContextForAI, type ContextSource } from './context-input';
 
 interface ContentAnalysis {
   overallScore: number;
@@ -72,6 +73,7 @@ export function ContentCreator({ initialTopic, initialContent }: ContentCreatorP
   const [enhancingAction, setEnhancingAction] = React.useState<string | null>(null);
   const [variations, setVariations] = React.useState<GeneratedVariation[]>([]);
   const [isGeneratingVariations, setIsGeneratingVariations] = React.useState(false);
+  const [contextSources, setContextSources] = React.useState<ContextSource[]>([]);
   const { addToast } = useToast();
 
   // Pre-fill with initialContent if provided (from dashboard Edit button)
@@ -157,10 +159,11 @@ export function ContentCreator({ initialTopic, initialContent }: ContentCreatorP
     setEnhancingAction(action);
 
     try {
+      const contextString = formatContextForAI(contextSources);
       const response = await fetch('/api/content/enhance', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action, content }),
+        body: JSON.stringify({ action, content, context: contextString }),
       });
 
       const data = await response.json();
@@ -306,6 +309,13 @@ export function ContentCreator({ initialTopic, initialContent }: ContentCreatorP
               </PremiumButton>
             </div>
           </div>
+
+          {/* Context Input - Add reference material for AI */}
+          <ContextInput
+            context={contextSources}
+            onContextChange={setContextSources}
+            className="mb-4"
+          />
 
           {/* Voice Match Indicator - Real-time feedback */}
           <VoiceMatchIndicator
