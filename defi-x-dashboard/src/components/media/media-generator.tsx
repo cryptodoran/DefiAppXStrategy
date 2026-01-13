@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { PremiumCard } from '@/components/ui/premium-card';
@@ -706,82 +707,112 @@ export function MediaGenerator({ tweetContent, onPromptSelect, onImageGenerated,
         </div>
       )}
 
-      {/* Image Modal - Using CSS transitions instead of Framer Motion to prevent flickering */}
-      {showImageModal && (
-        <div
-          className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 animate-in fade-in duration-150"
-          onClick={() => setShowImageModal(null)}
-        >
-          <div
-            className="relative max-w-2xl w-full bg-surface rounded-xl overflow-hidden animate-in zoom-in-95 duration-150"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Close button */}
-            <button
-              onClick={() => setShowImageModal(null)}
-              className="absolute top-3 right-3 p-2 rounded-full bg-black/50 text-white hover:bg-black/70 transition-colors z-10"
-            >
-              <X className="h-5 w-5" />
-            </button>
-
-            {/* Image - fixed dimensions to prevent layout shift */}
-            <div className="relative aspect-square bg-black">
-              <img
-                src={showImageModal.imageUrl}
-                alt="Generated image"
-                className="w-full h-full object-contain"
-                style={{ imageRendering: 'auto' }}
-                loading="eager"
-                decoding="sync"
-              />
-            </div>
-
-            {/* Actions */}
-            <div className="p-4 border-t border-white/5">
-              <p className="text-xs text-tertiary mb-3 line-clamp-2">
-                {showImageModal.prompt}
-              </p>
-              <div className="flex items-center gap-2">
-                <PremiumButton
-                  size="sm"
-                  variant="primary"
-                  leftIcon={<Download className="h-4 w-4" />}
-                  onClick={() => downloadImage(showImageModal.imageUrl, 'defiapp-media')}
-                  className="flex-1"
-                >
-                  download
-                </PremiumButton>
-                <PremiumButton
-                  size="sm"
-                  variant="secondary"
-                  leftIcon={<RefreshCw className="h-4 w-4" />}
-                  onClick={() => {
-                    setShowImageModal(null);
-                    generateImage(showImageModal.prompt, -1);
-                  }}
-                >
-                  regenerate
-                </PremiumButton>
-                <PremiumButton
-                  size="sm"
-                  variant="ghost"
-                  leftIcon={<Copy className="h-4 w-4" />}
-                  onClick={() => {
-                    navigator.clipboard.writeText(showImageModal.imageUrl);
-                    addToast({
-                      type: 'success',
-                      title: 'copied!',
-                      description: 'image url copied to clipboard',
-                    });
-                  }}
-                >
-                  copy url
-                </PremiumButton>
-              </div>
-            </div>
-          </div>
-        </div>
+      {/* Image Modal - Portal to isolate from parent re-renders */}
+      {showImageModal && typeof document !== 'undefined' && createPortal(
+        <ImageModal
+          image={showImageModal}
+          onClose={() => setShowImageModal(null)}
+          onDownload={downloadImage}
+          onRegenerate={(prompt) => {
+            setShowImageModal(null);
+            generateImage(prompt, -1);
+          }}
+          onCopyUrl={(url) => {
+            navigator.clipboard.writeText(url);
+            addToast({
+              type: 'success',
+              title: 'copied!',
+              description: 'image url copied to clipboard',
+            });
+          }}
+        />,
+        document.body
       )}
     </PremiumCard>
   );
 }
+
+// Memoized modal component to prevent re-renders from parent
+interface ImageModalProps {
+  image: GeneratedImage;
+  onClose: () => void;
+  onDownload: (url: string, filename: string) => void;
+  onRegenerate: (prompt: string) => void;
+  onCopyUrl: (url: string) => void;
+}
+
+const ImageModal = React.memo(function ImageModal({
+  image,
+  onClose,
+  onDownload,
+  onRegenerate,
+  onCopyUrl,
+}: ImageModalProps) {
+  // Prevent any mouse events from bubbling and causing parent re-renders
+  const handleMouseMove = React.useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+  }, []);
+
+  return (
+    <div
+      className="fixed inset-0 bg-black/80 z-[9999] flex items-center justify-center p-4"
+      onClick={onClose}
+      onMouseMove={handleMouseMove}
+      style={{ isolation: 'isolate' }}
+    >
+      <div
+        className="relative max-w-2xl w-full bg-[#0a0a0a] rounded-xl overflow-hidden"
+        onClick={(e) => e.stopPropagation()}
+        onMouseMove={handleMouseMove}
+      >
+        {/* Close button */}
+        <button
+          onClick={onClose}
+          className="absolute top-3 right-3 p-2 rounded-full bg-black/50 text-white hover:bg-black/70 z-10"
+        >
+          <X className="h-5 w-5" />
+        </button>
+
+        {/* Image - completely static */}
+        <div className="aspect-square bg-black">
+          <img
+            src={image.imageUrl}
+            alt="Generated image"
+            className="w-full h-full object-contain"
+            draggable={false}
+          />
+        </div>
+
+        {/* Actions */}
+        <div className="p-4 border-t border-white/10">
+          <p className="text-xs text-gray-400 mb-3 line-clamp-2">
+            {image.prompt}
+          </p>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => onDownload(image.imageUrl, 'defiapp-media')}
+              className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-white text-black rounded-lg font-medium text-sm hover:bg-gray-200"
+            >
+              <Download className="h-4 w-4" />
+              download
+            </button>
+            <button
+              onClick={() => onRegenerate(image.prompt)}
+              className="flex items-center justify-center gap-2 px-4 py-2 bg-white/10 text-white rounded-lg font-medium text-sm hover:bg-white/20"
+            >
+              <RefreshCw className="h-4 w-4" />
+              regenerate
+            </button>
+            <button
+              onClick={() => onCopyUrl(image.imageUrl)}
+              className="flex items-center justify-center gap-2 px-4 py-2 bg-white/10 text-white rounded-lg font-medium text-sm hover:bg-white/20"
+            >
+              <Copy className="h-4 w-4" />
+              copy url
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+});

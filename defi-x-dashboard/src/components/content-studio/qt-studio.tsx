@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import { createPortal } from 'react-dom';
 import { motion } from 'framer-motion';
 import { useSearchParams } from 'next/navigation';
 import { cn } from '@/lib/utils';
@@ -945,62 +946,62 @@ export function QTStudio({ initialUrl: propUrl }: QTStudioProps) {
         </PremiumCard>
       </div>
 
-      {/* Image Modal - CSS transitions to prevent flickering */}
-      {showImageModal && generatedImage && (
+      {/* Image Modal - Portal to prevent flickering */}
+      {showImageModal && generatedImage && typeof document !== 'undefined' && createPortal(
         <div
-          className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 animate-in fade-in duration-150"
+          className="fixed inset-0 bg-black/80 z-[9999] flex items-center justify-center p-4"
           onClick={() => setShowImageModal(false)}
+          onMouseMove={(e) => e.stopPropagation()}
+          style={{ isolation: 'isolate' }}
         >
           <div
-            className="relative max-w-2xl w-full bg-surface rounded-xl overflow-hidden animate-in zoom-in-95 duration-150"
+            className="relative max-w-2xl w-full bg-[#0a0a0a] rounded-xl overflow-hidden"
             onClick={(e) => e.stopPropagation()}
+            onMouseMove={(e) => e.stopPropagation()}
           >
             <button
               onClick={() => setShowImageModal(false)}
-              className="absolute top-3 right-3 p-2 rounded-full bg-black/50 text-white hover:bg-black/70 transition-colors z-10"
+              className="absolute top-3 right-3 p-2 rounded-full bg-black/50 text-white hover:bg-black/70 z-10"
             >
               <X className="h-5 w-5" />
             </button>
 
-            <div className="relative aspect-square bg-black">
+            <div className="aspect-square bg-black">
               <img
                 src={generatedImage}
                 alt="Generated image"
                 className="w-full h-full object-contain"
-                loading="eager"
-                decoding="sync"
+                draggable={false}
               />
             </div>
 
-            <div className="p-4 border-t border-white/5">
-              <p className="text-xs text-tertiary mb-3 line-clamp-2">
+            <div className="p-4 border-t border-white/10">
+              <p className="text-xs text-gray-400 mb-3 line-clamp-2">
                 {qtContent}
               </p>
               <div className="flex items-center gap-2">
-                <PremiumButton
-                  size="sm"
-                  variant="primary"
-                  leftIcon={<Download className="h-4 w-4" />}
+                <button
                   onClick={downloadImage}
-                  className="flex-1"
+                  className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-white text-black rounded-lg font-medium text-sm hover:bg-gray-200"
                 >
+                  <Download className="h-4 w-4" />
                   Download
-                </PremiumButton>
-                <PremiumButton
-                  size="sm"
-                  variant="secondary"
-                  leftIcon={<Twitter className="h-4 w-4" />}
+                </button>
+                <button
                   onClick={() => {
                     setShowImageModal(false);
                     openOnTwitter();
                   }}
+                  className="flex items-center justify-center gap-2 px-4 py-2 bg-white/10 text-white rounded-lg font-medium text-sm hover:bg-white/20"
                 >
+                  <Twitter className="h-4 w-4" />
                   Post on X
-                </PremiumButton>
+                </button>
               </div>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
