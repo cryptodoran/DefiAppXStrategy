@@ -301,3 +301,18 @@ model AccountMetrics {
 
   @@map("account_metrics")
 }
+
+// Documentation knowledge base - scraped from docs.defi.app
+model DocsKnowledge {
+  id          String   @id @default(cuid())
+  url         String   @unique
+  title       String
+  content     String
+  summary     String?
+  category    String?
+  lastScraped DateTime @default(now()) @map("last_scraped")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("docs_knowledge")
+}
