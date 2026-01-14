@@ -350,94 +350,97 @@ export function MediaGenerator({ tweetContent, onPromptSelect, onImageGenerated,
   ): Promise<string> => {
     return new Promise((resolve, reject) => {
       const img = new window.Image();
-      img.crossOrigin = 'anonymous';
+      // Only set crossOrigin for HTTP URLs, not for data URLs (base64)
+      // Setting crossOrigin on data URLs can cause loading issues
+      if (imageSrc.startsWith('http://') || imageSrc.startsWith('https://')) {
+        img.crossOrigin = 'anonymous';
+      }
 
       img.onload = () => {
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-        if (!ctx) {
-          reject(new Error('Cannot get canvas context'));
-          return;
-        }
-
-        // Set canvas size to match image
-        canvas.width = img.width;
-        canvas.height = img.height;
-
-        // Draw original image
-        ctx.drawImage(img, 0, 0);
-
-        // Process each text region
-        for (const region of regions) {
-          // Convert percentages to pixels
-          const x = (region.x / 100) * canvas.width;
-          const y = (region.y / 100) * canvas.height;
-          const width = (region.width / 100) * canvas.width;
-          const height = (region.height / 100) * canvas.height;
-
-          // Scale font size based on actual image dimensions
-          const scaleFactor = canvas.width / 1024;
-          const fontSize = region.fontSize * scaleFactor;
-
-          // Paint over original text with background color
-          ctx.fillStyle = region.backgroundColor;
-          ctx.fillRect(x, y, width, height);
-
-          // Set up text styling
-          ctx.fillStyle = region.color;
-          // Use simpler font string for better browser compatibility
-          const fontWeight = region.fontWeight === '900' || region.fontWeight === 'bold' ? 'bold' : 'normal';
-          ctx.font = `${fontWeight} ${Math.round(fontSize)}px sans-serif`;
-          ctx.textBaseline = 'middle';
-
-          // Apply text transform
-          let text = region.newText;
-          if (region.textTransform === 'uppercase') {
-            text = text.toUpperCase();
-          } else if (region.textTransform === 'lowercase') {
-            text = text.toLowerCase();
+        try {
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+          if (!ctx) {
+            reject(new Error('Cannot get canvas context'));
+            return;
           }
 
-          // Calculate text position based on alignment
-          // Add small padding from left edge for left-aligned text
-          const textPadding = 15 * scaleFactor;
-          let textX = x + (region.textAlign === 'left' ? textPadding : 0);
-          if (region.textAlign === 'center') {
-            ctx.textAlign = 'center';
-            textX = x + width / 2;
-          } else if (region.textAlign === 'right') {
-            ctx.textAlign = 'right';
-            textX = x + width - textPadding;
-          } else {
-            ctx.textAlign = 'left';
-          }
+          // Set canvas size to match image
+          canvas.width = img.width;
+          canvas.height = img.height;
 
-          const textY = y + height / 2;
+          console.log('Canvas created:', canvas.width, 'x', canvas.height);
 
-          // Apply letter spacing if specified (manual character-by-character drawing)
-          if (region.letterSpacing && region.letterSpacing !== 0) {
-            ctx.textAlign = 'left';
-            let currentX = region.textAlign === 'center'
-              ? textX - (ctx.measureText(text).width + (text.length - 1) * region.letterSpacing * scaleFactor) / 2
-              : textX;
+          // Draw original image
+          ctx.drawImage(img, 0, 0);
 
-            for (const char of text) {
-              ctx.fillText(char, currentX, textY);
-              currentX += ctx.measureText(char).width + region.letterSpacing * scaleFactor;
+          // Process each text region
+          for (const region of regions) {
+            // Convert percentages to pixels
+            const x = (region.x / 100) * canvas.width;
+            const y = (region.y / 100) * canvas.height;
+            const width = (region.width / 100) * canvas.width;
+            const height = (region.height / 100) * canvas.height;
+
+            // Scale font size based on actual image dimensions
+            const scaleFactor = canvas.width / 1024;
+            const fontSize = region.fontSize * scaleFactor;
+
+            // Paint over original text with background color
+            ctx.fillStyle = region.backgroundColor;
+            ctx.fillRect(x, y, width, height);
+
+            // Set up text styling
+            ctx.fillStyle = region.color;
+            // Use simpler font string for better browser compatibility
+            const fontWeight = region.fontWeight === '900' || region.fontWeight === 'bold' ? 'bold' : 'normal';
+            ctx.font = `${fontWeight} ${Math.round(fontSize)}px sans-serif`;
+            ctx.textBaseline = 'middle';
+
+            // Apply text transform
+            let text = region.newText;
+            if (region.textTransform === 'uppercase') {
+              text = text.toUpperCase();
+            } else if (region.textTransform === 'lowercase') {
+              text = text.toLowerCase();
             }
-          } else {
+
+            // Calculate text position based on alignment
+            // Add small padding from left edge for left-aligned text
+            const textPadding = 15 * scaleFactor;
+            let textX = x + (region.textAlign === 'left' ? textPadding : 0);
+            if (region.textAlign === 'center') {
+              ctx.textAlign = 'center';
+              textX = x + width / 2;
+            } else if (region.textAlign === 'right') {
+              ctx.textAlign = 'right';
+              textX = x + width - textPadding;
+            } else {
+              ctx.textAlign = 'left';
+            }
+
+            const textY = y + height / 2;
+
+            // Draw text
             ctx.fillText(text, textX, textY);
           }
+
+          // Export as PNG
+          const result = canvas.toDataURL('image/png', 1.0);
+          console.log('Canvas export successful, length:', result.length);
+          resolve(result);
+        } catch (canvasError) {
+          console.error('Canvas operation error:', canvasError);
+          reject(new Error('Failed to edit image: ' + (canvasError instanceof Error ? canvasError.message : 'Unknown error')));
         }
-
-        // Export as PNG
-        resolve(canvas.toDataURL('image/png', 1.0));
       };
 
-      img.onerror = () => {
-        reject(new Error('Failed to load image'));
+      img.onerror = (e) => {
+        console.error('Image load error:', e);
+        reject(new Error('Failed to load image for editing. Please try uploading again.'));
       };
 
+      // Set src after event handlers are attached
       img.src = imageSrc;
     });
   };
