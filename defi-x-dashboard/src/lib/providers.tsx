@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useState, type ReactNode } from 'react';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { ToastProvider } from '@/components/ui/toast';
+import { PasswordGate } from '@/components/auth/password-gate';
 
 interface ProvidersProps {
   children: ReactNode;
@@ -29,7 +30,9 @@ export function Providers({ children }: ProvidersProps) {
     <QueryClientProvider client={queryClient}>
       <TooltipProvider delayDuration={0}>
         <ToastProvider>
-          {children}
+          <PasswordGate>
+            {children}
+          </PasswordGate>
         </ToastProvider>
       </TooltipProvider>
     </QueryClientProvider>

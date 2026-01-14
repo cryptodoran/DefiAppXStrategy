@@ -38,59 +38,42 @@ export async function POST(request: Request) {
   }
 }
 
-// Fallback suggestions when Claude is not configured
+// Fallback suggestion when Claude is not configured - returns single AI suggestion
 function getFallbackSuggestions(content: string): MediaSuggestion[] {
   const contentLower = content.toLowerCase();
 
-  // Detect content type for relevant suggestions
+  // Detect content type for relevant suggestion
   const isAboutData = contentLower.includes('data') || contentLower.includes('stats') || contentLower.includes('%');
   const isHumor = contentLower.includes('lol') || contentLower.includes('funny') || contentLower.includes('😂');
   const isAnnouncement = contentLower.includes('announce') || contentLower.includes('launching') || contentLower.includes('new');
 
-  const suggestions: MediaSuggestion[] = [];
+  // Generate single best suggestion based on content analysis
+  let description: string;
+  let imagePrompt: string;
+  let reasoning: string;
 
   if (isAboutData) {
-    suggestions.push({
-      type: 'chart',
-      description: 'Data visualization chart showing the metrics mentioned in your tweet',
-      imagePrompt: `Create a clean, professional chart or infographic about: ${content.slice(0, 100)}. Use dark theme with gradient accents in purple and blue. Modern crypto/DeFi aesthetic.`,
-      reasoning: 'Data-driven content performs 2x better with visual charts',
-    });
+    description = 'Data visualization showing the metrics in your tweet';
+    imagePrompt = `Create a clean, professional chart or infographic about: ${content.slice(0, 100)}. Dark theme, gradient accents in purple and blue. Modern crypto/DeFi aesthetic.`;
+    reasoning = 'Data-driven content performs 2x better with visual charts';
+  } else if (isHumor) {
+    description = 'Engaging visual that matches the humor of your tweet';
+    imagePrompt = `Create a crypto/DeFi visual related to: ${content.slice(0, 100)}. Popular format, relatable to crypto twitter audience.`;
+    reasoning = 'Visual humor gets 3x more engagement on Crypto Twitter';
+  } else if (isAnnouncement) {
+    description = 'Professional announcement graphic with key details';
+    imagePrompt = `Create a sleek announcement graphic for: ${content.slice(0, 100)}. Dark background, modern typography, subtle gradients. Professional DeFi protocol style.`;
+    reasoning = 'Announcements with custom graphics get 4x more reach';
+  } else {
+    description = 'Visual that complements and enhances your tweet';
+    imagePrompt = `Create an engaging visual for: ${content.slice(0, 100)}. Dark theme, clean design, DeFi aesthetic.`;
+    reasoning = 'Tweets with images get 2x more engagement';
   }
 
-  if (isHumor) {
-    suggestions.push({
-      type: 'meme',
-      description: 'Crypto meme that matches the humor of your tweet',
-      imagePrompt: `Create a crypto/DeFi meme related to: ${content.slice(0, 100)}. Popular meme format, relatable to crypto twitter audience.`,
-      reasoning: 'Memes get 3x more engagement on Crypto Twitter',
-    });
-  }
-
-  if (isAnnouncement) {
-    suggestions.push({
-      type: 'custom',
-      description: 'Professional announcement graphic with key details',
-      imagePrompt: `Create a sleek announcement graphic for: ${content.slice(0, 100)}. Dark background, modern typography, subtle gradients. Professional DeFi protocol style.`,
-      reasoning: 'Announcements with custom graphics get 4x more reach',
-    });
-  }
-
-  // Always include these general options
-  suggestions.push({
-    type: 'infographic',
-    description: 'Educational infographic breaking down your key points',
-    imagePrompt: `Create an infographic explaining: ${content.slice(0, 100)}. Clear hierarchy, numbered points, dark theme with accent colors.`,
-    reasoning: 'Infographics are highly shareable and establish authority',
-  });
-
-  suggestions.push({
-    type: 'screenshot',
-    description: 'App screenshot or UI mockup demonstrating the concept',
-    imagePrompt: `Create a UI screenshot or mockup for: ${content.slice(0, 100)}. Modern dark mode interface, clean design, DeFi dashboard aesthetic.`,
-    reasoning: 'Screenshots add credibility and context to your claims',
-  });
-
-  // Return top 3 suggestions
-  return suggestions.slice(0, 3);
+  // Return single suggestion (array for backwards compatibility)
+  return [{
+    description,
+    imagePrompt,
+    reasoning,
+  }];
 }

@@ -45,58 +45,58 @@ interface Competitor {
   _mock?: boolean;
 }
 
-// Default DeFi competitors to track
+// Default competitors - DeFi aggregators, wallets, and portfolio trackers similar to Defi App
 const DEFAULT_COMPETITOR_HANDLES = [
-  'Uniswap',
-  'defillama',
-  'aaboronin',
-  'paradigm',
-  '1inch',
-  'AaveAave',
+  'zerion',
+  'zaboraper',
+  'DeBankDeFi',
+  'rainbowdotme',
+  'Instadapp',
+  'MetaMask',
 ];
 
-// Competitor analysis mapping
+// Competitor analysis mapping - relevant to Defi App as a DeFi super app
 const COMPETITOR_ANALYSIS: Record<string, {
   type: 'brand' | 'influencer' | 'protocol';
   topContent: string[];
   strengths: string[];
   weaknesses: string[];
 }> = {
-  uniswap: {
-    type: 'protocol',
-    topContent: ['Protocol updates', 'Governance proposals', 'Educational threads'],
-    strengths: ['Brand recognition', 'Large following', 'Technical credibility'],
-    weaknesses: ['Low engagement rate', 'Corporate tone', 'Infrequent posting'],
-  },
-  defillama: {
-    type: 'protocol',
-    topContent: ['TVL updates', 'Chain comparisons', 'Data insights'],
-    strengths: ['Data authority', 'Growing fast', 'Trusted source'],
-    weaknesses: ['Dry content', 'Limited personality'],
-  },
-  aaboronin: {
-    type: 'influencer',
-    topContent: ['Deep dives', 'Protocol analysis', 'Hot takes'],
-    strengths: ['High engagement', 'Trusted voice', 'Quality content'],
-    weaknesses: ['Not a brand account', 'Occasional controversy'],
-  },
-  paradigm: {
+  zerion: {
     type: 'brand',
-    topContent: ['Research papers', 'Investment announcements', 'Technical content'],
-    strengths: ['Authority', 'Quality over quantity', 'Technical depth'],
-    weaknesses: ['Low frequency', 'Academic tone', 'Limited engagement'],
+    topContent: ['Wallet features', 'Multi-chain updates', 'DeFi tutorials'],
+    strengths: ['Strong UX focus', 'Multi-chain support', 'Active development'],
+    weaknesses: ['Crowded market', 'Limited educational content'],
   },
-  '1inch': {
-    type: 'protocol',
-    topContent: ['Aggregator updates', 'Gas savings', 'DeFi tips'],
-    strengths: ['Product focus', 'Active development', 'Community engagement'],
-    weaknesses: ['Competitive space', 'Technical complexity'],
+  zaboraper: {
+    type: 'brand',
+    topContent: ['Dashboard features', 'NFT integration', 'Portfolio tracking'],
+    strengths: ['First mover', 'NFT focus', 'Brand recognition'],
+    weaknesses: ['Feature creep', 'Less mobile focus'],
   },
-  aaveaave: {
+  debankdefi: {
+    type: 'brand',
+    topContent: ['Portfolio analytics', 'Protocol integrations', 'Data insights'],
+    strengths: ['Data depth', 'Protocol coverage', 'Social features'],
+    weaknesses: ['Complex UI', 'Less beginner friendly'],
+  },
+  rainbowdotme: {
+    type: 'brand',
+    topContent: ['Mobile wallet', 'ENS integration', 'NFT showcase'],
+    strengths: ['Beautiful design', 'Mobile-first', 'ENS focus'],
+    weaknesses: ['Limited DeFi features', 'Ethereum-centric'],
+  },
+  instadapp: {
     type: 'protocol',
-    topContent: ['Protocol governance', 'Lending updates', 'GHO stablecoin'],
-    strengths: ['Market leader', 'Strong brand', 'Multi-chain presence'],
-    weaknesses: ['Complex product', 'Institutional focus'],
+    topContent: ['DeFi automation', 'Strategy vaults', 'Yield optimization'],
+    strengths: ['Technical depth', 'Power user focus', 'Automation'],
+    weaknesses: ['Complexity', 'Small following'],
+  },
+  metamask: {
+    type: 'brand',
+    topContent: ['Wallet security', 'Feature updates', 'Chain support'],
+    strengths: ['Market leader', 'Browser extension', 'Trust'],
+    weaknesses: ['Slow innovation', 'UX complexity', 'Swap fees'],
   },
 };
 
@@ -146,12 +146,38 @@ async function fetchCompetitors(handles: string[]): Promise<Competitor[]> {
   });
 }
 
+// Content gaps relevant to Defi App (DeFi super app)
 const contentGaps = [
-  { topic: 'L2 comparisons', competitors: 1, opportunity: 'high' },
-  { topic: 'Security best practices', competitors: 2, opportunity: 'medium' },
-  { topic: 'Beginner tutorials', competitors: 1, opportunity: 'high' },
-  { topic: 'Market commentary', competitors: 4, opportunity: 'low' },
-  { topic: 'Memes & humor', competitors: 1, opportunity: 'high' },
+  {
+    topic: 'Multi-chain portfolio management tutorials',
+    competitors: 1,
+    opportunity: 'high',
+    evidence: 'Competitors post product updates but lack step-by-step educational content',
+  },
+  {
+    topic: 'Gas optimization tips & tricks',
+    competitors: 0,
+    opportunity: 'high',
+    evidence: 'No competitor consistently shares gas-saving strategies - high engagement potential',
+  },
+  {
+    topic: 'DeFi security best practices',
+    competitors: 2,
+    opportunity: 'medium',
+    evidence: 'Wallet competitors avoid security topics - opportunity to build trust',
+  },
+  {
+    topic: 'Yield comparison threads',
+    competitors: 1,
+    opportunity: 'high',
+    evidence: 'Users constantly ask about best yields - underserved content area',
+  },
+  {
+    topic: 'DeFi for beginners series',
+    competitors: 1,
+    opportunity: 'high',
+    evidence: 'Most content assumes advanced knowledge - onboarding content gap',
+  },
 ];
 
 const STORAGE_KEY = 'tracked-competitors';
@@ -450,15 +476,15 @@ export default function CompetitorIntelPage() {
                 {contentGaps.map((gap, index) => (
                   <div
                     key={index}
-                    className="flex items-center justify-between p-4 bg-base rounded-lg"
+                    className="p-4 bg-base rounded-lg"
                   >
-                    <div>
-                      <h4 className="font-medium text-white">{gap.topic}</h4>
-                      <p className="text-sm text-tertiary">
-                        {gap.competitors} competitor{gap.competitors !== 1 ? 's' : ''} covering this
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-start justify-between mb-2">
+                      <div>
+                        <h4 className="font-medium text-white">{gap.topic}</h4>
+                        <p className="text-sm text-tertiary">
+                          {gap.competitors} competitor{gap.competitors !== 1 ? 's' : ''} covering this
+                        </p>
+                      </div>
                       <Badge
                         className={cn(
                           gap.opportunity === 'high' && 'bg-green-500/20 text-green-400',
@@ -468,16 +494,20 @@ export default function CompetitorIntelPage() {
                       >
                         {gap.opportunity} opportunity
                       </Badge>
-                      <Button
-                        size="sm"
-                        onClick={() => {
-                          router.push('/create?topic=' + encodeURIComponent(gap.topic));
-                          addToast({ type: 'info', title: 'Exploring gap', description: `Creating content for "${gap.topic}"` });
-                        }}
-                      >
-                        Explore
-                      </Button>
                     </div>
+                    {/* Evidence/Reasoning */}
+                    <p className="text-xs text-tertiary italic mb-3 border-l-2 border-violet-500/30 pl-2">
+                      {gap.evidence}
+                    </p>
+                    <Button
+                      size="sm"
+                      onClick={() => {
+                        router.push('/create?topic=' + encodeURIComponent(gap.topic));
+                        addToast({ type: 'info', title: 'Exploring gap', description: `Creating content for "${gap.topic}"` });
+                      }}
+                    >
+                      Create Content
+                    </Button>
                   </div>
                 ))}
               </div>
@@ -489,27 +519,63 @@ export default function CompetitorIntelPage() {
           <Card className="bg-surface border-white/5">
             <CardHeader>
               <CardTitle className="text-white">Recent Competitor Activity</CardTitle>
+              <p className="text-xs text-tertiary mt-1">
+                Click to verify each activity on Twitter
+              </p>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                <div className="p-4 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
+                <a
+                  href="https://twitter.com/search?q=from%3Azerion&f=live"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block p-4 bg-yellow-500/10 border border-yellow-500/20 rounded-lg hover:bg-yellow-500/15 transition-colors group"
+                >
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="font-medium text-white">@uniswap launched viral campaign</p>
-                      <p className="text-sm text-tertiary">New governance proposal thread gaining traction</p>
+                      <p className="font-medium text-white flex items-center gap-2">
+                        @zerion posting wallet updates
+                        <ExternalLink className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                      </p>
+                      <p className="text-sm text-tertiary">Multi-chain features being highlighted</p>
                     </div>
-                    <Badge>2h ago</Badge>
+                    <Badge>Recent</Badge>
                   </div>
-                </div>
-                <div className="p-4 bg-green-500/10 border border-green-500/20 rounded-lg">
+                </a>
+                <a
+                  href="https://twitter.com/search?q=from%3Arainbowdotme&f=live"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block p-4 bg-green-500/10 border border-green-500/20 rounded-lg hover:bg-green-500/15 transition-colors group"
+                >
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="font-medium text-white">@defillama passed 450K followers</p>
-                      <p className="text-sm text-tertiary">Growth accelerating, up 8% this month</p>
+                      <p className="font-medium text-white flex items-center gap-2">
+                        @rainbowdotme active with mobile updates
+                        <ExternalLink className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                      </p>
+                      <p className="text-sm text-tertiary">Focus on mobile UX and ENS features</p>
                     </div>
-                    <Badge>1d ago</Badge>
+                    <Badge>Recent</Badge>
                   </div>
-                </div>
+                </a>
+                <a
+                  href="https://twitter.com/search?q=from%3ADeBankDeFi&f=live"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg hover:bg-blue-500/15 transition-colors group"
+                >
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-medium text-white flex items-center gap-2">
+                        @DeBankDeFi portfolio features
+                        <ExternalLink className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                      </p>
+                      <p className="text-sm text-tertiary">Social features and protocol integrations</p>
+                    </div>
+                    <Badge>Recent</Badge>
+                  </div>
+                </a>
               </div>
             </CardContent>
           </Card>

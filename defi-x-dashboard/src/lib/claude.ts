@@ -388,7 +388,7 @@ Respond with JSON:
 // ============ IMAGE/MEDIA SUGGESTIONS ============
 
 export interface MediaSuggestion {
-  type: 'meme' | 'infographic' | 'chart' | 'screenshot' | 'custom';
+  type?: 'meme' | 'infographic' | 'chart' | 'screenshot' | 'custom'; // Optional - simplified UI
   description: string;
   imagePrompt: string;
   reasoning: string;

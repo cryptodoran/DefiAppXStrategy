@@ -16,7 +16,6 @@ import {
   Zap,
   Target,
   MessageSquare,
-  Calendar,
   Flame,
   Activity,
   Package,
@@ -68,7 +67,6 @@ const navigation = [
     children: [
       { name: 'Daily Recommendations', href: '/suggestions/daily', icon: Lightbulb },
       { name: 'Trending Topics', href: '/suggestions/trending', icon: TrendingUp },
-      { name: 'Content Calendar', href: '/suggestions/calendar', icon: Calendar },
     ],
   },
   {
@@ -170,18 +168,12 @@ export function Sidebar() {
         </ul>
       </nav>
 
-      {/* Bottom section */}
+      {/* Bottom section - simplified */}
       <div className="border-t border-white/5 p-4">
         <div className="rounded-lg bg-surface p-3">
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-tertiary">Exposure Budget</span>
-            <span className="font-medium text-green-400">73%</span>
-          </div>
-          <div className="mt-2 h-1.5 rounded-full bg-elevated">
-            <div
-              className="h-full rounded-full bg-gradient-to-r from-green-500 to-emerald-400"
-              style={{ width: '73%' }}
-            />
+          <div className="flex items-center gap-2 text-xs text-tertiary">
+            <span className="h-2 w-2 rounded-full bg-green-400 animate-pulse" />
+            <span>Connected to X API</span>
           </div>
         </div>
       </div>

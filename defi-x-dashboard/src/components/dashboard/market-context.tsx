@@ -130,9 +130,9 @@ export function MarketContextPanel() {
     refreshData();
   }, [refreshData]);
 
-  // Auto-refresh every 60 seconds
+  // Auto-refresh news every 30 minutes (1800000ms), keep market data at 60s
   React.useEffect(() => {
-    const interval = setInterval(refreshData, 60000);
+    const interval = setInterval(refreshData, 1800000); // 30 minutes
     return () => clearInterval(interval);
   }, [refreshData]);
 

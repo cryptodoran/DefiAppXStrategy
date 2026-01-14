@@ -7,7 +7,7 @@ import Anthropic from '@anthropic-ai/sdk';
 
 interface DesignRequest {
   prompt: string;
-  style?: 'gold' | 'green' | 'red' | 'dark' | 'data';
+  style?: 'gold' | 'green' | 'red' | 'dark' | 'data' | 'blue' | 'purple' | 'gradient' | 'minimal' | 'bold';
   width?: number;
   height?: number;
 }
@@ -97,6 +97,11 @@ export async function POST(request: NextRequest) {
       red: `RED theme. Accent: #FF4444 (bright red). ONE huge white headline, ONE red subline. Red glow effect. Remember: NO logo - it's auto-injected.`,
       dark: `DARK theme. Text: #FFFFFF. ONE huge white headline, subtle gray subline. Maximum simplicity. Remember: NO logo - it's auto-injected.`,
       data: `DATA theme. For stats/numbers. ONE or TWO big numbers as headline, small label text. Minimal. Remember: NO logo - it's auto-injected.`,
+      blue: `BLUE theme. Accent: #00D4FF (electric cyan/blue). ONE huge white headline, ONE cyan subline. Cyan glow effect. Tech/futuristic vibe. Remember: NO logo - it's auto-injected.`,
+      purple: `PURPLE theme. Accent: #A855F7 (vibrant purple/violet). ONE huge white headline, ONE purple subline. Purple radial glow behind text. Premium feel. Remember: NO logo - it's auto-injected.`,
+      gradient: `GRADIENT theme. Multi-color gradient from purple (#A855F7) to blue (#00D4FF) to green (#00FF88). Apply gradient to the background as subtle radial. Text stays white. Futuristic, vibrant feel. Remember: NO logo - it's auto-injected.`,
+      minimal: `MINIMAL theme. Almost no color - pure black #000000 background. ONE huge white headline, minimal gray #666666 subline if needed. Maximum whitespace. Ultra clean. NO grid pattern. Remember: NO logo - it's auto-injected.`,
+      bold: `BOLD theme. MASSIVE typography (100-140px). ONE word or short phrase as huge white headline. High contrast. Impact font style - use font-weight: 900, letter-spacing: -4px. Very bold, attention-grabbing. Remember: NO logo - it's auto-injected.`,
     };
 
     const response = await client.messages.create({
@@ -194,13 +199,18 @@ export async function GET() {
     status: hasKey ? 'available' : 'unavailable',
     provider: 'claude-html',
     description: 'Generates graphics matching Defi App brand style - bold condensed typography, grid backgrounds, dramatic layouts',
-    supportedStyles: ['gold', 'green', 'red', 'dark', 'data'],
+    supportedStyles: ['gold', 'green', 'red', 'dark', 'data', 'blue', 'purple', 'gradient', 'minimal', 'bold'],
     styleDescriptions: {
       gold: 'Trading/money content - gold accents, premium feel',
       green: 'Launches/live announcements - green accents',
       red: 'Competitions/battle themes - red accents',
       dark: 'General announcements - clean black & white',
       data: 'Metrics/stats - dashboard style',
+      blue: 'Tech/futuristic - cyan/electric blue accents',
+      purple: 'Premium/vibrant - purple/violet accents',
+      gradient: 'Multi-color - purple to blue to green gradient',
+      minimal: 'Ultra clean - maximum whitespace, no grid',
+      bold: 'Impact - massive typography for attention',
     },
     brandElements: {
       logo: 'defi.app with circle icon',

@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { createPortal } from 'react-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { PremiumCard } from '@/components/ui/premium-card';
 import { PremiumButton } from '@/components/ui/premium-button';
@@ -13,23 +13,21 @@ import {
   Copy,
   Check,
   Loader2,
-  BarChart3,
-  Laugh,
-  Smartphone,
-  Palette,
   ExternalLink,
   Download,
   Wand2,
   X,
   RefreshCw,
   Upload,
-  ImagePlus,
   Bot,
+  Figma,
+  ChevronDown,
+  ChevronRight,
+  FolderOpen,
 } from 'lucide-react';
 import { toPng } from 'html-to-image';
 
 interface MediaSuggestion {
-  type: 'meme' | 'infographic' | 'chart' | 'screenshot' | 'custom';
   description: string;
   imagePrompt: string;
   reasoning: string;
@@ -46,6 +44,19 @@ interface ImageLoadState {
   [index: number]: boolean;
 }
 
+interface FigmaTemplate {
+  id: string;
+  name: string;
+  page: string;
+  fileId: string;
+  fileType: 'templates' | 'campaigns';
+}
+
+interface FigmaPage {
+  name: string;
+  templates: FigmaTemplate[];
+}
+
 interface MediaGeneratorProps {
   tweetContent: string;
   onPromptSelect?: (prompt: string) => void;
@@ -53,32 +64,49 @@ interface MediaGeneratorProps {
   className?: string;
 }
 
-const TYPE_ICONS: Record<string, React.ReactNode> = {
-  meme: <Laugh className="h-4 w-4" />,
-  infographic: <BarChart3 className="h-4 w-4" />,
-  chart: <BarChart3 className="h-4 w-4" />,
-  screenshot: <Smartphone className="h-4 w-4" />,
-  custom: <Palette className="h-4 w-4" />,
+// Single AI suggestion style (simplified from multiple types)
+
+// Style type for type safety
+type StyleOption = {
+  id: string;
+  label: string;
+  description: string;
+  recommended?: boolean;
 };
 
-const TYPE_COLORS: Record<string, string> = {
-  meme: 'text-yellow-400 bg-yellow-500/10',
-  infographic: 'text-blue-400 bg-blue-500/10',
-  chart: 'text-green-400 bg-green-500/10',
-  screenshot: 'text-purple-400 bg-purple-500/10',
-  custom: 'text-violet-400 bg-violet-500/10',
-};
+// Claude HTML Design Styles (on-brand, rendered locally)
+const CLAUDE_STYLES: StyleOption[] = [
+  { id: 'claude-dark', label: 'Dark', recommended: true, description: 'Dark bg, white text, blue accent' },
+  { id: 'claude-gold', label: 'Gold', description: 'Dark bg, gold/amber accents' },
+  { id: 'claude-green', label: 'Green', description: 'Dark bg, emerald/mint accents' },
+  { id: 'claude-red', label: 'Red', description: 'Dark bg, red/coral accents' },
+  { id: 'claude-blue', label: 'Blue', description: 'Dark bg, cyan/electric blue' },
+  { id: 'claude-purple', label: 'Purple', description: 'Dark bg, violet/purple accents' },
+  { id: 'claude-gradient', label: 'Gradient', description: 'Multi-color gradient background' },
+  { id: 'claude-minimal', label: 'Minimal', description: 'Clean, lots of whitespace' },
+  { id: 'claude-bold', label: 'Bold', description: 'Large typography, high contrast' },
+  { id: 'claude-data', label: 'Data', description: 'Stats/metrics focused layout' },
+];
 
+// Flux/Replicate AI Styles (generated images)
+const FLUX_STYLES: StyleOption[] = [
+  { id: 'gradient-abstract', label: 'Gradient', recommended: true, description: 'Smooth color gradients' },
+  { id: 'neon-tech', label: 'Neon', description: 'Cyberpunk neon lights' },
+  { id: 'digital-art', label: 'Digital Art', description: 'Modern digital illustration' },
+  { id: 'minimalist', label: 'Minimalist', description: 'Clean, simple shapes' },
+  { id: 'data-viz', label: 'Data Viz', description: 'Charts/analytics aesthetic' },
+  { id: 'cinematic', label: 'Cinematic', description: 'Movie poster style' },
+  { id: 'futuristic', label: 'Futuristic', description: 'Sci-fi tech aesthetic' },
+  { id: 'glassmorphism', label: 'Glass', description: 'Frosted glass effects' },
+  { id: 'brutalist', label: 'Brutalist', description: 'Raw, bold, stark design' },
+  { id: '3d-render', label: '3D Render', description: 'Rendered 3D objects' },
+];
+
+// Combined for backwards compatibility
 const IMAGE_STYLES = [
-  { id: 'claude-dark', label: 'Dark', recommended: true, claude: true },
-  { id: 'claude-gold', label: 'Gold', claude: true },
-  { id: 'claude-green', label: 'Green', claude: true },
-  { id: 'claude-red', label: 'Red', claude: true },
-  { id: 'claude-data', label: 'Data', claude: true },
-  { id: 'gradient-abstract', label: 'AI Gradient' },
-  { id: 'neon-tech', label: 'AI Neon' },
-  { id: 'digital-art', label: 'AI Digital' },
-] as const;
+  ...CLAUDE_STYLES.map(s => ({ ...s, claude: true })),
+  ...FLUX_STYLES,
+];
 
 export function MediaGenerator({ tweetContent, onPromptSelect, onImageGenerated, className }: MediaGeneratorProps) {
   const [suggestions, setSuggestions] = React.useState<MediaSuggestion[]>([]);
@@ -91,11 +119,29 @@ export function MediaGenerator({ tweetContent, onPromptSelect, onImageGenerated,
   const [selectedStyle, setSelectedStyle] = React.useState<string>('claude-dark');
   const [showImageModal, setShowImageModal] = React.useState<GeneratedImage | null>(null);
   const [imageLoadStates, setImageLoadStates] = React.useState<ImageLoadState>({});
-  const [referenceImage, setReferenceImage] = React.useState<string | null>(null);
-  const [referenceImageFile, setReferenceImageFile] = React.useState<File | null>(null);
   const [editedPrompts, setEditedPrompts] = React.useState<Record<number, string>>({});
-  const fileInputRef = React.useRef<HTMLInputElement>(null);
+
+  // Edit Template section state (separate from design-from-scratch)
+  const [editTemplateImage, setEditTemplateImage] = React.useState<string | null>(null);
+  const [editTemplatePrompt, setEditTemplatePrompt] = React.useState<string>('');
+  const [isEditingTemplate, setIsEditingTemplate] = React.useState(false);
+  const [editModelChoice, setEditModelChoice] = React.useState<'claude' | 'gemini'>('claude');
+  const editTemplateFileRef = React.useRef<HTMLInputElement>(null);
   const { addToast } = useToast();
+
+  // Figma state
+  const [figmaTemplates, setFigmaTemplates] = React.useState<FigmaPage[]>([]);
+  const [figmaCampaigns, setFigmaCampaigns] = React.useState<FigmaPage[]>([]);
+  const [isFigmaLoading, setIsFigmaLoading] = React.useState(false);
+  const [figmaError, setFigmaError] = React.useState<string | null>(null);
+  const [expandedPages, setExpandedPages] = React.useState<Set<string>>(new Set());
+  const [selectedFigmaTemplate, setSelectedFigmaTemplate] = React.useState<FigmaTemplate | null>(null);
+  const [figmaExporting, setFigmaExporting] = React.useState(false);
+  const [showFigmaSection, setShowFigmaSection] = React.useState(false);
+  const [figmaTab, setFigmaTab] = React.useState<'templates' | 'campaigns'>('templates');
+  const [figmaThumbnails, setFigmaThumbnails] = React.useState<Record<string, string>>({});
+  const [loadingThumbnails, setLoadingThumbnails] = React.useState<Set<string>>(new Set());
+  const [figmaViewMode, setFigmaViewMode] = React.useState<'thumbnails' | 'list'>('thumbnails');
 
   // Get the prompt for a suggestion (edited or original)
   const getPrompt = (index: number, suggestion: MediaSuggestion) => {
@@ -107,8 +153,8 @@ export function MediaGenerator({ tweetContent, onPromptSelect, onImageGenerated,
     setEditedPrompts(prev => ({ ...prev, [index]: value }));
   };
 
-  // Handle reference image upload
-  const handleReferenceImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Handle edit template image upload
+  const handleEditTemplateUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       if (file.size > 10 * 1024 * 1024) {
@@ -119,22 +165,265 @@ export function MediaGenerator({ tweetContent, onPromptSelect, onImageGenerated,
         });
         return;
       }
-      setReferenceImageFile(file);
       const reader = new FileReader();
       reader.onload = (event) => {
-        setReferenceImage(event.target?.result as string);
+        setEditTemplateImage(event.target?.result as string);
       };
       reader.readAsDataURL(file);
     }
   };
 
-  // Clear reference image
-  const clearReferenceImage = () => {
-    setReferenceImage(null);
-    setReferenceImageFile(null);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
+  // Clear edit template image
+  const clearEditTemplateImage = () => {
+    setEditTemplateImage(null);
+    setEditTemplatePrompt('');
+    if (editTemplateFileRef.current) {
+      editTemplateFileRef.current.value = '';
     }
+  };
+
+  // Generate edited template using canvas-based text replacement
+  // Preserves original image quality, only replaces text
+  const generateEditedTemplate = async () => {
+    if (!editTemplateImage || !editTemplatePrompt.trim()) {
+      addToast({
+        type: 'error',
+        title: 'Missing input',
+        description: 'Upload an image and enter edit instructions',
+      });
+      return;
+    }
+
+    setIsEditingTemplate(true);
+
+    try {
+      // Validate image first
+      const isValidImage = await validateImage(editTemplateImage);
+      if (!isValidImage) {
+        throw new Error('Invalid image format. Please upload a valid PNG, JPG, or WebP image.');
+      }
+
+      addToast({
+        type: 'info',
+        title: `Analyzing with ${editModelChoice === 'claude' ? 'Claude' : 'Gemini'}...`,
+        description: 'Identifying text regions to edit',
+      });
+
+      // Choose API endpoint based on model
+      const apiEndpoint = editModelChoice === 'gemini'
+        ? '/api/media/edit-text-gemini'
+        : '/api/media/edit-text';
+
+      // Step 1: Get text regions to modify from AI
+      const response = await fetch(apiEndpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          image: editTemplateImage,
+          instruction: editTemplatePrompt,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to analyze image');
+      }
+
+      const data = await response.json();
+
+      if (!data.regions || data.regions.length === 0) {
+        throw new Error('No text regions found to edit. Try a different instruction.');
+      }
+
+      console.log('Text regions to edit:', data.regions);
+
+      addToast({
+        type: 'info',
+        title: 'Editing text...',
+        description: `Replacing ${data.regions.length} text region(s)`,
+      });
+
+      // Step 2: Use canvas to edit the image
+      const imageUrl = await editImageWithCanvas(editTemplateImage, data.regions);
+
+      const newImage: GeneratedImage = {
+        imageUrl,
+        prompt: `Edit: ${editTemplatePrompt}`,
+        style: `${editModelChoice}-edit`,
+      };
+
+      setGeneratedImages((prev) => [...prev, newImage]);
+      setShowImageModal(newImage);
+
+      if (onImageGenerated) {
+        onImageGenerated(imageUrl);
+      }
+
+      addToast({
+        type: 'success',
+        title: 'Edit complete!',
+        description: 'Text replaced successfully',
+      });
+    } catch (error) {
+      console.error('Template edit error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Could not edit template';
+      addToast({
+        type: 'error',
+        title: 'Edit failed',
+        description: errorMessage,
+      });
+    } finally {
+      setIsEditingTemplate(false);
+    }
+  };
+
+  // Validate image can be loaded
+  const validateImage = (imageSrc: string): Promise<boolean> => {
+    return new Promise((resolve) => {
+      // Check if it's a valid base64 or URL
+      if (!imageSrc) {
+        resolve(false);
+        return;
+      }
+
+      // For base64, check format
+      if (imageSrc.startsWith('data:image/')) {
+        const formatMatch = imageSrc.match(/^data:image\/(png|jpeg|jpg|webp|gif);base64,/);
+        if (!formatMatch) {
+          resolve(false);
+          return;
+        }
+      }
+
+      // Try to load the image
+      const img = new window.Image();
+      img.crossOrigin = 'anonymous';
+
+      const timeout = setTimeout(() => {
+        resolve(false);
+      }, 10000); // 10 second timeout
+
+      img.onload = () => {
+        clearTimeout(timeout);
+        resolve(img.width > 0 && img.height > 0);
+      };
+
+      img.onerror = () => {
+        clearTimeout(timeout);
+        resolve(false);
+      };
+
+      img.src = imageSrc;
+    });
+  };
+
+  // Canvas-based image editing - preserves original image, replaces text
+  const editImageWithCanvas = async (
+    imageSrc: string,
+    regions: Array<{
+      originalText: string;
+      newText: string;
+      x: number;
+      y: number;
+      width: number;
+      height: number;
+      fontSize: number;
+      fontWeight: string;
+      color: string;
+      backgroundColor: string;
+      textAlign: 'left' | 'center' | 'right';
+      letterSpacing?: number;
+      textTransform?: 'uppercase' | 'lowercase' | 'none';
+    }>
+  ): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const img = new window.Image();
+      img.crossOrigin = 'anonymous';
+
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          reject(new Error('Cannot get canvas context'));
+          return;
+        }
+
+        // Set canvas size to match image
+        canvas.width = img.width;
+        canvas.height = img.height;
+
+        // Draw original image
+        ctx.drawImage(img, 0, 0);
+
+        // Process each text region
+        for (const region of regions) {
+          // Convert percentages to pixels
+          const x = (region.x / 100) * canvas.width;
+          const y = (region.y / 100) * canvas.height;
+          const width = (region.width / 100) * canvas.width;
+          const height = (region.height / 100) * canvas.height;
+
+          // Scale font size based on actual image dimensions
+          const scaleFactor = canvas.width / 1024;
+          const fontSize = region.fontSize * scaleFactor;
+
+          // Paint over original text with background color
+          ctx.fillStyle = region.backgroundColor;
+          ctx.fillRect(x, y, width, height);
+
+          // Set up text styling
+          ctx.fillStyle = region.color;
+          ctx.font = `${region.fontWeight} ${fontSize}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
+          ctx.textBaseline = 'middle';
+
+          // Apply text transform
+          let text = region.newText;
+          if (region.textTransform === 'uppercase') {
+            text = text.toUpperCase();
+          } else if (region.textTransform === 'lowercase') {
+            text = text.toLowerCase();
+          }
+
+          // Calculate text position based on alignment
+          let textX = x;
+          if (region.textAlign === 'center') {
+            ctx.textAlign = 'center';
+            textX = x + width / 2;
+          } else if (region.textAlign === 'right') {
+            ctx.textAlign = 'right';
+            textX = x + width;
+          } else {
+            ctx.textAlign = 'left';
+          }
+
+          const textY = y + height / 2;
+
+          // Apply letter spacing if specified (manual character-by-character drawing)
+          if (region.letterSpacing && region.letterSpacing !== 0) {
+            ctx.textAlign = 'left';
+            let currentX = region.textAlign === 'center'
+              ? textX - (ctx.measureText(text).width + (text.length - 1) * region.letterSpacing * scaleFactor) / 2
+              : textX;
+
+            for (const char of text) {
+              ctx.fillText(char, currentX, textY);
+              currentX += ctx.measureText(char).width + region.letterSpacing * scaleFactor;
+            }
+          } else {
+            ctx.fillText(text, textX, textY);
+          }
+        }
+
+        // Export as PNG
+        resolve(canvas.toDataURL('image/png', 1.0));
+      };
+
+      img.onerror = () => {
+        reject(new Error('Failed to load image'));
+      };
+
+      img.src = imageSrc;
+    });
   };
 
   // Track image load state
@@ -194,67 +483,85 @@ export function MediaGenerator({ tweetContent, onPromptSelect, onImageGenerated,
     }
   };
 
-  // Render HTML to image using html-to-image
+  // Render HTML to image - direct DOM approach with fixed dimensions
   const renderHtmlToImage = async (html: string): Promise<string> => {
-    // Create a container that's visible but off-screen (some browsers handle this better)
+    // Create an off-screen container with exact dimensions
     const container = document.createElement('div');
-    container.style.position = 'absolute';
-    container.style.left = '-10000px';
-    container.style.top = '0';
-    container.style.width = '1024px';
-    container.style.height = '1024px';
-    container.style.overflow = 'hidden';
-    container.style.backgroundColor = '#000';
+    container.style.cssText = `
+      position: fixed;
+      left: -9999px;
+      top: 0;
+      width: 1024px;
+      height: 1024px;
+      overflow: hidden;
+      background: #000;
+      z-index: -1;
+    `;
 
-    // Parse the HTML and extract just the body content
+    // Create a wrapper div with fixed dimensions that we'll capture
+    const wrapper = document.createElement('div');
+    wrapper.style.cssText = `
+      width: 1024px;
+      height: 1024px;
+      position: relative;
+      overflow: hidden;
+      background: #000;
+    `;
+
+    // Parse HTML and inject content
     const parser = new DOMParser();
     const doc = parser.parseFromString(html, 'text/html');
 
-    // Copy styles from the parsed document
-    const styles = doc.querySelectorAll('style');
-    styles.forEach(style => {
-      const newStyle = document.createElement('style');
-      newStyle.textContent = style.textContent;
-      container.appendChild(newStyle);
-    });
+    // Extract and inject styles
+    const styleEl = document.createElement('style');
+    const styles = Array.from(doc.querySelectorAll('style')).map(s => s.textContent).join('\n');
+    styleEl.textContent = styles;
+    wrapper.appendChild(styleEl);
 
-    // Copy the body content
-    const bodyContent = doc.body.innerHTML;
+    // Get body content and inject it
+    const content = doc.body.innerHTML;
     const contentDiv = document.createElement('div');
-    contentDiv.innerHTML = bodyContent;
-    container.appendChild(contentDiv);
+    contentDiv.style.cssText = `
+      width: 1024px;
+      height: 1024px;
+      position: relative;
+    `;
+    contentDiv.innerHTML = content;
+    wrapper.appendChild(contentDiv);
 
+    container.appendChild(wrapper);
     document.body.appendChild(container);
 
     try {
-      // Find the main design element
-      const designElement = container.querySelector('.container') ||
-                           container.querySelector('div[style*="width"]') ||
-                           contentDiv.firstElementChild ||
-                           contentDiv;
+      // Wait for any fonts/styles to apply
+      await new Promise(r => setTimeout(r, 300));
 
-      if (!designElement) {
-        throw new Error('No design element found');
-      }
+      console.log('Capturing element:', wrapper.offsetWidth, 'x', wrapper.offsetHeight);
 
-      // Wait for any rendering to complete
-      await new Promise(resolve => setTimeout(resolve, 300));
-
-      // Convert to PNG with high quality
-      const dataUrl = await toPng(designElement as HTMLElement, {
+      // Capture the wrapper with fixed dimensions
+      const dataUrl = await toPng(wrapper, {
         quality: 1,
         pixelRatio: 2,
         backgroundColor: '#000',
         cacheBust: true,
+        width: 1024,
+        height: 1024,
+        style: {
+          transform: 'none',
+        },
       });
 
+      console.log('Capture successful, URL length:', dataUrl.length);
       return dataUrl;
+    } catch (err) {
+      console.error('toPng error:', err);
+      throw err;
     } finally {
       document.body.removeChild(container);
     }
   };
 
-  // Generate actual image from prompt
+  // Generate actual image from prompt (Design from scratch - no reference image)
   const generateImage = async (prompt: string, index: number) => {
     setIsGeneratingImage(true);
     setGeneratingIndex(index);
@@ -296,7 +603,7 @@ export function MediaGenerator({ tweetContent, onPromptSelect, onImageGenerated,
         const newImage: GeneratedImage = {
           imageUrl,
           prompt: data.prompt,
-          style: `claude-${data.style}`,
+          style: `claude-${claudeStyle}`,
         };
 
         setGeneratedImages((prev) => [...prev, newImage]);
@@ -312,7 +619,7 @@ export function MediaGenerator({ tweetContent, onPromptSelect, onImageGenerated,
           description: 'professional Claude design ready',
         });
       } else {
-        // Use traditional AI image generation
+        // Use Flux/Replicate AI image generation
         const response = await fetch('/api/media/generate', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -321,7 +628,6 @@ export function MediaGenerator({ tweetContent, onPromptSelect, onImageGenerated,
             style: selectedStyle,
             width: 1024,
             height: 1024,
-            referenceImage: referenceImage || undefined,
           }),
         });
 
@@ -359,6 +665,176 @@ export function MediaGenerator({ tweetContent, onPromptSelect, onImageGenerated,
     } finally {
       setIsGeneratingImage(false);
       setGeneratingIndex(null);
+    }
+  };
+
+  // Fetch Figma templates
+  const fetchFigmaTemplates = async () => {
+    setIsFigmaLoading(true);
+    setFigmaError(null);
+
+    try {
+      const response = await fetch('/api/figma/templates');
+      if (!response.ok) {
+        throw new Error('Failed to fetch Figma templates');
+      }
+      const data = await response.json();
+      setFigmaTemplates(data.templates || []);
+      setFigmaCampaigns(data.campaigns || []);
+
+      // Auto-expand first page with content
+      if (data.templates?.length > 0 && data.templates[0].templates.length > 0) {
+        setExpandedPages(new Set([`templates-${data.templates[0].name}`]));
+      }
+    } catch (error) {
+      console.error('Figma templates error:', error);
+      setFigmaError(String(error));
+      addToast({
+        type: 'error',
+        title: 'Failed to load Figma templates',
+        description: 'Check your Figma API configuration',
+      });
+    } finally {
+      setIsFigmaLoading(false);
+    }
+  };
+
+  // Fetch thumbnails for a page
+  const fetchThumbnailsForPage = async (page: FigmaPage, fileId: string) => {
+    const pageKey = `${page.name}-${fileId}`;
+
+    // Skip if already loading or already have thumbnails for most templates
+    if (loadingThumbnails.has(pageKey)) return;
+
+    const missingThumbnails = page.templates.filter(t => !figmaThumbnails[t.id]);
+    if (missingThumbnails.length === 0) return;
+
+    setLoadingThumbnails(prev => new Set(prev).add(pageKey));
+
+    try {
+      const nodeIds = missingThumbnails.map(t => t.id);
+      const response = await fetch('/api/figma/thumbnails', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fileId, nodeIds }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.thumbnails) {
+          setFigmaThumbnails(prev => ({ ...prev, ...data.thumbnails }));
+        }
+      }
+    } catch (error) {
+      console.error('Failed to fetch thumbnails:', error);
+    } finally {
+      setLoadingThumbnails(prev => {
+        const next = new Set(prev);
+        next.delete(pageKey);
+        return next;
+      });
+    }
+  };
+
+  // Toggle page expansion and fetch thumbnails
+  const togglePageExpansion = (pageKey: string, page?: FigmaPage, fileId?: string) => {
+    setExpandedPages(prev => {
+      const next = new Set(prev);
+      if (next.has(pageKey)) {
+        next.delete(pageKey);
+      } else {
+        next.add(pageKey);
+        // Fetch thumbnails when expanding
+        if (page && fileId) {
+          fetchThumbnailsForPage(page, fileId);
+        }
+      }
+      return next;
+    });
+  };
+
+  // Export Figma template (download)
+  const exportFigmaTemplate = async (template: FigmaTemplate) => {
+    setFigmaExporting(true);
+    setSelectedFigmaTemplate(template);
+
+    try {
+      const response = await fetch(
+        `/api/figma/export?fileId=${template.fileId}&nodeId=${encodeURIComponent(template.id)}&scale=2&format=png`
+      );
+
+      if (!response.ok) {
+        throw new Error('Failed to export Figma template');
+      }
+
+      const data = await response.json();
+
+      if (data.imageUrl) {
+        // Add to generated images gallery
+        const newImage: GeneratedImage = {
+          imageUrl: data.imageUrl,
+          prompt: `Figma: ${template.name}`,
+          style: 'figma',
+        };
+        setGeneratedImages(prev => [...prev, newImage]);
+
+        addToast({
+          type: 'success',
+          title: 'Template exported!',
+          description: `${template.name} added to gallery`,
+        });
+      }
+    } catch (error) {
+      console.error('Figma export error:', error);
+      addToast({
+        type: 'error',
+        title: 'Export failed',
+        description: 'Could not export template',
+      });
+    } finally {
+      setFigmaExporting(false);
+      setSelectedFigmaTemplate(null);
+    }
+  };
+
+  // Use Figma template for AI editing (loads into Edit Template section)
+  const useFigmaAsReference = async (template: FigmaTemplate) => {
+    setFigmaExporting(true);
+    setSelectedFigmaTemplate(template);
+
+    try {
+      const response = await fetch(
+        `/api/figma/export?fileId=${template.fileId}&nodeId=${encodeURIComponent(template.id)}&scale=2&format=png`
+      );
+
+      if (!response.ok) {
+        throw new Error('Failed to export Figma template');
+      }
+
+      const data = await response.json();
+
+      if (data.imageUrl) {
+        // Set as edit template image (not the old referenceImage)
+        setEditTemplateImage(data.imageUrl);
+        // Pre-fill a helpful prompt
+        setEditTemplatePrompt(`Edit this ${template.name} template: `);
+
+        addToast({
+          type: 'success',
+          title: 'Template loaded!',
+          description: 'Add your edit instructions below',
+        });
+      }
+    } catch (error) {
+      console.error('Figma export error:', error);
+      addToast({
+        type: 'error',
+        title: 'Failed to load template',
+        description: 'Could not load template',
+      });
+    } finally {
+      setFigmaExporting(false);
+      setSelectedFigmaTemplate(null);
     }
   };
 
@@ -432,201 +908,487 @@ export function MediaGenerator({ tweetContent, onPromptSelect, onImageGenerated,
 
       {!isLoading && suggestions.length > 0 && (
         <div className="space-y-3">
-          <AnimatePresence mode="popLayout">
-            {suggestions.map((suggestion, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
-                className={cn(
-                  'p-4 rounded-lg border transition-colors cursor-pointer',
-                  selectedIndex === index
-                    ? 'bg-violet-500/10 border-violet-500/30'
-                    : 'bg-elevated border-white/5 hover:border-white/10'
-                )}
-                onClick={() => selectPrompt(suggestion, index)}
-              >
-                <div className="flex items-start gap-3">
-                  {/* Type Icon */}
-                  <div className={cn('p-2 rounded-lg', TYPE_COLORS[suggestion.type])}>
-                    {TYPE_ICONS[suggestion.type]}
-                  </div>
+          {/* Single AI Suggestion - simplified from multiple types */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="p-4 rounded-lg border bg-elevated border-white/5"
+          >
+            <div className="flex items-start gap-3">
+              {/* AI Icon */}
+              <div className="p-2 rounded-lg text-violet-400 bg-violet-500/10">
+                <Sparkles className="h-4 w-4" />
+              </div>
 
-                  <div className="flex-1 min-w-0">
-                    {/* Header */}
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="font-medium text-primary capitalize">{suggestion.type}</span>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          copyPrompt(suggestion.imagePrompt, index);
-                        }}
-                        className="text-tertiary hover:text-secondary transition-colors"
-                      >
-                        {copiedIndex === index ? (
-                          <Check className="h-4 w-4 text-green-400" />
-                        ) : (
-                          <Copy className="h-4 w-4" />
-                        )}
-                      </button>
-                    </div>
-
-                    {/* Description */}
-                    <p className="text-sm text-secondary mb-2">{suggestion.description}</p>
-
-                    {/* Reasoning */}
-                    <p className="text-xs text-tertiary italic">
-                      <Sparkles className="h-3 w-3 inline mr-1" />
-                      {suggestion.reasoning}
-                    </p>
-
-                    {/* Editable Prompt */}
-                    <div className="mt-3">
-                      <label className="text-[10px] text-tertiary mb-1 block">image prompt (editable):</label>
-                      <textarea
-                        value={getPrompt(index, suggestion)}
-                        onChange={(e) => {
-                          e.stopPropagation();
-                          updatePrompt(index, e.target.value);
-                        }}
-                        onClick={(e) => e.stopPropagation()}
-                        className="w-full p-2 rounded bg-surface text-xs text-secondary font-mono resize-none border border-white/5 focus:border-violet-500/50 focus:outline-none"
-                        rows={3}
-                        placeholder="Edit the prompt before generating..."
-                      />
-                    </div>
-
-                    {/* Generate Image Button */}
-                    <div className="mt-3 flex items-center gap-2">
-                      <PremiumButton
-                        size="sm"
-                        variant="primary"
-                        leftIcon={
-                          isGeneratingImage && generatingIndex === index ? (
-                            <Loader2 className="h-3 w-3 animate-spin" />
-                          ) : (
-                            <Wand2 className="h-3 w-3" />
-                          )
-                        }
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          generateImage(getPrompt(index, suggestion), index);
-                        }}
-                        disabled={isGeneratingImage}
-                        className="flex-1"
-                      >
-                        {isGeneratingImage && generatingIndex === index
-                          ? 'generating...'
-                          : 'generate image'}
-                      </PremiumButton>
-                    </div>
-                  </div>
+              <div className="flex-1 min-w-0">
+                {/* Header */}
+                <div className="flex items-center justify-between mb-2">
+                  <span className="font-medium text-primary">AI Suggestion</span>
+                  <button
+                    onClick={() => copyPrompt(suggestions[0].imagePrompt, 0)}
+                    className="text-tertiary hover:text-secondary transition-colors"
+                  >
+                    {copiedIndex === 0 ? (
+                      <Check className="h-4 w-4 text-green-400" />
+                    ) : (
+                      <Copy className="h-4 w-4" />
+                    )}
+                  </button>
                 </div>
-              </motion.div>
-            ))}
-          </AnimatePresence>
 
-          {/* Style Selector */}
+                {/* Description */}
+                <p className="text-sm text-secondary mb-2">{suggestions[0].description}</p>
+
+                {/* Reasoning */}
+                <p className="text-xs text-tertiary italic mb-3">
+                  {suggestions[0].reasoning}
+                </p>
+
+                {/* Editable Prompt */}
+                <div>
+                  <label className="text-[10px] text-tertiary mb-1 block">Image prompt (editable):</label>
+                  <textarea
+                    value={getPrompt(0, suggestions[0])}
+                    onChange={(e) => updatePrompt(0, e.target.value)}
+                    className="w-full p-2 rounded bg-surface text-xs text-secondary font-mono resize-none border border-white/5 focus:border-violet-500/50 focus:outline-none"
+                    rows={3}
+                    placeholder="Edit the prompt before generating..."
+                  />
+                </div>
+
+                {/* Generate Image Button */}
+                <div className="mt-3 flex items-center gap-2">
+                  <PremiumButton
+                    size="sm"
+                    variant="primary"
+                    leftIcon={
+                      isGeneratingImage && generatingIndex === 0 ? (
+                        <Loader2 className="h-3 w-3 animate-spin" />
+                      ) : (
+                        <Wand2 className="h-3 w-3" />
+                      )
+                    }
+                    onClick={() => generateImage(getPrompt(0, suggestions[0]), 0)}
+                    disabled={isGeneratingImage}
+                    className="flex-1"
+                  >
+                    {isGeneratingImage && generatingIndex === 0
+                      ? 'generating...'
+                      : 'Generate Image'}
+                  </PremiumButton>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Style Selector - Design from Scratch */}
           <div className="mt-4 pt-4 border-t border-white/5">
-            <p className="text-xs text-tertiary mb-2">design style:</p>
-            <div className="mb-2">
-              <p className="text-[10px] text-emerald-400 mb-1 flex items-center gap-1">
-                <Bot className="h-3 w-3" /> Defi App Brand (on-brand designs with official colors)
+            <p className="text-xs font-medium text-primary mb-3">Design from Scratch</p>
+
+            {/* Claude HTML Styles */}
+            <div className="mb-4">
+              <p className="text-[10px] text-emerald-400 mb-2 flex items-center gap-1">
+                <Bot className="h-3 w-3" /> Claude HTML (on-brand, rendered locally)
               </p>
-              <div className="flex flex-wrap gap-2 mb-3">
-                {IMAGE_STYLES.filter(s => 'claude' in s && s.claude).map((style) => (
+              <div className="grid grid-cols-5 gap-1.5">
+                {CLAUDE_STYLES.map((style) => (
                   <button
                     key={style.id}
                     onClick={() => setSelectedStyle(style.id)}
                     className={cn(
-                      'px-3 py-1.5 rounded-lg text-xs font-medium transition-colors relative',
+                      'px-2 py-1.5 rounded text-[11px] font-medium transition-colors relative text-center',
                       selectedStyle === style.id
-                        ? 'bg-[#5b8cff]/20 text-[#5b8cff] border border-[#5b8cff]/30'
+                        ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
                         : 'bg-elevated text-tertiary hover:text-secondary border border-white/5'
                     )}
+                    title={style.description}
                   >
-                    {style.label.replace('Brand ', '').replace('Defi App ', '')}
-                    {'recommended' in style && style.recommended && (
-                      <span className="absolute -top-1.5 -right-1.5 px-1 py-0.5 rounded text-[9px] bg-[#5b8cff]/20 text-[#5b8cff] border border-[#5b8cff]/30">
-                        ★
-                      </span>
+                    {style.label}
+                    {style.recommended && (
+                      <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-emerald-500" />
                     )}
                   </button>
                 ))}
               </div>
             </div>
+
+            {/* Flux/Replicate AI Styles */}
             <div>
-              <p className="text-[10px] text-tertiary mb-1">AI Generated (Flux/Replicate)</p>
-              <div className="flex flex-wrap gap-2">
-                {IMAGE_STYLES.filter(s => !('claude' in s) || !s.claude).map((style) => (
+              <p className="text-[10px] text-violet-400 mb-2 flex items-center gap-1">
+                <Sparkles className="h-3 w-3" /> Flux AI (generated images)
+              </p>
+              <div className="grid grid-cols-5 gap-1.5">
+                {FLUX_STYLES.map((style) => (
                   <button
                     key={style.id}
                     onClick={() => setSelectedStyle(style.id)}
                     className={cn(
-                      'px-3 py-1.5 rounded-lg text-xs font-medium transition-colors',
+                      'px-2 py-1.5 rounded text-[11px] font-medium transition-colors relative text-center',
                       selectedStyle === style.id
                         ? 'bg-violet-500/20 text-violet-400 border border-violet-500/30'
                         : 'bg-elevated text-tertiary hover:text-secondary border border-white/5'
                     )}
+                    title={style.description}
                   >
-                    {style.label.replace('AI ', '')}
+                    {style.label}
+                    {style.recommended && (
+                      <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-violet-500" />
+                    )}
                   </button>
                 ))}
               </div>
             </div>
-            <p className="text-[10px] text-tertiary mt-2 opacity-70">
-              Brand designs use official Defi App colors (#5b8cff accent, #0b0d10 background). AI styles use external image models.
-            </p>
           </div>
 
-          {/* Reference Image (img2img) */}
+          {/* Edit Template Section */}
           <div className="mt-4 pt-4 border-t border-white/5">
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-xs text-tertiary">reference image (optional):</p>
-              {referenceImage && (
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <Wand2 className="h-4 w-4 text-amber-400" />
+                <p className="text-xs font-medium text-primary">Edit Template</p>
+                <span className="text-[10px] text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded">AI</span>
+              </div>
+              {/* Model Selector */}
+              <div className="flex items-center gap-1">
                 <button
-                  onClick={clearReferenceImage}
-                  className="text-xs text-red-400 hover:text-red-300 transition-colors"
+                  onClick={() => setEditModelChoice('claude')}
+                  className={cn(
+                    'px-2 py-1 rounded text-[10px] font-medium transition-colors',
+                    editModelChoice === 'claude'
+                      ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
+                      : 'bg-elevated text-tertiary hover:text-secondary border border-white/5'
+                  )}
                 >
-                  remove
+                  Claude
                 </button>
+                <button
+                  onClick={() => setEditModelChoice('gemini')}
+                  className={cn(
+                    'px-2 py-1 rounded text-[10px] font-medium transition-colors',
+                    editModelChoice === 'gemini'
+                      ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
+                      : 'bg-elevated text-tertiary hover:text-secondary border border-white/5'
+                  )}
+                >
+                  Gemini
+                </button>
+              </div>
+            </div>
+            <p className="text-[10px] text-tertiary mb-3">
+              Upload an existing template and describe your changes. AI will analyze and edit it.
+            </p>
+
+            {/* Template Upload */}
+            <div className="flex items-start gap-3 mb-3">
+              {editTemplateImage ? (
+                <div className="relative w-20 h-20 rounded-lg overflow-hidden bg-elevated border border-amber-500/30 flex-shrink-0">
+                  <img
+                    src={editTemplateImage}
+                    alt="Template"
+                    className="w-full h-full object-cover"
+                  />
+                  <button
+                    onClick={clearEditTemplateImage}
+                    className="absolute top-1 right-1 p-0.5 rounded bg-black/60 text-white hover:bg-black/80"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </div>
+              ) : (
+                <div className="w-20 h-20 rounded-lg border-2 border-dashed border-white/10 flex items-center justify-center flex-shrink-0">
+                  <input
+                    ref={editTemplateFileRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleEditTemplateUpload}
+                    className="hidden"
+                  />
+                  <button
+                    onClick={() => editTemplateFileRef.current?.click()}
+                    className="text-tertiary hover:text-secondary transition-colors"
+                  >
+                    <Upload className="h-5 w-5" />
+                  </button>
+                </div>
               )}
+
+              {/* Edit Prompt */}
+              <div className="flex-1">
+                <textarea
+                  value={editTemplatePrompt}
+                  onChange={(e) => setEditTemplatePrompt(e.target.value)}
+                  placeholder="Describe your edits: change DAY 1 to DAY 2, add glow effect, change color to blue..."
+                  className="w-full p-2 rounded bg-surface text-xs text-secondary resize-none border border-white/5 focus:border-amber-500/50 focus:outline-none"
+                  rows={3}
+                />
+              </div>
             </div>
 
-            {referenceImage ? (
-              <div className="relative w-24 h-24 rounded-lg overflow-hidden bg-elevated border border-violet-500/30">
-                <img
-                  src={referenceImage}
-                  alt="Reference"
-                  className="w-full h-full object-cover"
-                />
-                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-1">
-                  <p className="text-[10px] text-white/80 text-center">starting point</p>
-                </div>
-              </div>
-            ) : (
+            {/* Generate Button */}
+            <PremiumButton
+              size="sm"
+              variant="primary"
+              leftIcon={isEditingTemplate ? <Loader2 className="h-3 w-3 animate-spin" /> : <Wand2 className="h-3 w-3" />}
+              onClick={generateEditedTemplate}
+              disabled={isEditingTemplate || !editTemplateImage || !editTemplatePrompt.trim()}
+              className="w-full bg-amber-500/20 hover:bg-amber-500/30 text-amber-400 border-amber-500/30"
+            >
+              {isEditingTemplate ? 'Editing...' : 'Edit Template with AI'}
+            </PremiumButton>
+          </div>
+
+          {/* Figma Templates Section */}
+          <div className="mt-4 pt-4 border-t border-white/5">
+            <button
+              onClick={() => {
+                setShowFigmaSection(!showFigmaSection);
+                if (!showFigmaSection && figmaTemplates.length === 0 && figmaCampaigns.length === 0) {
+                  fetchFigmaTemplates();
+                }
+              }}
+              className="w-full flex items-center justify-between text-left group"
+            >
               <div className="flex items-center gap-2">
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  onChange={handleReferenceImageUpload}
-                  className="hidden"
-                />
-                <button
-                  onClick={() => fileInputRef.current?.click()}
-                  className="flex items-center gap-2 px-3 py-2 rounded-lg bg-elevated border border-white/5 hover:border-white/10 transition-colors text-xs text-tertiary hover:text-secondary"
-                >
-                  <Upload className="h-3.5 w-3.5" />
-                  upload image
-                </button>
-                <span className="text-[10px] text-tertiary">or hover a generated image and click +</span>
+                <Figma className="h-4 w-4 text-violet-400" />
+                <span className="text-sm font-medium text-primary">Figma Templates</span>
+                <span className="text-[10px] text-tertiary bg-violet-500/10 px-1.5 py-0.5 rounded">PRO</span>
+              </div>
+              {showFigmaSection ? (
+                <ChevronDown className="h-4 w-4 text-tertiary group-hover:text-secondary transition-colors" />
+              ) : (
+                <ChevronRight className="h-4 w-4 text-tertiary group-hover:text-secondary transition-colors" />
+              )}
+            </button>
+
+            {showFigmaSection && (
+              <div className="mt-3">
+                {isFigmaLoading ? (
+                  <div className="flex items-center justify-center py-8">
+                    <Loader2 className="h-6 w-6 text-violet-400 animate-spin" />
+                  </div>
+                ) : figmaError ? (
+                  <div className="text-center py-4">
+                    <p className="text-xs text-red-400 mb-2">Failed to load templates</p>
+                    <button
+                      onClick={fetchFigmaTemplates}
+                      className="text-xs text-violet-400 hover:text-violet-300"
+                    >
+                      Try again
+                    </button>
+                  </div>
+                ) : (
+                  <>
+                    {/* Header with tabs and view toggle */}
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => setFigmaTab('templates')}
+                          className={cn(
+                            'px-3 py-1.5 rounded-lg text-xs font-medium transition-colors',
+                            figmaTab === 'templates'
+                              ? 'bg-violet-500/20 text-violet-400 border border-violet-500/30'
+                              : 'bg-elevated text-tertiary hover:text-secondary border border-white/5'
+                          )}
+                        >
+                          Templates ({figmaTemplates.reduce((acc, p) => acc + p.templates.length, 0)})
+                        </button>
+                        <button
+                          onClick={() => setFigmaTab('campaigns')}
+                          className={cn(
+                            'px-3 py-1.5 rounded-lg text-xs font-medium transition-colors',
+                            figmaTab === 'campaigns'
+                              ? 'bg-violet-500/20 text-violet-400 border border-violet-500/30'
+                              : 'bg-elevated text-tertiary hover:text-secondary border border-white/5'
+                          )}
+                        >
+                          Campaigns ({figmaCampaigns.reduce((acc, p) => acc + p.templates.length, 0)})
+                        </button>
+                      </div>
+                      <div className="flex gap-1">
+                        <button
+                          onClick={() => setFigmaViewMode('thumbnails')}
+                          className={cn(
+                            'p-1.5 rounded transition-colors',
+                            figmaViewMode === 'thumbnails' ? 'bg-violet-500/20 text-violet-400' : 'text-tertiary hover:text-secondary'
+                          )}
+                          title="Thumbnail view"
+                        >
+                          <Image className="h-3.5 w-3.5" />
+                        </button>
+                        <button
+                          onClick={() => setFigmaViewMode('list')}
+                          className={cn(
+                            'p-1.5 rounded transition-colors',
+                            figmaViewMode === 'list' ? 'bg-violet-500/20 text-violet-400' : 'text-tertiary hover:text-secondary'
+                          )}
+                          title="List view"
+                        >
+                          <FolderOpen className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Page list */}
+                    <div className="max-h-80 overflow-y-auto space-y-1 pr-1">
+                      {(figmaTab === 'templates' ? figmaTemplates : figmaCampaigns).map((page) => {
+                        const fileId = page.templates[0]?.fileId;
+                        const pageKey = `${figmaTab}-${page.name}`;
+                        const isExpanded = expandedPages.has(pageKey);
+                        const isLoadingThumbs = loadingThumbnails.has(`${page.name}-${fileId}`);
+
+                        return (
+                          <div key={pageKey} className="rounded-lg border border-white/5 overflow-hidden">
+                            <button
+                              onClick={() => togglePageExpansion(pageKey, page, fileId)}
+                              className="w-full flex items-center justify-between px-3 py-2 bg-elevated hover:bg-surface transition-colors"
+                            >
+                              <div className="flex items-center gap-2">
+                                <FolderOpen className="h-3.5 w-3.5 text-tertiary" />
+                                <span className="text-xs text-secondary">{page.name}</span>
+                                <span className="text-[10px] text-tertiary">({page.templates.length})</span>
+                              </div>
+                              {isExpanded ? (
+                                <ChevronDown className="h-3.5 w-3.5 text-tertiary" />
+                              ) : (
+                                <ChevronRight className="h-3.5 w-3.5 text-tertiary" />
+                              )}
+                            </button>
+
+                            {isExpanded && (
+                              <div className="px-2 py-2 bg-surface/50 max-h-64 overflow-y-auto">
+                                {isLoadingThumbs && (
+                                  <div className="flex items-center justify-center py-4">
+                                    <Loader2 className="h-4 w-4 text-violet-400 animate-spin mr-2" />
+                                    <span className="text-xs text-tertiary">Loading previews...</span>
+                                  </div>
+                                )}
+
+                                {/* Thumbnail View */}
+                                {figmaViewMode === 'thumbnails' && (
+                                  <div className="grid grid-cols-3 gap-2">
+                                    {page.templates.map((template) => {
+                                      const thumbnail = figmaThumbnails[template.id];
+                                      const isSelected = selectedFigmaTemplate?.id === template.id;
+
+                                      return (
+                                        <div
+                                          key={template.id}
+                                          className={cn(
+                                            'group relative rounded-lg overflow-hidden border transition-all',
+                                            isSelected
+                                              ? 'border-violet-500 ring-2 ring-violet-500/30'
+                                              : 'border-white/10 hover:border-violet-500/50'
+                                          )}
+                                        >
+                                          {/* Thumbnail */}
+                                          <div className="aspect-square bg-elevated">
+                                            {thumbnail ? (
+                                              <img
+                                                src={thumbnail}
+                                                alt={template.name}
+                                                className="w-full h-full object-cover"
+                                                loading="lazy"
+                                              />
+                                            ) : (
+                                              <div className="w-full h-full flex items-center justify-center">
+                                                <Image className="h-4 w-4 text-tertiary opacity-50" />
+                                              </div>
+                                            )}
+
+                                            {/* Loading overlay */}
+                                            {figmaExporting && isSelected && (
+                                              <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                                                <Loader2 className="h-4 w-4 text-violet-400 animate-spin" />
+                                              </div>
+                                            )}
+
+                                            {/* Hover overlay with actions */}
+                                            {!figmaExporting && (
+                                              <div className="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-1.5 p-1">
+                                                <button
+                                                  onClick={() => exportFigmaTemplate(template)}
+                                                  className="w-full px-2 py-1 rounded bg-white/20 hover:bg-white/30 text-[10px] text-white font-medium flex items-center justify-center gap-1"
+                                                >
+                                                  <Download className="h-3 w-3" />
+                                                  Export
+                                                </button>
+                                                <button
+                                                  onClick={() => useFigmaAsReference(template)}
+                                                  className="w-full px-2 py-1 rounded bg-violet-500/50 hover:bg-violet-500/70 text-[10px] text-white font-medium flex items-center justify-center gap-1"
+                                                >
+                                                  <Wand2 className="h-3 w-3" />
+                                                  Edit with AI
+                                                </button>
+                                              </div>
+                                            )}
+                                          </div>
+
+                                          {/* Name */}
+                                          <div className="p-1.5 bg-elevated">
+                                            <p className="text-[10px] text-tertiary truncate">{template.name}</p>
+                                          </div>
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                )}
+
+                                {/* List View */}
+                                {figmaViewMode === 'list' && (
+                                  <div className="space-y-1">
+                                    {page.templates.map((template) => {
+                                      const isSelected = selectedFigmaTemplate?.id === template.id;
+
+                                      return (
+                                        <div
+                                          key={template.id}
+                                          className={cn(
+                                            'flex items-center justify-between px-2 py-1.5 rounded-lg transition-colors',
+                                            isSelected ? 'bg-violet-500/20' : 'bg-elevated hover:bg-surface'
+                                          )}
+                                        >
+                                          <span className="text-xs text-secondary truncate flex-1 mr-2">{template.name}</span>
+                                          <div className="flex gap-1">
+                                            <button
+                                              onClick={() => exportFigmaTemplate(template)}
+                                              disabled={figmaExporting && isSelected}
+                                              className="p-1 rounded hover:bg-white/10 text-tertiary hover:text-white transition-colors"
+                                              title="Export"
+                                            >
+                                              {figmaExporting && isSelected ? (
+                                                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                              ) : (
+                                                <Download className="h-3.5 w-3.5" />
+                                              )}
+                                            </button>
+                                            <button
+                                              onClick={() => useFigmaAsReference(template)}
+                                              disabled={figmaExporting && isSelected}
+                                              className="p-1 rounded hover:bg-violet-500/30 text-tertiary hover:text-violet-400 transition-colors"
+                                              title="Edit with AI"
+                                            >
+                                              <Wand2 className="h-3.5 w-3.5" />
+                                            </button>
+                                          </div>
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    <p className="text-[10px] text-tertiary mt-2 opacity-70">
+                      Export to download, or Edit with AI to modify with instructions
+                    </p>
+                  </>
+                )}
               </div>
             )}
-            <p className="text-[10px] text-tertiary mt-2 opacity-70">
-              use a reference image to guide the style and composition of generated images
-            </p>
           </div>
         </div>
       )}
@@ -682,17 +1444,18 @@ export function MediaGenerator({ tweetContent, onPromptSelect, onImageGenerated,
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        setReferenceImage(img.imageUrl);
+                        setEditTemplateImage(img.imageUrl);
+                        setEditTemplatePrompt('Edit this image: ');
                         addToast({
                           type: 'success',
-                          title: 'Reference set',
-                          description: 'This image will be used as a starting point',
+                          title: 'Template loaded',
+                          description: 'Add edit instructions in the Edit Template section',
                         });
                       }}
                       className="p-2 rounded-full bg-white/20 hover:bg-white/30 transition-colors"
-                      title="Use as reference"
+                      title="Edit with AI"
                     >
-                      <ImagePlus className="h-4 w-4 text-white" />
+                      <Wand2 className="h-4 w-4 text-white" />
                     </button>
                   </div>
                 )}

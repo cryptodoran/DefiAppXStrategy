@@ -10,6 +10,7 @@ interface GenerateRequest {
   height?: number;
   referenceImage?: string; // Base64 data URL or image URL for img2img
   imageStrength?: number; // 0-1, how much to preserve original image (default 0.75)
+  editMode?: boolean; // If true, use instruction-based editing instead of style transfer
 }
 
 interface ReplicatePrediction {
@@ -22,7 +23,7 @@ interface ReplicatePrediction {
 export async function POST(request: NextRequest) {
   try {
     const body: GenerateRequest = await request.json();
-    const { prompt, style = 'digital-art', width = 1024, height = 1024, referenceImage, imageStrength = 0.75 } = body;
+    const { prompt, style = 'digital-art', width = 1024, height = 1024, referenceImage, imageStrength = 0.75, editMode = false } = body;
 
     if (!prompt || prompt.trim().length < 5) {
       return NextResponse.json(
@@ -52,6 +53,85 @@ export async function POST(request: NextRequest) {
     // Build enhanced prompt with professional quality modifiers
     const selectedStyle = styleModifiers[style] || styleModifiers['digital-art'];
     const enhancedPrompt = `${prompt}, ${selectedStyle}, ${professionalBase}`;
+
+    // EDIT MODE: Use instruct-pix2pix for actual image editing
+    if (editMode && referenceImage && replicateToken) {
+      console.log('Using instruct-pix2pix for image editing');
+
+      // Create prediction with instruct-pix2pix
+      const editResponse = await fetch('https://api.replicate.com/v1/predictions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${replicateToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          version: 'timbrooks/instruct-pix2pix:30c1d0b916a6f8efce20493f5d61ee27491ab2a60437c13c588468b9810ec23f',
+          input: {
+            image: referenceImage,
+            prompt: prompt, // Instruction like "change text to X" or "add glow effect"
+            num_inference_steps: 50,
+            image_guidance_scale: 1.5, // Higher = more like original (1.0-2.0)
+            guidance_scale: 7.5, // Higher = follow prompt more closely
+          },
+        }),
+      });
+
+      if (!editResponse.ok) {
+        const errorData = await editResponse.json();
+        console.error('instruct-pix2pix API error:', errorData);
+        throw new Error(errorData.detail || 'Failed to create edit prediction');
+      }
+
+      let editPrediction: ReplicatePrediction = await editResponse.json();
+
+      // Poll for completion
+      const maxAttempts = 30;
+      let attempts = 0;
+
+      while (editPrediction.status !== 'succeeded' && editPrediction.status !== 'failed' && attempts < maxAttempts) {
+        await new Promise(resolve => setTimeout(resolve, 2000));
+
+        const pollResponse = await fetch(`https://api.replicate.com/v1/predictions/${editPrediction.id}`, {
+          headers: {
+            'Authorization': `Bearer ${replicateToken}`,
+          },
+        });
+
+        if (!pollResponse.ok) {
+          throw new Error('Failed to poll edit prediction status');
+        }
+
+        editPrediction = await pollResponse.json();
+        attempts++;
+      }
+
+      if (editPrediction.status === 'failed') {
+        throw new Error(editPrediction.error || 'Image editing failed');
+      }
+
+      if (editPrediction.status !== 'succeeded') {
+        throw new Error('Image editing timed out');
+      }
+
+      const imageUrl = Array.isArray(editPrediction.output) ? editPrediction.output[0] : editPrediction.output;
+
+      if (!imageUrl) {
+        throw new Error('No image URL in edit response');
+      }
+
+      return NextResponse.json({
+        imageUrl,
+        prompt,
+        originalPrompt: prompt,
+        style: 'edit',
+        width,
+        height,
+        provider: 'instruct-pix2pix',
+        predictionId: editPrediction.id,
+        mode: 'edit',
+      });
+    }
 
     // If no Replicate token, fall back to Pollinations
     if (!replicateToken) {

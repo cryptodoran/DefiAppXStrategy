@@ -19,7 +19,10 @@ import {
   Zap,
   Image,
   ExternalLink,
-  Shuffle,
+  ChevronLeft,
+  ChevronRight,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react';
 
 interface ProactiveSuggestion {
@@ -96,17 +99,21 @@ export function ProactiveSuggestions() {
   const [copiedId, setCopiedId] = React.useState<string | null>(null);
   const [dismissedIds, setDismissedIds] = React.useState<Set<string>>(new Set());
   const [isDemo, setIsDemo] = React.useState(false);
+  const [currentIndex, setCurrentIndex] = React.useState(0);
+  const [isExpanded, setIsExpanded] = React.useState(false);
   const { addToast } = useToast();
 
   const fetchSuggestions = React.useCallback(async () => {
     setIsLoading(true);
     try {
-      const response = await fetch('/api/suggestions/proactive?count=5');
+      // Fetch only 3 suggestions for faster loading
+      const response = await fetch('/api/suggestions/proactive?count=3');
       if (!response.ok) throw new Error('Failed to fetch suggestions');
       const data = await response.json();
       setSuggestions(data.suggestions || []);
       setIsDemo(data._demo === true);
       setDismissedIds(new Set());
+      setCurrentIndex(0);
     } catch (error) {
       console.error('Error fetching suggestions:', error);
       addToast({
@@ -118,6 +125,21 @@ export function ProactiveSuggestions() {
       setIsLoading(false);
     }
   }, [addToast]);
+
+  // Navigation functions
+  const goToNext = () => {
+    if (currentIndex < visibleSuggestions.length - 1) {
+      setCurrentIndex(prev => prev + 1);
+      setIsExpanded(false);
+    }
+  };
+
+  const goToPrev = () => {
+    if (currentIndex > 0) {
+      setCurrentIndex(prev => prev - 1);
+      setIsExpanded(false);
+    }
+  };
 
   React.useEffect(() => {
     fetchSuggestions();
@@ -171,192 +193,219 @@ export function ProactiveSuggestions() {
         </PremiumButton>
       </div>
 
-      {/* Content */}
+      {/* Content - Compact Single Card View */}
       <div className="p-4">
         {isLoading && suggestions.length === 0 ? (
-          <div className="space-y-4">
-            {[1, 2, 3].map(i => (
-              <div key={i} className="animate-pulse p-4 rounded-lg bg-elevated">
-                <div className="flex items-center gap-2 mb-3">
-                  <div className="h-5 w-16 bg-surface rounded" />
-                  <div className="h-5 w-12 bg-surface rounded" />
-                </div>
-                <div className="h-4 bg-surface rounded w-full mb-2" />
-                <div className="h-4 bg-surface rounded w-4/5 mb-2" />
-                <div className="h-4 bg-surface rounded w-2/3" />
-              </div>
-            ))}
+          <div className="animate-pulse p-4 rounded-lg bg-elevated">
+            <div className="flex items-center gap-2 mb-3">
+              <div className="h-5 w-16 bg-surface rounded" />
+              <div className="h-5 w-12 bg-surface rounded" />
+            </div>
+            <div className="h-4 bg-surface rounded w-full mb-2" />
+            <div className="h-4 bg-surface rounded w-4/5" />
           </div>
         ) : visibleSuggestions.length === 0 ? (
-          <div className="text-center py-8">
-            <Sparkles className="h-12 w-12 mx-auto mb-3 text-tertiary opacity-50" />
-            <p className="text-tertiary">No suggestions available</p>
+          <div className="text-center py-6">
+            <Sparkles className="h-10 w-10 mx-auto mb-3 text-tertiary opacity-50" />
+            <p className="text-tertiary text-sm">No suggestions available</p>
             <PremiumButton
               size="sm"
               variant="secondary"
-              className="mt-4"
+              className="mt-3"
               onClick={fetchSuggestions}
             >
-              Generate New Suggestions
+              Generate New
             </PremiumButton>
           </div>
         ) : (
-          <AnimatePresence mode="popLayout">
-            <div className="space-y-4">
-              {visibleSuggestions.map((suggestion, index) => {
-                const voiceIndicator = getVoiceMatchIndicator(suggestion.voiceMatchScore);
+          <div>
+            {/* Current Suggestion Card */}
+            {visibleSuggestions[currentIndex] && (() => {
+              const suggestion = visibleSuggestions[currentIndex];
+              const voiceIndicator = getVoiceMatchIndicator(suggestion.voiceMatchScore);
 
-                return (
-                  <motion.div
-                    key={suggestion.id}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, x: -100 }}
-                    transition={{ delay: index * 0.05 }}
-                    className="p-4 rounded-lg bg-elevated border border-white/5 hover:border-white/10 transition-colors"
-                  >
-                    {/* Top Row - Badges */}
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-2">
-                        {/* Engagement Badge */}
-                        <span className={cn(
-                          'px-2 py-0.5 rounded-full text-xs font-medium uppercase',
-                          ENGAGEMENT_COLORS[suggestion.predictedEngagement]
-                        )}>
-                          {suggestion.predictedEngagement === 'viral' && <Zap className="h-3 w-3 inline mr-1" />}
-                          {suggestion.predictedEngagement}
-                        </span>
+              return (
+                <motion.div
+                  key={suggestion.id}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="p-4 rounded-lg bg-elevated border border-white/5"
+                >
+                  {/* Top Row - Badges & Navigation */}
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <span className={cn(
+                        'px-2 py-0.5 rounded-full text-xs font-medium uppercase',
+                        ENGAGEMENT_COLORS[suggestion.predictedEngagement]
+                      )}>
+                        {suggestion.predictedEngagement === 'viral' && <Zap className="h-3 w-3 inline mr-1" />}
+                        {suggestion.predictedEngagement}
+                      </span>
+                      <span className={cn(
+                        'px-2 py-0.5 rounded-full text-xs',
+                        voiceIndicator.bg,
+                        voiceIndicator.color
+                      )}>
+                        {suggestion.voiceMatchScore}% match
+                      </span>
+                    </div>
 
-                        {/* Voice Match */}
-                        <span className={cn(
-                          'px-2 py-0.5 rounded-full text-xs',
-                          voiceIndicator.bg,
-                          voiceIndicator.color
-                        )}>
-                          {suggestion.voiceMatchScore}% match
-                        </span>
-                      </div>
-
-                      {/* Dismiss */}
+                    {/* Navigation */}
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-tertiary">
+                        {currentIndex + 1} of {visibleSuggestions.length}
+                      </span>
                       <button
-                        onClick={() => dismissSuggestion(suggestion.id)}
-                        className="p-1 rounded hover:bg-white/5 text-tertiary hover:text-secondary transition-colors"
+                        onClick={goToPrev}
+                        disabled={currentIndex === 0}
+                        className="p-1 rounded hover:bg-white/5 text-tertiary hover:text-secondary disabled:opacity-30 transition-colors"
                       >
-                        <X className="h-4 w-4" />
+                        <ChevronLeft className="h-4 w-4" />
+                      </button>
+                      <button
+                        onClick={goToNext}
+                        disabled={currentIndex === visibleSuggestions.length - 1}
+                        className="p-1 rounded hover:bg-white/5 text-tertiary hover:text-secondary disabled:opacity-30 transition-colors"
+                      >
+                        <ChevronRight className="h-4 w-4" />
                       </button>
                     </div>
+                  </div>
 
-                    {/* Tweet Content */}
-                    <p className="text-primary whitespace-pre-wrap mb-3 leading-relaxed">
-                      {suggestion.content}
-                    </p>
+                  {/* Content - Truncated by default */}
+                  <p className={cn(
+                    'text-primary whitespace-pre-wrap leading-relaxed',
+                    !isExpanded && 'line-clamp-3'
+                  )}>
+                    {suggestion.content}
+                  </p>
 
-                    {/* Based On */}
-                    {suggestion.basedOn && (
-                      <div className="flex items-center gap-2 mb-3 text-xs text-tertiary">
-                        <TrendingUp className="h-3 w-3" />
-                        <span>Based on: {TYPE_LABELS[suggestion.basedOn.type]} - {suggestion.basedOn.source}</span>
-                        {suggestion.basedOn.link && (
-                          <a
-                            href={suggestion.basedOn.link}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-violet-400 hover:text-violet-300"
-                          >
-                            <ExternalLink className="h-3 w-3" />
-                          </a>
+                  {/* Expand/Collapse Button */}
+                  {suggestion.content.length > 150 && (
+                    <button
+                      onClick={() => setIsExpanded(!isExpanded)}
+                      className="flex items-center gap-1 text-xs text-violet-400 hover:text-violet-300 mt-2"
+                    >
+                      {isExpanded ? (
+                        <>
+                          <ChevronUp className="h-3 w-3" />
+                          Show less
+                        </>
+                      ) : (
+                        <>
+                          <ChevronDown className="h-3 w-3" />
+                          Show more
+                        </>
+                      )}
+                    </button>
+                  )}
+
+                  {/* Expanded Details */}
+                  <AnimatePresence>
+                    {isExpanded && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        className="overflow-hidden"
+                      >
+                        {/* Based On */}
+                        {suggestion.basedOn && (
+                          <div className="flex items-center gap-2 mt-3 text-xs text-tertiary">
+                            <TrendingUp className="h-3 w-3" />
+                            <span>Based on: {TYPE_LABELS[suggestion.basedOn.type]} - {suggestion.basedOn.source}</span>
+                            {suggestion.basedOn.link && (
+                              <a
+                                href={suggestion.basedOn.link}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-violet-400 hover:text-violet-300"
+                              >
+                                <ExternalLink className="h-3 w-3" />
+                              </a>
+                            )}
+                          </div>
                         )}
-                      </div>
+
+                        {/* Relevance */}
+                        <p className="text-xs text-tertiary italic mt-2">
+                          {suggestion.relevanceReason}
+                        </p>
+
+                        {/* Image Suggestion */}
+                        {suggestion.imageSuggestion && (
+                          <div className="p-2 rounded bg-surface mt-3">
+                            <div className="flex items-center gap-2 text-xs text-tertiary">
+                              <Image className="h-3 w-3" />
+                              <span className="capitalize">{suggestion.imageSuggestion.type}:</span>
+                              <span className="text-secondary">{suggestion.imageSuggestion.description}</span>
+                            </div>
+                          </div>
+                        )}
+                      </motion.div>
                     )}
+                  </AnimatePresence>
 
-                    {/* Relevance Reason */}
-                    <p className="text-xs text-tertiary italic mb-3">
-                      {suggestion.relevanceReason}
-                    </p>
+                  {/* Actions - Always visible */}
+                  <div className="flex items-center gap-2 mt-3 pt-3 border-t border-white/5">
+                    <PremiumButton
+                      size="sm"
+                      variant="primary"
+                      leftIcon={copiedId === suggestion.id ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                      onClick={() => copyToClipboard(suggestion.content, suggestion.id)}
+                    >
+                      {copiedId === suggestion.id ? 'Copied!' : 'Copy'}
+                    </PremiumButton>
 
-                    {/* Image Suggestion */}
-                    {suggestion.imageSuggestion && (
-                      <div className="p-2 rounded bg-surface mb-3">
-                        <div className="flex items-center gap-2 text-xs text-tertiary">
-                          <Image className="h-3 w-3" />
-                          <span className="capitalize">{suggestion.imageSuggestion.type}:</span>
-                          <span className="text-secondary">{suggestion.imageSuggestion.description}</span>
-                        </div>
-                      </div>
-                    )}
+                    <PremiumButton
+                      size="sm"
+                      variant="secondary"
+                      leftIcon={<Edit3 className="h-4 w-4" />}
+                      onClick={() => {
+                        const isThread = /\d+\//.test(suggestion.content) ||
+                                        suggestion.content.toLowerCase().startsWith('thread:') ||
+                                        suggestion.content.toLowerCase().includes('\nthread:');
 
-                    {/* Actions */}
-                    <div className="flex items-center gap-2 pt-2 border-t border-white/5">
-                      <PremiumButton
-                        size="sm"
-                        variant="primary"
-                        leftIcon={copiedId === suggestion.id ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                        onClick={() => copyToClipboard(suggestion.content, suggestion.id)}
-                      >
-                        {copiedId === suggestion.id ? 'Copied!' : 'Copy to Post'}
-                      </PremiumButton>
-
-                      <PremiumButton
-                        size="sm"
-                        variant="secondary"
-                        leftIcon={<Edit3 className="h-4 w-4" />}
-                        onClick={() => {
-                          // Check if this is a thread (contains numbered posts like "1/", "2/", etc.)
-                          const isThread = /\d+\//.test(suggestion.content) ||
-                                          suggestion.content.toLowerCase().startsWith('thread:') ||
-                                          suggestion.content.toLowerCase().includes('\nthread:');
-
-                          if (isThread) {
-                            // Parse thread into individual posts
-                            const threadPosts = parseThreadContent(suggestion.content);
-                            sessionStorage.setItem('editThreadPosts', JSON.stringify(threadPosts));
-                            sessionStorage.removeItem('editTweetContent');
-                            router.push('/create?tab=thread');
-                            addToast({
-                              type: 'success',
-                              title: 'Opening Thread Builder',
-                              description: `Thread with ${threadPosts.length} posts loaded`,
-                            });
-                          } else {
-                            // Regular single post
-                            sessionStorage.setItem('editTweetContent', suggestion.content);
-                            sessionStorage.removeItem('editThreadPosts');
-                            if (suggestion.imageSuggestion) {
-                              sessionStorage.setItem('editTweetImagePrompt', suggestion.imageSuggestion.prompt);
-                            }
-                            router.push('/create');
-                            addToast({
-                              type: 'success',
-                              title: 'Opening editor',
-                              description: 'Tweet loaded for editing',
-                            });
-                          }
-                        }}
-                      >
-                        Edit
-                      </PremiumButton>
-
-                      <PremiumButton
-                        size="sm"
-                        variant="ghost"
-                        leftIcon={<Shuffle className="h-4 w-4" />}
-                        onClick={() => {
-                          // TODO: Generate variations
+                        if (isThread) {
+                          const threadPosts = parseThreadContent(suggestion.content);
+                          sessionStorage.setItem('editThreadPosts', JSON.stringify(threadPosts));
+                          sessionStorage.removeItem('editTweetContent');
+                          router.push('/create?tab=thread');
                           addToast({
-                            type: 'info',
-                            title: 'Coming soon',
-                            description: 'Variations will be added',
+                            type: 'success',
+                            title: 'Opening Thread Builder',
+                            description: `Thread with ${threadPosts.length} posts loaded`,
                           });
-                        }}
-                      >
-                        Variations
-                      </PremiumButton>
-                    </div>
-                  </motion.div>
-                );
-              })}
-            </div>
-          </AnimatePresence>
+                        } else {
+                          sessionStorage.setItem('editTweetContent', suggestion.content);
+                          sessionStorage.removeItem('editThreadPosts');
+                          if (suggestion.imageSuggestion) {
+                            sessionStorage.setItem('editTweetImagePrompt', suggestion.imageSuggestion.prompt);
+                          }
+                          router.push('/create');
+                          addToast({
+                            type: 'success',
+                            title: 'Opening editor',
+                            description: 'Tweet loaded for editing',
+                          });
+                        }
+                      }}
+                    >
+                      Edit
+                    </PremiumButton>
+
+                    <button
+                      onClick={() => dismissSuggestion(suggestion.id)}
+                      className="ml-auto p-2 rounded hover:bg-white/5 text-tertiary hover:text-secondary transition-colors"
+                      title="Dismiss"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+                </motion.div>
+              );
+            })()}
+          </div>
         )}
       </div>
 

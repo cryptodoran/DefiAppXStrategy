@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { Sparkline } from '@/components/ui/sparkline';
-import { TrendingUp, TrendingDown, Zap, Activity, AlertCircle, ExternalLink } from 'lucide-react';
+import { TrendingUp, TrendingDown, Activity, ExternalLink } from 'lucide-react';
 import {
   fetchRealCryptoPrices,
   fetchRealFearGreed,
@@ -26,7 +26,6 @@ interface MarketData {
   fearGreedLabel: string;
   fearGreedVerifyUrl: string;
   topTrend: { tag: string; url: string };
-  exposureBudget: number;
   isLive: boolean;
 }
 
@@ -77,7 +76,6 @@ export function StatusBar() {
         fearGreedLabel: fearGreed.classification,
         fearGreedVerifyUrl: fearGreed.verifyUrl,
         topTrend: getTopTrend(),
-        exposureBudget: 67, // This would come from user settings
         isLive: true,
       });
       setIsLoading(false);
@@ -230,26 +228,9 @@ export function StatusBar() {
         </a>
       </div>
 
-      {/* Right: Exposure Budget */}
+      {/* Right: Spacer for layout balance */}
       <div className="flex items-center gap-3">
-        <div className="flex items-center gap-2">
-          <Zap className="h-3.5 w-3.5 text-tertiary" />
-          <span className="text-xs text-tertiary">Exposure</span>
-          <div className="w-20 h-1.5 bg-elevated rounded-full overflow-hidden">
-            <motion.div
-              className={cn(
-                'h-full rounded-full',
-                data.exposureBudget > 50 ? 'bg-green-500' : data.exposureBudget > 25 ? 'bg-yellow-500' : 'bg-red-500'
-              )}
-              initial={{ width: 0 }}
-              animate={{ width: `${data.exposureBudget}%` }}
-              transition={{ duration: 0.5, ease: 'easeOut' }}
-            />
-          </div>
-          <span className="font-mono text-xs font-medium text-primary">
-            {data.exposureBudget}%
-          </span>
-        </div>
+        {/* Exposure bar removed - was placeholder with no functionality */}
       </div>
     </div>
   );
