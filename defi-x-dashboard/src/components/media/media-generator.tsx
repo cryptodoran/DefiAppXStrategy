@@ -205,6 +205,22 @@ export function MediaGenerator({ tweetContent, onPromptSelect, onImageGenerated,
 
       addToast({
         type: 'info',
+        title: 'Compressing image...',
+        description: 'Optimizing for API',
+      });
+
+      // Compress image before sending to API (fixes 413 Payload Too Large)
+      let imageToSend = editTemplateImage;
+      if (editTemplateImage.startsWith('data:image/')) {
+        try {
+          imageToSend = await compressImage(editTemplateImage, 1200, 0.85);
+        } catch (compressError) {
+          console.warn('Image compression failed, using original:', compressError);
+        }
+      }
+
+      addToast({
+        type: 'info',
         title: `Analyzing with ${editModelChoice === 'claude' ? 'Claude' : 'Gemini'}...`,
         description: 'Identifying text regions to edit',
       });
@@ -221,7 +237,7 @@ export function MediaGenerator({ tweetContent, onPromptSelect, onImageGenerated,
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            image: editTemplateImage,
+            image: imageToSend,
             instruction: editTemplatePrompt,
           }),
         });
@@ -326,6 +342,53 @@ export function MediaGenerator({ tweetContent, onPromptSelect, onImageGenerated,
 
       // Invalid format
       resolve(false);
+    });
+  };
+
+  // Compress image to reduce size for API (fixes 413 Payload Too Large)
+  const compressImage = (imageSrc: string, maxSize: number = 1200, quality: number = 0.85): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const img = new window.Image();
+
+      img.onload = () => {
+        try {
+          const canvas = document.createElement('canvas');
+          let { width, height } = img;
+
+          // Calculate new dimensions (max 1200px on longest side)
+          if (width > maxSize || height > maxSize) {
+            if (width > height) {
+              height = Math.round((height * maxSize) / width);
+              width = maxSize;
+            } else {
+              width = Math.round((width * maxSize) / height);
+              height = maxSize;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+
+          const ctx = canvas.getContext('2d');
+          if (!ctx) {
+            reject(new Error('Cannot get canvas context'));
+            return;
+          }
+
+          // Draw resized image
+          ctx.drawImage(img, 0, 0, width, height);
+
+          // Export as JPEG with compression (smaller than PNG)
+          const compressed = canvas.toDataURL('image/jpeg', quality);
+          console.log(`Image compressed: ${imageSrc.length} -> ${compressed.length} bytes (${Math.round((compressed.length / imageSrc.length) * 100)}%)`);
+          resolve(compressed);
+        } catch (err) {
+          reject(err);
+        }
+      };
+
+      img.onerror = () => reject(new Error('Failed to load image for compression'));
+      img.src = imageSrc;
     });
   };
 

@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 
 // Simple test endpoint to verify API configuration
 export async function GET() {
-  const checks = {
+  const checks: Record<string, unknown> = {
     anthropicKey: !!process.env.ANTHROPIC_API_KEY,
     anthropicKeyLength: process.env.ANTHROPIC_API_KEY?.length || 0,
     nodeEnv: process.env.NODE_ENV,
