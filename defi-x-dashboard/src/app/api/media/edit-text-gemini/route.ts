@@ -29,6 +29,8 @@ export async function POST(request: NextRequest) {
     const body: EditTextRequest = await request.json();
     const { image, instruction } = body;
 
+    console.log('[Gemini Edit] Received request with instruction:', instruction);
+
     if (!image || !instruction) {
       return NextResponse.json(
         { error: 'Missing required fields: image, instruction' },
@@ -36,14 +38,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const apiKey = process.env.GOOGLE_AI_API_KEY;
+    const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_AI_API_KEY;
     if (!apiKey) {
-      // Fall back to a simple response if Gemini isn't configured
+      console.error('[Gemini Edit] No API key found');
       return NextResponse.json(
-        { error: 'GOOGLE_AI_API_KEY not configured. Please use Claude instead or add the API key.' },
+        { error: 'GEMINI_API_KEY not configured. Please add the API key to your .env.local file.' },
         { status: 500 }
       );
     }
+
+    console.log('[Gemini Edit] API key found, processing image...');
 
     // Extract base64 data from data URL
     const base64Match = image.match(/^data:image\/(\w+);base64,(.+)$/);
@@ -53,13 +57,17 @@ export async function POST(request: NextRequest) {
     if (base64Match) {
       mimeType = `image/${base64Match[1]}`;
       imageData = base64Match[2];
+      console.log(`[Gemini Edit] Image format: ${mimeType}, size: ${Math.round(imageData.length / 1024)}KB`);
     } else if (image.startsWith('http')) {
+      console.log('[Gemini Edit] Fetching image from URL:', image);
       const imageResponse = await fetch(image);
       const arrayBuffer = await imageResponse.arrayBuffer();
       imageData = Buffer.from(arrayBuffer).toString('base64');
       const contentType = imageResponse.headers.get('content-type') || 'image/png';
       mimeType = contentType;
+      console.log(`[Gemini Edit] Fetched image, format: ${mimeType}, size: ${Math.round(imageData.length / 1024)}KB`);
     } else {
+      console.error('[Gemini Edit] Invalid image format');
       return NextResponse.json(
         { error: 'Invalid image format' },
         { status: 400 }
@@ -67,8 +75,9 @@ export async function POST(request: NextRequest) {
     }
 
     // Call Gemini API
+    console.log('[Gemini Edit] Calling Gemini API...');
     const geminiResponse = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${apiKey}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -129,13 +138,16 @@ Return ONLY the JSON object, no explanation or markdown.`,
       }
     );
 
+    console.log('[Gemini Edit] API response status:', geminiResponse.status);
+
     if (!geminiResponse.ok) {
-      const errorData = await geminiResponse.json();
-      console.error('Gemini API error:', errorData);
-      throw new Error('Failed to get response from Gemini');
+      const errorText = await geminiResponse.text();
+      console.error('[Gemini Edit] API error:', geminiResponse.status, errorText);
+      throw new Error(`Gemini API error (${geminiResponse.status}): ${errorText.substring(0, 200)}`);
     }
 
     const geminiData = await geminiResponse.json();
+    console.log('[Gemini Edit] API response received, parsing...');
     const textContent = geminiData.candidates?.[0]?.content?.parts?.[0]?.text;
 
     if (!textContent) {
@@ -162,7 +174,8 @@ Return ONLY the JSON object, no explanation or markdown.`,
       mode: 'gemini-text-edit',
     });
   } catch (error) {
-    console.error('Gemini text edit API error:', error);
+    console.error('[Gemini Edit] Error:', error);
+    console.error('[Gemini Edit] Error stack:', error instanceof Error ? error.stack : 'N/A');
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'Failed to analyze image with Gemini' },
       { status: 500 }

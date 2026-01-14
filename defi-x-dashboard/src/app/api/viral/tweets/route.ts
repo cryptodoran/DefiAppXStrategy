@@ -340,10 +340,11 @@ export async function GET(request: Request) {
       const accountChunk2 = TRACKED_ACCOUNTS.slice(25);
 
       // Build query - include accounts and optionally search terms
+      // FIXED: Added -is:reply to prevent reply tweets from showing (fixes Ignas reply issue)
       let searchQuery: string;
       if (category === 'all' || !category) {
         // Mix accounts and popular crypto terms for broader discovery
-        searchQuery = `(${accountChunk1.map(h => `from:${h}`).join(' OR ')}) -is:retweet`;
+        searchQuery = `(${accountChunk1.map(h => `from:${h}`).join(' OR ')}) -is:retweet -is:reply`;
       } else {
         // Category-specific search can use terms
         const categoryTerms: Record<string, string> = {
@@ -355,8 +356,8 @@ export async function GET(request: Request) {
         };
         const terms = categoryTerms[category] || '';
         searchQuery = terms
-          ? `(${terms}) (${accountChunk1.slice(0, 10).map(h => `from:${h}`).join(' OR ')}) -is:retweet`
-          : `(${accountChunk1.map(h => `from:${h}`).join(' OR ')}) -is:retweet`;
+          ? `(${terms}) (${accountChunk1.slice(0, 10).map(h => `from:${h}`).join(' OR ')}) -is:retweet -is:reply`
+          : `(${accountChunk1.map(h => `from:${h}`).join(' OR ')}) -is:retweet -is:reply`;
       }
 
       console.log(`[Twitter API] Searching ${TRACKED_ACCOUNTS.length} accounts`);
