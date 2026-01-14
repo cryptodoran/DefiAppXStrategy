@@ -37,6 +37,7 @@ interface QTOption {
 interface OriginalTweet {
   author: string;
   authorName: string;
+  authorImage?: string;
   content: string;
   likes: number;
   retweets: number;
@@ -312,7 +313,17 @@ function QTOptimizerContent() {
               <CardContent>
                 <div className="space-y-3">
                   <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-full bg-gradient-to-br from-violet-500 to-indigo-600" />
+                    {originalTweet.authorImage ? (
+                      <img
+                        src={originalTweet.authorImage}
+                        alt={originalTweet.authorName}
+                        className="h-10 w-10 rounded-full object-cover"
+                      />
+                    ) : (
+                      <div className="h-10 w-10 rounded-full bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center text-white font-bold">
+                        {originalTweet.authorName?.charAt(0) || '?'}
+                      </div>
+                    )}
                     <div>
                       <p className="font-medium text-white">{originalTweet.authorName}</p>
                       <p className="text-sm text-tertiary">{originalTweet.author}</p>

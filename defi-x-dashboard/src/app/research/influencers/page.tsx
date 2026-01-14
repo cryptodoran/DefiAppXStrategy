@@ -391,9 +391,17 @@ export default function InfluencerDatabasePage() {
             <CardContent className="pt-4">
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center gap-3">
-                  <div className="h-12 w-12 rounded-full bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center">
-                    <span className="text-white font-bold">{influencer.name[0]}</span>
-                  </div>
+                  {influencer.profileImage ? (
+                    <img
+                      src={influencer.profileImage}
+                      alt={influencer.name}
+                      className="h-12 w-12 rounded-full object-cover"
+                    />
+                  ) : (
+                    <div className="h-12 w-12 rounded-full bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center">
+                      <span className="text-white font-bold">{influencer.name[0]}</span>
+                    </div>
+                  )}
                   <div>
                     <div className="flex items-center gap-2">
                       <h3 className="font-medium text-white">{influencer.name}</h3>

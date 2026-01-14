@@ -42,6 +42,7 @@ interface Competitor {
   strengths: string[];
   weaknesses: string[];
   lastAnalyzed: Date;
+  profileImage?: string;
   _mock?: boolean;
 }
 
@@ -117,6 +118,7 @@ async function fetchCompetitors(handles: string[]): Promise<Competitor[]> {
     followers: number;
     engagementRate: number;
     tweets: number;
+    profileImage?: string;
     _mock?: boolean;
   }) => {
     const handleKey = user.handle.replace('@', '').toLowerCase();
@@ -141,6 +143,7 @@ async function fetchCompetitors(handles: string[]): Promise<Competitor[]> {
       strengths: analysis.strengths,
       weaknesses: analysis.weaknesses,
       lastAnalyzed: new Date(),
+      profileImage: user.profileImage,
       _mock: user._mock,
     };
   });
@@ -388,9 +391,17 @@ export default function CompetitorIntelPage() {
               <CardContent className="pt-4">
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-4">
-                    <div className="h-12 w-12 rounded-full bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center">
-                      <span className="text-white font-bold">{competitor.name[0]}</span>
-                    </div>
+                    {competitor.profileImage ? (
+                      <img
+                        src={competitor.profileImage}
+                        alt={competitor.name}
+                        className="h-12 w-12 rounded-full object-cover"
+                      />
+                    ) : (
+                      <div className="h-12 w-12 rounded-full bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center">
+                        <span className="text-white font-bold">{competitor.name[0]}</span>
+                      </div>
+                    )}
                     <div>
                       <div className="flex items-center gap-2">
                         <h3 className="font-medium text-white">{competitor.name}</h3>
@@ -516,72 +527,172 @@ export default function CompetitorIntelPage() {
         </TabsContent>
 
         <TabsContent value="alerts" className="space-y-4">
-          <Card className="bg-surface border-white/5">
-            <CardHeader>
-              <CardTitle className="text-white">Recent Competitor Activity</CardTitle>
-              <p className="text-xs text-tertiary mt-1">
-                Click to verify each activity on Twitter
-              </p>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <a
-                  href="https://twitter.com/search?q=from%3Azerion&f=live"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="block p-4 bg-yellow-500/10 border border-yellow-500/20 rounded-lg hover:bg-yellow-500/15 transition-colors group"
-                >
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium text-white flex items-center gap-2">
-                        @zerion posting wallet updates
-                        <ExternalLink className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
-                      </p>
-                      <p className="text-sm text-tertiary">Multi-chain features being highlighted</p>
-                    </div>
-                    <Badge>Recent</Badge>
-                  </div>
-                </a>
-                <a
-                  href="https://twitter.com/search?q=from%3Arainbowdotme&f=live"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="block p-4 bg-green-500/10 border border-green-500/20 rounded-lg hover:bg-green-500/15 transition-colors group"
-                >
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium text-white flex items-center gap-2">
-                        @rainbowdotme active with mobile updates
-                        <ExternalLink className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
-                      </p>
-                      <p className="text-sm text-tertiary">Focus on mobile UX and ENS features</p>
-                    </div>
-                    <Badge>Recent</Badge>
-                  </div>
-                </a>
-                <a
-                  href="https://twitter.com/search?q=from%3ADeBankDeFi&f=live"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="block p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg hover:bg-blue-500/15 transition-colors group"
-                >
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium text-white flex items-center gap-2">
-                        @DeBankDeFi portfolio features
-                        <ExternalLink className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
-                      </p>
-                      <p className="text-sm text-tertiary">Social features and protocol integrations</p>
-                    </div>
-                    <Badge>Recent</Badge>
-                  </div>
-                </a>
-              </div>
-            </CardContent>
-          </Card>
+          <CompetitorAlertsTab />
         </TabsContent>
       </Tabs>
     </div>
     </AppLayout>
+  );
+}
+
+// Competitor Alerts Tab - fetches real alerts from API
+interface CompetitorAlert {
+  id: string;
+  competitor: {
+    handle: string;
+    name: string;
+    profileImage?: string;
+  };
+  tweetId: string;
+  tweetUrl: string;
+  content: string;
+  likes: number;
+  retweets: number;
+  createdAt: string;
+  category: 'product' | 'announcement' | 'engagement' | 'general';
+  urgency: 'high' | 'medium' | 'low';
+}
+
+function CompetitorAlertsTab() {
+  const { data, isLoading, error, refetch } = useQuery({
+    queryKey: ['competitor-alerts'],
+    queryFn: async () => {
+      const response = await fetch('/api/competitors/alerts');
+      if (!response.ok) throw new Error('Failed to fetch alerts');
+      return response.json();
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    refetchInterval: 5 * 60 * 1000,
+  });
+
+  const alerts: CompetitorAlert[] = data?.alerts || [];
+
+  const getTimeAgo = (dateStr: string) => {
+    const date = new Date(dateStr);
+    const now = new Date();
+    const seconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+
+    if (seconds < 60) return 'just now';
+    if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
+    if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
+    return `${Math.floor(seconds / 86400)}d ago`;
+  };
+
+  const getCategoryColor = (category: string) => {
+    switch (category) {
+      case 'product': return 'bg-blue-500/10 border-blue-500/20 text-blue-400';
+      case 'announcement': return 'bg-yellow-500/10 border-yellow-500/20 text-yellow-400';
+      case 'engagement': return 'bg-green-500/10 border-green-500/20 text-green-400';
+      default: return 'bg-gray-500/10 border-gray-500/20 text-gray-400';
+    }
+  };
+
+  const getUrgencyBadge = (urgency: string) => {
+    switch (urgency) {
+      case 'high': return <Badge className="bg-red-500/20 text-red-400">Urgent</Badge>;
+      case 'medium': return <Badge className="bg-yellow-500/20 text-yellow-400">Recent</Badge>;
+      default: return <Badge className="bg-gray-500/20 text-gray-400">Low</Badge>;
+    }
+  };
+
+  return (
+    <Card className="bg-surface border-white/5">
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle className="text-white">Real Competitor Activity</CardTitle>
+            <p className="text-xs text-tertiary mt-1">
+              Click any alert to view the actual tweet on X
+            </p>
+          </div>
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => refetch()}
+            disabled={isLoading}
+          >
+            <RefreshCw className={cn("h-4 w-4 mr-2", isLoading && "animate-spin")} />
+            Refresh
+          </Button>
+        </div>
+      </CardHeader>
+      <CardContent>
+        {isLoading ? (
+          <div className="space-y-4">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="animate-pulse p-4 bg-elevated rounded-lg">
+                <div className="h-4 bg-surface rounded w-3/4 mb-2" />
+                <div className="h-3 bg-surface rounded w-1/2" />
+              </div>
+            ))}
+          </div>
+        ) : error ? (
+          <div className="text-center py-8 text-tertiary">
+            <AlertCircle className="h-8 w-8 mx-auto mb-2 opacity-50" />
+            <p>Failed to load alerts</p>
+            <Button size="sm" variant="ghost" onClick={() => refetch()} className="mt-2">
+              Try again
+            </Button>
+          </div>
+        ) : alerts.length === 0 ? (
+          <div className="text-center py-8 text-tertiary">
+            <Eye className="h-8 w-8 mx-auto mb-2 opacity-50" />
+            <p>No recent competitor activity</p>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {alerts.map((alert) => (
+              <a
+                key={alert.id}
+                href={alert.tweetUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={cn(
+                  "block p-4 border rounded-lg hover:brightness-110 transition-all group",
+                  getCategoryColor(alert.category)
+                )}
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-start gap-3 flex-1 min-w-0">
+                    {alert.competitor.profileImage ? (
+                      <img
+                        src={alert.competitor.profileImage}
+                        alt={alert.competitor.name}
+                        className="w-10 h-10 rounded-full object-cover flex-shrink-0"
+                      />
+                    ) : (
+                      <div className="w-10 h-10 rounded-full bg-surface flex items-center justify-center flex-shrink-0">
+                        {alert.competitor.name.charAt(0)}
+                      </div>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-white flex items-center gap-2">
+                        @{alert.competitor.handle}
+                        <ExternalLink className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                      </p>
+                      <p className="text-sm text-secondary line-clamp-2 mt-1">{alert.content}</p>
+                      <div className="flex items-center gap-4 mt-2 text-xs text-tertiary">
+                        <span className="flex items-center gap-1">
+                          <Heart className="h-3 w-3" />
+                          {alert.likes}
+                        </span>
+                        <span>{getTimeAgo(alert.createdAt)}</span>
+                        <Badge className="text-[10px]">{alert.category}</Badge>
+                      </div>
+                    </div>
+                  </div>
+                  {getUrgencyBadge(alert.urgency)}
+                </div>
+              </a>
+            ))}
+          </div>
+        )}
+        {data?._mock && (
+          <p className="text-xs text-tertiary mt-4 text-center">
+            Demo mode - Configure TWITTER_BEARER_TOKEN for live alerts
+          </p>
+        )}
+      </CardContent>
+    </Card>
   );
 }

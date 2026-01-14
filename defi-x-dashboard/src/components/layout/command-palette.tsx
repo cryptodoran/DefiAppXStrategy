@@ -25,7 +25,6 @@ import {
   MessageSquare,
   Target,
   Flame,
-  Calendar,
   TrendingUp,
 } from 'lucide-react';
 
@@ -63,7 +62,6 @@ const commands = [
     items: [
       { name: 'Daily Recommendations', href: '/suggestions/daily', icon: Lightbulb },
       { name: 'Trending Topics', href: '/suggestions/trending', icon: TrendingUp },
-      { name: 'Content Calendar', href: '/suggestions/calendar', icon: Calendar },
     ],
   },
 ];

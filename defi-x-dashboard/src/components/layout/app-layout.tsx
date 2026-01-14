@@ -12,7 +12,6 @@ import {
   PenSquare,
   TrendingUp,
   Users,
-  Calendar,
   Settings,
   ChevronLeft,
   ChevronRight,
@@ -42,7 +41,6 @@ const navItems: NavItem[] = [
   { id: 'opportunities', label: 'Opportunities', icon: <Target className="h-5 w-5" />, href: '/research/trends', badge: 'HOT' },
   { id: 'analytics', label: 'Analytics', icon: <TrendingUp className="h-5 w-5" />, href: '/analytics/followers' },
   { id: 'competitors', label: 'War Room', icon: <Users className="h-5 w-5" />, href: '/research/competitors' },
-  { id: 'calendar', label: 'Schedule', icon: <Calendar className="h-5 w-5" />, href: '/suggestions/calendar' },
   { id: 'research', label: 'Research', icon: <BookOpen className="h-5 w-5" />, href: '/research' },
 ];
 

@@ -33,8 +33,10 @@ import { useSettings, type UserSettings } from '@/lib/settings';
 
 interface IntegrationStatus {
   name: string;
+  description: string;
   connected: boolean;
   status: 'active' | 'disconnected';
+  category: 'ai' | 'social' | 'market' | 'news' | 'media';
 }
 
 export default function SettingsPage() {
@@ -64,32 +66,127 @@ export default function SettingsPage() {
 
   // Integrations - read-only, based on env vars
   const integrations: IntegrationStatus[] = [
+    // Social
     {
       name: 'X (Twitter) API',
-      connected: true, // Assume connected if app is working
-      status: 'active',
-    },
-    {
-      name: 'Claude AI',
-      connected: true, // Assume connected if app is working
-      status: 'active',
-    },
-    {
-      name: 'CoinGecko (Prices)',
+      description: 'Tweets, followers, engagement, viral content',
       connected: true,
       status: 'active',
+      category: 'social',
     },
+    // AI
     {
-      name: 'DeFiLlama (TVL)',
+      name: 'Claude AI (Anthropic)',
+      description: 'Content suggestions, template editing, analysis',
       connected: true,
       status: 'active',
+      category: 'ai',
     },
     {
-      name: 'Alternative.me (F&G)',
+      name: 'Gemini AI (Google)',
+      description: 'Alternative template editing',
       connected: true,
       status: 'active',
+      category: 'ai',
+    },
+    // Market Data
+    {
+      name: 'CoinGecko',
+      description: 'Crypto prices, trending coins, market data',
+      connected: true,
+      status: 'active',
+      category: 'market',
+    },
+    {
+      name: 'DeFiLlama',
+      description: 'Total Value Locked (TVL), chain data',
+      connected: true,
+      status: 'active',
+      category: 'market',
+    },
+    {
+      name: 'Alternative.me',
+      description: 'Fear & Greed Index',
+      connected: true,
+      status: 'active',
+      category: 'market',
+    },
+    // News
+    {
+      name: 'CoinDesk',
+      description: 'Breaking crypto news via RSS',
+      connected: true,
+      status: 'active',
+      category: 'news',
+    },
+    {
+      name: 'Cointelegraph',
+      description: 'Crypto news and analysis via RSS',
+      connected: true,
+      status: 'active',
+      category: 'news',
+    },
+    {
+      name: 'The Block',
+      description: 'Institutional crypto news via RSS',
+      connected: true,
+      status: 'active',
+      category: 'news',
+    },
+    {
+      name: 'Bitcoin Magazine',
+      description: 'Bitcoin-focused news via RSS',
+      connected: true,
+      status: 'active',
+      category: 'news',
+    },
+    {
+      name: 'Decrypt',
+      description: 'Crypto news and guides via RSS',
+      connected: true,
+      status: 'active',
+      category: 'news',
+    },
+    {
+      name: 'Blockworks',
+      description: 'DeFi and crypto research via RSS',
+      connected: true,
+      status: 'active',
+      category: 'news',
+    },
+    // Media
+    {
+      name: 'Replicate (Flux AI)',
+      description: 'AI image generation',
+      connected: true,
+      status: 'active',
+      category: 'media',
+    },
+    {
+      name: 'Figma API',
+      description: 'Template library and export',
+      connected: true,
+      status: 'active',
+      category: 'media',
     },
   ];
+
+  // Group integrations by category
+  const groupedIntegrations = {
+    social: integrations.filter(i => i.category === 'social'),
+    ai: integrations.filter(i => i.category === 'ai'),
+    market: integrations.filter(i => i.category === 'market'),
+    news: integrations.filter(i => i.category === 'news'),
+    media: integrations.filter(i => i.category === 'media'),
+  };
+
+  const categoryLabels: Record<string, string> = {
+    social: 'Social Media',
+    ai: 'AI Services',
+    market: 'Market Data',
+    news: 'News Sources',
+    media: 'Media Generation',
+  };
 
   const handleSaveAccount = async () => {
     setIsSaving(true);
@@ -212,29 +309,42 @@ export default function SettingsPage() {
                   Connected Data Providers
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <p className="text-xs text-tertiary mb-4">
-                  These integrations are configured via environment variables. All data providers are active.
+              <CardContent className="space-y-6">
+                <p className="text-xs text-tertiary">
+                  All integrations are configured via environment variables and active.
                 </p>
-                {integrations.map((integration, index) => (
-                  <div
-                    key={index}
-                    className="flex items-center justify-between p-4 bg-base rounded-lg"
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className="p-2 rounded-lg bg-green-500/20">
-                        <CheckCircle className="h-5 w-5 text-green-400" />
-                      </div>
-                      <div>
-                        <p className="text-white">{integration.name}</p>
-                        <p className="text-sm text-tertiary">Connected via API</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Badge className="bg-green-500/20 text-green-400">
-                        active
+
+                {Object.entries(groupedIntegrations).map(([category, items]) => (
+                  <div key={category}>
+                    <h3 className="text-sm font-medium text-secondary mb-3 flex items-center gap-2">
+                      <Globe className="h-4 w-4 text-violet-400" />
+                      {categoryLabels[category]}
+                      <Badge className="bg-violet-500/20 text-violet-400 text-[10px]">
+                        {items.length}
                       </Badge>
-                      <Lock className="h-4 w-4 text-tertiary" />
+                    </h3>
+                    <div className="space-y-2">
+                      {items.map((integration, index) => (
+                        <div
+                          key={index}
+                          className="flex items-center justify-between p-3 bg-base rounded-lg"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="p-1.5 rounded-lg bg-green-500/20">
+                              <CheckCircle className="h-4 w-4 text-green-400" />
+                            </div>
+                            <div>
+                              <p className="text-sm text-white">{integration.name}</p>
+                              <p className="text-xs text-tertiary">{integration.description}</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Badge className="bg-green-500/20 text-green-400 text-[10px]">
+                              active
+                            </Badge>
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 ))}

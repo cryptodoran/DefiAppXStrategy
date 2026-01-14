@@ -293,27 +293,23 @@ export function MediaGenerator({ tweetContent, onPromptSelect, onImageGenerated,
           resolve(false);
           return;
         }
+        // For valid base64, try to load it
+        const img = new window.Image();
+        img.onload = () => resolve(img.width > 0 && img.height > 0);
+        img.onerror = () => resolve(false);
+        img.src = imageSrc;
+        return;
       }
 
-      // Try to load the image
-      const img = new window.Image();
-      img.crossOrigin = 'anonymous';
+      // For HTTP URLs, trust the server-side API to handle them
+      // (client-side loading may fail due to CORS, but server-side will work)
+      if (imageSrc.startsWith('http://') || imageSrc.startsWith('https://')) {
+        resolve(true);
+        return;
+      }
 
-      const timeout = setTimeout(() => {
-        resolve(false);
-      }, 10000); // 10 second timeout
-
-      img.onload = () => {
-        clearTimeout(timeout);
-        resolve(img.width > 0 && img.height > 0);
-      };
-
-      img.onerror = () => {
-        clearTimeout(timeout);
-        resolve(false);
-      };
-
-      img.src = imageSrc;
+      // Invalid format
+      resolve(false);
     });
   };
 
@@ -797,6 +793,23 @@ export function MediaGenerator({ tweetContent, onPromptSelect, onImageGenerated,
     }
   };
 
+  // Convert URL to base64 (for CORS-protected URLs like Figma CDN)
+  const urlToBase64 = async (url: string): Promise<string> => {
+    // Fetch the image through our API proxy to avoid CORS
+    const response = await fetch('/api/media/proxy-image', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url }),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to load image');
+    }
+
+    const data = await response.json();
+    return data.base64;
+  };
+
   // Use Figma template for AI editing (loads into Edit Template section)
   const useFigmaAsReference = async (template: FigmaTemplate) => {
     setFigmaExporting(true);
@@ -814,8 +827,17 @@ export function MediaGenerator({ tweetContent, onPromptSelect, onImageGenerated,
       const data = await response.json();
 
       if (data.imageUrl) {
+        addToast({
+          type: 'info',
+          title: 'Loading template...',
+          description: 'Converting image for AI editing',
+        });
+
+        // Convert URL to base64 to avoid CORS issues
+        const base64Image = await urlToBase64(data.imageUrl);
+
         // Set as edit template image (not the old referenceImage)
-        setEditTemplateImage(data.imageUrl);
+        setEditTemplateImage(base64Image);
         // Pre-fill a helpful prompt
         setEditTemplatePrompt(`Edit this ${template.name} template: `);
 
