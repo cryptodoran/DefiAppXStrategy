@@ -215,21 +215,37 @@ export function MediaGenerator({ tweetContent, onPromptSelect, onImageGenerated,
         : '/api/media/edit-text';
 
       // Step 1: Get text regions to modify from AI
-      const response = await fetch(apiEndpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          image: editTemplateImage,
-          instruction: editTemplatePrompt,
-        }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to analyze image');
+      let response;
+      try {
+        response = await fetch(apiEndpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            image: editTemplateImage,
+            instruction: editTemplatePrompt,
+          }),
+        });
+      } catch (fetchError) {
+        throw new Error('Network error - could not reach server');
       }
 
-      const data = await response.json();
+      if (!response.ok) {
+        let errorMessage = 'Failed to analyze image';
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.error || errorMessage;
+        } catch {
+          errorMessage = `Server error (${response.status})`;
+        }
+        throw new Error(errorMessage);
+      }
+
+      let data;
+      try {
+        data = await response.json();
+      } catch {
+        throw new Error('Invalid response from server');
+      }
 
       if (!data.regions || data.regions.length === 0) {
         throw new Error('No text regions found to edit. Try a different instruction.');
@@ -369,7 +385,9 @@ export function MediaGenerator({ tweetContent, onPromptSelect, onImageGenerated,
 
           // Set up text styling
           ctx.fillStyle = region.color;
-          ctx.font = `${region.fontWeight} ${fontSize}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
+          // Use simpler font string for better browser compatibility
+          const fontWeight = region.fontWeight === '900' || region.fontWeight === 'bold' ? 'bold' : 'normal';
+          ctx.font = `${fontWeight} ${Math.round(fontSize)}px sans-serif`;
           ctx.textBaseline = 'middle';
 
           // Apply text transform
@@ -381,13 +399,15 @@ export function MediaGenerator({ tweetContent, onPromptSelect, onImageGenerated,
           }
 
           // Calculate text position based on alignment
-          let textX = x;
+          // Add small padding from left edge for left-aligned text
+          const textPadding = 15 * scaleFactor;
+          let textX = x + (region.textAlign === 'left' ? textPadding : 0);
           if (region.textAlign === 'center') {
             ctx.textAlign = 'center';
             textX = x + width / 2;
           } else if (region.textAlign === 'right') {
             ctx.textAlign = 'right';
-            textX = x + width;
+            textX = x + width - textPadding;
           } else {
             ctx.textAlign = 'left';
           }

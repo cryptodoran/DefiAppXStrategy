@@ -86,39 +86,38 @@ export async function POST(request: NextRequest) {
             },
             {
               type: 'text',
-              text: `Analyze this image and identify the text that needs to be changed based on this instruction:
-"${instruction}"
+              text: `Find and locate the text "${instruction.replace(/change\s+/i, '').split(/\s+to\s+/i)[0] || 'specified'}" in this image.
 
-Return a JSON array of text regions to modify. For EACH text element that needs changing, provide:
+Return BOUNDING BOX as PERCENTAGES (0-100):
 
+MEASUREMENT METHOD:
+1. Find the EXACT text to change
+2. Measure y from TOP of image to TOP of the TEXT (not to any decorative element above)
+3. For text in the upper-left area, y is typically 25-35%
+4. width should be GENEROUS (25-35% for a phrase with spacing)
+
+JSON:
 {
-  "regions": [
-    {
-      "originalText": "the exact text currently shown",
-      "newText": "what it should be changed to",
-      "x": 10,          // percentage from left edge (0-100)
-      "y": 40,          // percentage from top edge (0-100)
-      "width": 30,      // width as percentage of image
-      "height": 15,     // height as percentage of image
-      "fontSize": 80,   // font size in pixels (assuming 1024px image)
-      "fontWeight": "900",  // CSS font weight
-      "color": "#FFFFFF",   // text color
-      "backgroundColor": "#0a0a0a",  // color behind text (to paint over original)
-      "textAlign": "left",  // left, center, or right
-      "letterSpacing": -2,  // letter spacing in pixels (optional)
-      "textTransform": "uppercase"  // uppercase, lowercase, or none (optional)
-    }
-  ]
+  "regions": [{
+    "originalText": "the text found",
+    "newText": "the replacement",
+    "x": 5,
+    "y": 30,
+    "width": 28,
+    "height": 6,
+    "fontSize": 55,
+    "fontWeight": "900",
+    "color": "#FFFFFF",
+    "backgroundColor": "#000000",
+    "textAlign": "left",
+    "letterSpacing": 0,
+    "textTransform": "uppercase"
+  }]
 }
 
-IMPORTANT:
-- Only include text that actually needs to change based on the instruction
-- Be precise with coordinates - measure from the actual text boundaries
-- Match the exact styling (color, weight, size) of the original text
-- The backgroundColor should match the area directly behind the text
-- For the font, we'll use system sans-serif, so estimate the size accordingly
+INSTRUCTION: "${instruction}"
 
-Return ONLY the JSON object, no explanation.`,
+Be generous with width (25-35%). Return ONLY JSON.`,
             },
           ],
         },
@@ -139,7 +138,19 @@ Return ONLY the JSON object, no explanation.`,
       jsonStr = jsonStr.replace(/^```\n?/, '').replace(/\n?```$/, '');
     }
 
-    const result = JSON.parse(jsonStr);
+    // Try to extract JSON if it's wrapped in other text
+    const jsonMatch = jsonStr.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      jsonStr = jsonMatch[0];
+    }
+
+    let result;
+    try {
+      result = JSON.parse(jsonStr);
+    } catch (parseError) {
+      console.error('Failed to parse Claude response:', jsonStr);
+      throw new Error('AI returned invalid response format. Please try again.');
+    }
 
     console.log('Text regions to edit:', JSON.stringify(result, null, 2));
 
